@@ -28,5 +28,5 @@ package com.synclab.conversationkit.model;
  * @author pdtyreus
  */
 public interface IConversationState {
-    
+    public int getCurrentNodeId();
 }

@@ -21,12 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl;
+
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationSnippet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public interface IParticipant {
+public class DialogTreeNode implements IConversationSnippet<DialogTreeState>, IConversationNode<DialogTreeNode> {
+    private final List<DialogTreeNode> leafNodes;
+    private final String content;
+    private final DialogTreeNodeType type;
+    private final int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public DialogTreeNodeType getType() {
+        return type;
+    }
     
+    public DialogTreeNode(DialogTreeNodeType type, int id, String content) {
+        this.id = id;
+        this.type = type;
+        this.content = content;
+        this.leafNodes = new ArrayList();
+    }
+
+    public List<DialogTreeNode> getLeafNodes() {
+        return leafNodes;
+    }
+
+    public void addLeafNode(DialogTreeNode node) {
+        leafNodes.add(node);
+    }
+
+    public String renderContent(DialogTreeState state) {
+        return content;
+    }
 }

@@ -27,6 +27,6 @@ package com.synclab.conversationkit.model;
  *
  * @author pdtyreus
  */
-public interface IConversationSnippet {
-    
+public interface IConversationSnippet<T extends IConversationState> {
+    public String renderContent(T state);
 }

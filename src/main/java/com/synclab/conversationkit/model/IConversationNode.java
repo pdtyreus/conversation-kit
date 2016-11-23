@@ -23,11 +23,15 @@
  */
 package com.synclab.conversationkit.model;
 
+import com.synclab.conversationkit.impl.DialogTreeNode;
+import java.util.List;
+
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public class ScriptedQuestionResponse {
-    private String value;
-    private IConversationSnippet nextSnippet;
+public interface IConversationNode<T extends IConversationNode> {
+    public List<T> getLeafNodes();
+
+    public void addLeafNode(T node);
 }

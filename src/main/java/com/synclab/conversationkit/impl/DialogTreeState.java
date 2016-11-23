@@ -21,27 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl;
+
+import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.IConversationState;
 
 /**
  *
  * @author pdtyreus
  */
-public class DialogTree implements IConversation {
-    private IConversationSnippet firstSnippet;
-    
-    public IConversationSnippet getCurrentSnippet(IConversationState state) {
-        return firstSnippet;
-    }
-    
+public class DialogTreeState implements IConversationState {
+    private int currentNodeId;
+
     /**
-     * Processes the incoming response and updates the state.
-     * 
-     * @param response
-     * @param state
-     * @return 
+     * @return the currentSnippetId
      */
-    public IConversationState handleResponse(String response, IConversationState state) {
-        return state;
+    public int getCurrentNodeId() {
+        return currentNodeId;
     }
+
+    /**
+     * @param currentSnippetId the currentSnippetId to set
+     */
+    public void setCurrentNodeId(int currentNodeId) {
+        this.currentNodeId = currentNodeId;
+    }
+    
 }

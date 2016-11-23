@@ -23,10 +23,13 @@
  */
 package com.synclab.conversationkit.model;
 
+import java.util.List;
+
 /**
  *
  * @author pdtyreus
  */
-public interface IConversation {
-    
+public interface IConversation<T extends IConversationNode,V extends IConversationState> {
+    public List<T> startConversationFromState(V state);
+    public List<T> processResponse(String response, V state);
 }

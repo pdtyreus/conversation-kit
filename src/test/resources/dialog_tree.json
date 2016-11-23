@@ -1,0 +1,52 @@
+{
+    "1": {
+        "type": "STATEMENT",
+        "content": "Hello I'm a test bot",
+        "next": 2
+    },
+    "2": {
+        "type": "QUESTION",
+        "content": "How are you feeling today?"
+    },
+    "3": {
+        "type": "STATEMENT",
+        "content": "Glad to hear it! Have a great day"
+    },
+    "4": {
+        "type": "STATEMENT",
+        "content": "Really sorry to hear that.",
+        "next": 5
+    },
+    "5": {
+        "type": "QUESTION",
+        "content": "Is there anything I can do to help?"
+    },
+    "6": {
+        "type": "STATEMENT",
+        "content": "I'm not sure I appreciate that tone. Goodbye."
+    },
+    "7": {
+        "type": "ANSWER",
+        "question": 2,
+        "content": "great",
+        "next": 3
+    },
+    "8": {
+        "type": "ANSWER",
+        "question": 2,
+        "content": "bad",
+        "next": 4
+    },
+    "9": {
+        "type": "ANSWER",
+        "question": 5,
+        "content": "No, I actually feel fine.",
+        "next": 3
+    },
+    "10": {
+        "type": "ANSWER",
+        "question": 5,
+        "content": "Yeah, you could work for a change.",
+        "next": 6
+    }
+}
