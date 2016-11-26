@@ -31,9 +31,8 @@ import java.io.Reader;
 import java.util.Formatter;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DialogTreeTest extends TestCase {
     
-    private static final Logger logger = LoggerFactory.getLogger(DialogTreeTest.class);
+    private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
     
     private DialogTree tree;
     
@@ -53,7 +52,7 @@ public class DialogTreeTest extends TestCase {
         try {
             tree = builder.fromJson(reader);
         } catch (IOException ex) {
-            logger.error("Unable to load tree json",ex);
+            logger.log(Level.SEVERE,"Unable to load tree json",ex);
         }
     }
 

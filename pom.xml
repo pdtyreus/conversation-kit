@@ -21,12 +21,10 @@
     <dependencies>
         
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <groupId>org.jsweet.candies</groupId>
+            <artifactId>j4ts</artifactId>
+            <version>0.3.0-SNAPSHOT</version>
         </dependency>
-
-        
         
         <dependency>
             <groupId>junit</groupId>
@@ -40,11 +38,70 @@
             <version>0.9.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.21</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+    
+    <build>
+        
+        <plugins>
+            <plugin>
+                <groupId>org.jsweet</groupId>
+                <artifactId>jsweet-maven-plugin</artifactId>
+                <version>1.2.0-SNAPSHOT</version>
+                <configuration>
+                    <sourceMap>true</sourceMap>
+                    <outDir>target/js</outDir>
+                    <targetVersion>ES5</targetVersion>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-js</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>jsweet</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemProperties>
+                        <property> 
+                            <name>java.util.logging.config.file</name>
+                            <value>src/test/resources/logging.properties</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jsweet-plugins-release</id>
+            <name>plugins-release</name>
+            <url>http://repository.jsweet.org/artifactory/plugins-release-local</url>
+        </pluginRepository>
+        <pluginRepository>
+            <snapshots />
+            <id>jsweet-plugins-snapshots</id>
+            <name>plugins-snapshot</name>
+            <url>http://repository.jsweet.org/artifactory/plugins-snapshot-local</url>
+        </pluginRepository>
+    </pluginRepositories>
+    
+    <repositories>
+        <repository>
+            <id>jsweet-central</id>
+            <name>libs-release</name>
+            <url>http://repository.jsweet.org/artifactory/libs-release-local</url>
+        </repository>
+        <repository>
+            <snapshots />
+            <id>jsweet-snapshots</id>
+            <name>libs-snapshot</name>
+            <url>http://repository.jsweet.org/artifactory/libs-snapshot-local</url>
+        </repository>
+    </repositories>
 </project>

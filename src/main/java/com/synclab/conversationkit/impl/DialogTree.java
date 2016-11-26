@@ -28,8 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  *
@@ -40,7 +39,7 @@ public class DialogTree implements IConversation<DialogTreeNode,DialogTreeState>
     //private final DialogTreeNode rootNode;
 
     private final Map<Integer, DialogTreeNode> nodeIndex;
-    private static Logger logger = LoggerFactory.getLogger(DialogTree.class);
+    private static Logger logger = Logger.getLogger(DialogTree.class.getName());
 
     public DialogTree(DialogTreeNode rootNode) {
         this.nodeIndex = new HashMap();
@@ -49,7 +48,7 @@ public class DialogTree implements IConversation<DialogTreeNode,DialogTreeState>
 
     private void addToIndex(DialogTreeNode startNode) {
         nodeIndex.put(startNode.getId(), startNode);
-        logger.info("indexing node {}:[{}] {}", String.format("%03d",startNode.getId()), String.format("%-9s",startNode.getType()), startNode.renderContent(null));
+        logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(),startNode.getType(), startNode.renderContent(null)));
         for (DialogTreeNode node : startNode.getLeafNodes()) {
             addToIndex(node);
         }
@@ -70,14 +69,14 @@ public class DialogTree implements IConversation<DialogTreeNode,DialogTreeState>
 
     public List<DialogTreeNode> processResponse(String response, DialogTreeState state) {
         DialogTreeNode currentSnippet = nodeIndex.get(state.getCurrentNodeId());
-        logger.info("processing response '{}' for node of type {} with {} allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size());
+        logger.info(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
         switch (currentSnippet.getType()) {
             case QUESTION:
                 for (DialogTreeNode allowedAnswer : currentSnippet.getLeafNodes()) {
-                    logger.info("inspecting possible answer {}",allowedAnswer.renderContent(state));
+                    logger.info(String.format("inspecting possible answer %s",allowedAnswer.renderContent(state)));
                     if (allowedAnswer.renderContent(state).equals(response)) {
                         state.setCurrentNodeId(allowedAnswer.getLeafNodes().get(0).getId());
-                        logger.info("response '{}' matches answer {}",response,allowedAnswer.getId());
+                        logger.info(String.format("response '%s' matches answer %d",response,allowedAnswer.getId()));
                     }
                 }
         }

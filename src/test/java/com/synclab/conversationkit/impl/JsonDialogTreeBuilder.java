@@ -31,8 +31,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  *
@@ -40,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JsonDialogTreeBuilder {
 
-    private static final Logger logger = LoggerFactory.getLogger(JsonDialogTreeBuilder.class);
+    private static final Logger logger = Logger.getLogger(JsonDialogTreeBuilder.class.getName());
 
     public DialogTree fromJson(Reader reader) throws IOException {
 
@@ -63,7 +62,7 @@ public class JsonDialogTreeBuilder {
             nodeMap.put(id, dtNode);
         }
 
-        logger.info("Created {} named nodes", nodeMap.keySet().size());
+        logger.info(String.format("Created {0} named nodes", nodeMap.keySet().size()));
 
         //connect the nodes
         for (Member member : keyTree) {
