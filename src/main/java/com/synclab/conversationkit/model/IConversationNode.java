@@ -34,4 +34,6 @@ public interface IConversationNode<T extends IConversationNode> {
     public List<T> getLeafNodes();
 
     public void addLeafNode(T node);
+    
+    public int getId();
 }

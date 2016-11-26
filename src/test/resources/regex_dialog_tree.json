@@ -1,0 +1,35 @@
+{
+    "1": {
+        "type": "STATEMENT",
+        "content": "Hello {{name}}, I'm a test bot",
+        "next": 2
+    },
+    "2": {
+        "type": "QUESTION",
+        "content": "How are you feeling today?"
+    },
+    "3": {
+        "type": "STATEMENT",
+        "content": "Correct. {{number}} fingers."
+    },
+    "4": {
+        "type": "STATEMENT",
+        "content": "This sounds serious. See a doctor."
+    },
+    "5": {
+        "type": "QUESTION",
+        "content": "How many fingers am I holding up?"
+    },
+    "7": {
+        "type": "ANSWER",
+        "question": 2,
+        "content": "\\d fingers?",
+        "next": 3
+    },
+    "8": {
+        "type": "ANSWER",
+        "question": 2,
+        "content": "*.",
+        "next": 4
+    }
+}
