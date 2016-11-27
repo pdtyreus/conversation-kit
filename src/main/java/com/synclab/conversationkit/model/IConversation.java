@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author pdtyreus
  */
-public interface IConversation<T extends IConversationNode,V extends IConversationState> {
-    public List<T> startConversationFromState(V state);
-    public List<T> processResponse(String response, V state);
+public interface IConversation<V extends IConversationState> {
+    public List<IConversationSnippet> startConversationFromState(V state);
+    public List<IConversationSnippet> processResponse(String response, V state);
 }

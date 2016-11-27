@@ -27,6 +27,7 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.IResponseEvaluator;
+import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,51 +35,37 @@ import java.util.List;
  *
  * @author tyreus
  */
-public class DialogTreeNode<T extends IConversationState> implements IConversationNode<T> {
-    private final List<IConversationNode> leafNodes;
+public class DialogTreeNode<T extends IConversationState> implements IConversationNode<DialogTreeNode, T> {
+
+    private final List<DialogTreeNode> leafNodes;
     private final String content;
     private final DialogTreeNodeType type;
     private final int id;
     private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
     private IResponseEvaluator responseEvaluator = new ExactMatchResponseEvaluator();
+    private IUnmatchedResponseHandler unmatchedResponseHandler = new BasicUnmatchedResponseHandler();
 
-    public int getId() {
-        return id;
-    }
-
-    public DialogTreeNodeType getType() {
-        return type;
-    }
-    
     public DialogTreeNode(DialogTreeNodeType type, int id, String content) {
         this.id = id;
         this.type = type;
         this.content = content;
         this.leafNodes = new ArrayList();
     }
-    
 
-    public List<IConversationNode> getLeafNodes() {
+    public List<DialogTreeNode> getLeafNodes() {
         return leafNodes;
     }
 
-    public void addLeafNode(IConversationNode node) {
+    public void addLeafNode(DialogTreeNode node) {
         leafNodes.add(node);
     }
 
     public String renderContent(T state) {
-        return getRenderer().renderContentUsingState(content, state);
-    }
-    
-    public boolean isMatch(String response) {
-        return getResponseEvaluator().isMatch(content, response);
+        return renderer.renderContentUsingState(content, state);
     }
 
-    /**
-     * @return the renderer
-     */
-    public IConversationSnippetRenderer<T> getRenderer() {
-        return renderer;
+    public boolean isMatchForResponse(String response) {
+        return responseEvaluator.isMatch(content, response);
     }
 
     /**
@@ -89,16 +76,21 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
     }
 
     /**
-     * @return the responseEvaluator
-     */
-    public IResponseEvaluator getResponseEvaluator() {
-        return responseEvaluator;
-    }
-
-    /**
      * @param responseEvaluator the responseEvaluator to set
      */
     public void setResponseEvaluator(IResponseEvaluator responseEvaluator) {
         this.responseEvaluator = responseEvaluator;
+    }
+
+    public IUnmatchedResponseHandler getUnmatchedResponseHandler() {
+        return unmatchedResponseHandler;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public DialogTreeNodeType getType() {
+        return type;
     }
 }

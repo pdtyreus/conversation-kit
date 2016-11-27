@@ -27,6 +27,8 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
+import com.synclab.conversationkit.model.IConversationSnippetRenderer;
+import com.synclab.conversationkit.model.IResponseEvaluator;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
@@ -40,14 +42,16 @@ import java.util.logging.Logger;
 public class JsonDialogTreeBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonDialogTreeBuilder.class.getName());
-
-    public DialogTree fromJson(Reader reader) throws IOException {
+    public DialogTree<UserDialogTreeState> fromJson(Reader reader) throws IOException {
+        return fromJson(reader,null,null);
+    }
+    public DialogTree<UserDialogTreeState> fromJson(Reader reader, IConversationSnippetRenderer<UserDialogTreeState> renderer, IResponseEvaluator evaluator) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject();
 
-        Map<Integer, DialogTreeNode> nodeMap = new HashMap();
+        Map<Integer, DialogTreeNode<UserDialogTreeState>> nodeMap = new HashMap();
 
         //run through once to create nodes
         for (Member member : keyTree) {
@@ -59,6 +63,12 @@ public class JsonDialogTreeBuilder {
             String type = node.get("type").asString();
             String content = node.get("content").asString();
             DialogTreeNode dtNode = new DialogTreeNode(DialogTreeNodeType.valueOf(type), id, content);
+            if (renderer != null) {
+                dtNode.setRenderer(renderer);
+            }
+            if (evaluator != null) {
+                dtNode.setResponseEvaluator(evaluator);
+            }
             nodeMap.put(id, dtNode);
         }
 

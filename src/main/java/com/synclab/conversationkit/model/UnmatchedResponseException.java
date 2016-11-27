@@ -23,17 +23,26 @@
  */
 package com.synclab.conversationkit.model;
 
-import java.util.List;
-
 /**
  *
  * @author tyreus
  */
-public interface IConversationNode<E, T extends IConversationState> extends IConversationSnippet<T>{
+public class UnmatchedResponseException extends RuntimeException {
 
-    public List<E> getLeafNodes();
+    /**
+     * Creates a new instance of <code>UnmatchedResponseException</code> without
+     * detail message.
+     */
+    public UnmatchedResponseException() {
+    }
 
-    public void addLeafNode(E node);
-
-    public int getId();
+    /**
+     * Constructs an instance of <code>UnmatchedResponseException</code> with
+     * the specified detail message.
+     *
+     * @param msg the detail message.
+     */
+    public UnmatchedResponseException(String msg) {
+        super(msg);
+    }
 }

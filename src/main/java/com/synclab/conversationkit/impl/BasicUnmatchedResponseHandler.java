@@ -21,19 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  *
  * @author tyreus
  */
-public interface IConversationNode<E, T extends IConversationState> extends IConversationSnippet<T>{
+public class BasicUnmatchedResponseHandler<V extends IConversationState> implements IUnmatchedResponseHandler<V>{
 
-    public List<E> getLeafNodes();
+    private String content = "I'm sorry, I did not understand your previous response";
 
-    public void addLeafNode(E node);
+    public BasicUnmatchedResponseHandler() {
+    }
 
-    public int getId();
+    public BasicUnmatchedResponseHandler(String content) {
+        this.content = content;
+    }
+    
+    public List<IConversationSnippet> handleUnmatchedResponse(String response, V state) {
+        List<IConversationSnippet> snippets = new ArrayList();
+        IConversationSnippet snippet = new IConversationSnippet() {
+
+            public String renderContent(IConversationState state) {
+                return content;
+            }
+
+        };
+
+        snippets.add(snippet);
+        return snippets;
+    }
 }

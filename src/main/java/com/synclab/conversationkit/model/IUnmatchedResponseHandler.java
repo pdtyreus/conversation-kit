@@ -29,11 +29,6 @@ import java.util.List;
  *
  * @author tyreus
  */
-public interface IConversationNode<E, T extends IConversationState> extends IConversationSnippet<T>{
-
-    public List<E> getLeafNodes();
-
-    public void addLeafNode(E node);
-
-    public int getId();
+public interface IUnmatchedResponseHandler<T extends IConversationState> {
+    public List<IConversationSnippet> handleUnmatchedResponse(String response, T state);
 }

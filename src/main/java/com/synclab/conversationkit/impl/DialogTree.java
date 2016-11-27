@@ -24,6 +24,9 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversation;
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,51 +37,61 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DialogTree<T extends DialogTreeNode<V>,V extends DialogTreeState> implements IConversation<T,V> {
-    protected final Map<Integer, T> nodeIndex;
+public class DialogTree<V extends DialogTreeState> implements IConversation<V> {
+    protected final Map<Integer, DialogTreeNode<V>> nodeIndex;
     private static Logger logger = Logger.getLogger(DialogTree.class.getName());
 
-    public DialogTree(T rootNode) {
+    public DialogTree(DialogTreeNode<V> rootNode) {
         this.nodeIndex = new HashMap();
         addToIndex(rootNode);
     }
 
-    private void addToIndex(T startNode) {
+    private void addToIndex(DialogTreeNode<V> startNode) {
         nodeIndex.put(startNode.getId(), startNode);
         logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(),startNode.getType(), startNode.renderContent(null)));
-        for (Object node : startNode.getLeafNodes()) {
-            addToIndex((T)node);
+        for (IConversationNode node : startNode.getLeafNodes()) {
+            addToIndex((DialogTreeNode<V>)node);
         }
     }
 
-    public List<T> startConversationFromState(V state) {
-        List<T> nodes = new ArrayList();
-        T current = nodeIndex.get(state.getCurrentNodeId());
+    public List<IConversationSnippet> startConversationFromState(V state) {
+        List<IConversationSnippet> nodes = new ArrayList();
+        DialogTreeNode<V> current = nodeIndex.get(state.getCurrentNodeId());
         nodes.add(current);
         while ((current.getType() == DialogTreeNodeType.STATEMENT) && (!current.getLeafNodes().isEmpty())) {
-            current = (T)current.getLeafNodes().get(0);
+            current = current.getLeafNodes().get(0);
             nodes.add(current);
             state.setCurrentNodeId(current.getId());
         }
         return nodes;
     }
 
-    public List<T> processResponse(String response, V state) {
-        T currentSnippet = nodeIndex.get(state.getCurrentNodeId());
+    public List<IConversationSnippet> processResponse(String response, V state){
+        DialogTreeNode<V> currentSnippet = nodeIndex.get(state.getCurrentNodeId());
         logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
+        boolean matchFound = false;
         switch (currentSnippet.getType()) {
             case QUESTION:
-                for (Object leafNode : currentSnippet.getLeafNodes()) {
-                    T allowedAnswer = (T)leafNode;
+                for (DialogTreeNode<V> allowedAnswer : currentSnippet.getLeafNodes()) {
                     logger.fine(String.format("inspecting possible answer %s",allowedAnswer.renderContent(state)));
                     
-                    if (allowedAnswer.isMatch(response)) {
-                        T nextLeaf = (T)allowedAnswer.getLeafNodes().get(0);
+                    if (allowedAnswer.isMatchForResponse(response)) {
+                        IConversationNode nextLeaf = allowedAnswer.getLeafNodes().get(0);
                         state.setCurrentNodeId(nextLeaf.getId());
                         logger.info(String.format("response '%s' matches answer %d",response,allowedAnswer.getId()));
+                        matchFound = true;
                     }
                 }
         }
-        return startConversationFromState(state);
+        
+        List<IConversationSnippet> nodes = new ArrayList();
+        
+        if (!matchFound) {
+            nodes.addAll(currentSnippet.getUnmatchedResponseHandler().handleUnmatchedResponse(response, state));
+        }
+        
+        nodes.addAll(startConversationFromState(state));
+        
+        return nodes;
     }
 }

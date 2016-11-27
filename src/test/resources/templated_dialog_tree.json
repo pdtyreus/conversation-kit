@@ -14,7 +14,7 @@
     },
     "4": {
         "type": "STATEMENT",
-        "content": "This sounds serious. See a doctor."
+        "content": "{{number}} is wrong. See a doctor."
     },
     "5": {
         "type": "QUESTION",
@@ -23,13 +23,13 @@
     "7": {
         "type": "ANSWER",
         "question": 2,
-        "content": "\\d fingers?",
+        "content": "3",
         "next": 3
     },
     "8": {
         "type": "ANSWER",
         "question": 2,
-        "content": "*.",
+        "content": "4",
         "next": 4
     }
 }

@@ -23,8 +23,10 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -42,22 +44,13 @@ public class DialogTreeTest extends TestCase {
     
     private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
     
-    private DialogTree tree;
+    
     
     public DialogTreeTest(String testName) {
         super(testName);
-        logger.info("** Initializing DialogTree for testing");
-        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
-        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-        try {
-            tree = builder.fromJson(reader);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE,"Unable to load tree json",ex);
-        }
+        
     }
 
-    
-    
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -68,18 +61,25 @@ public class DialogTreeTest extends TestCase {
         super.tearDown();
     }
 
-    public void testConversation() {
+    public void testBasicDialogTree() throws IOException{
+        
+        logger.info("** Initializing Basic DialogTree for testing");
+        
+        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
+        DialogTree<UserDialogTreeState> tree = builder.fromJson(reader);
+
         logger.info("** Testing conversation");
         
-        DialogTreeState state = new DialogTreeState();
+        UserDialogTreeState state = new UserDialogTreeState();
         state.setCurrentNodeId(1);
         
-        List<DialogTreeNode> nodes = tree.startConversationFromState(state);
+        List<IConversationSnippet> nodes = tree.startConversationFromState(state);
         StringBuilder convo = new StringBuilder();
         Formatter formatter = new Formatter(convo);
 
         convo.append("\n");
-        for (DialogTreeNode node : nodes) {
+        for (IConversationSnippet node : nodes) {
             formatter.format("  > %-50s <\n", node.renderContent(state));
         }
         
@@ -87,9 +87,8 @@ public class DialogTreeTest extends TestCase {
         
         String response = "great";
         formatter.format("  > %50s <\n", response);
-        nodes = tree.processResponse(response, state);
-        
-        for (DialogTreeNode node : nodes) {
+            nodes = tree.processResponse(response, state);
+        for (IConversationSnippet node : nodes) {
             formatter.format("  > %-50s <\n", node.renderContent(state));
         }
         
@@ -105,7 +104,7 @@ public class DialogTreeTest extends TestCase {
         formatter = new Formatter(convo);
         
         convo.append("\n");
-        for (DialogTreeNode node : nodes) {
+        for (IConversationSnippet node : nodes) {
             formatter.format("  > %-50s <\n", node.renderContent(state));
         }
         
@@ -115,7 +114,7 @@ public class DialogTreeTest extends TestCase {
         formatter.format("  > %50s <\n", response);
         nodes = tree.processResponse(response, state);
         
-        for (DialogTreeNode node : nodes) {
+        for (IConversationSnippet node : nodes) {
             formatter.format("  > %-50s <\n", node.renderContent(state));
         }
         
@@ -125,7 +124,7 @@ public class DialogTreeTest extends TestCase {
         formatter.format("  > %50s <\n", response);
         nodes = tree.processResponse(response, state);
         
-        for (DialogTreeNode node : nodes) {
+        for (IConversationSnippet node : nodes) {
             formatter.format("  > %-50s <\n", node.renderContent(state));
         }
         

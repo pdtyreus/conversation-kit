@@ -21,19 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
-
-import java.util.List;
+package com.synclab.conversationkit.impl;
 
 /**
  *
  * @author tyreus
  */
-public interface IConversationNode<E, T extends IConversationState> extends IConversationSnippet<T>{
-
-    public List<E> getLeafNodes();
-
-    public void addLeafNode(E node);
-
-    public int getId();
+public class UserDialogTreeState extends DialogTreeState {
+    
 }
