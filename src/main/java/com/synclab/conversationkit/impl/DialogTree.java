@@ -34,49 +34,51 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DialogTree implements IConversation<DialogTreeNode,DialogTreeState> {
-    protected final Map<Integer, DialogTreeNode> nodeIndex;
+public class DialogTree<T extends DialogTreeNode<V>,V extends DialogTreeState> implements IConversation<T,V> {
+    protected final Map<Integer, T> nodeIndex;
     private static Logger logger = Logger.getLogger(DialogTree.class.getName());
 
-    public DialogTree(DialogTreeNode rootNode) {
+    public DialogTree(T rootNode) {
         this.nodeIndex = new HashMap();
         addToIndex(rootNode);
     }
 
-    protected void addToIndex(DialogTreeNode startNode) {
+    private void addToIndex(T startNode) {
         nodeIndex.put(startNode.getId(), startNode);
         logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(),startNode.getType(), startNode.renderContent(null)));
-        for (DialogTreeNode node : startNode.getLeafNodes()) {
-            addToIndex(node);
+        for (Object node : startNode.getLeafNodes()) {
+            addToIndex((T)node);
         }
     }
-    
-    public List<DialogTreeNode> startConversationFromState(DialogTreeState state) {
-        List<DialogTreeNode> nodes = new ArrayList();
-        DialogTreeNode current = nodeIndex.get(state.getCurrentNodeId());
+
+    public List<T> startConversationFromState(V state) {
+        List<T> nodes = new ArrayList();
+        T current = nodeIndex.get(state.getCurrentNodeId());
         nodes.add(current);
         while ((current.getType() == DialogTreeNodeType.STATEMENT) && (!current.getLeafNodes().isEmpty())) {
-            current = current.getLeafNodes().get(0);
+            current = (T)current.getLeafNodes().get(0);
             nodes.add(current);
             state.setCurrentNodeId(current.getId());
         }
         return nodes;
     }
 
-
-    public List<DialogTreeNode> processResponse(String response, DialogTreeState state) {
-        DialogTreeNode currentSnippet = nodeIndex.get(state.getCurrentNodeId());
+    public List<T> processResponse(String response, V state) {
+        T currentSnippet = nodeIndex.get(state.getCurrentNodeId());
         logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
         switch (currentSnippet.getType()) {
             case QUESTION:
-                for (DialogTreeNode allowedAnswer : currentSnippet.getLeafNodes()) {
+                for (Object leafNode : currentSnippet.getLeafNodes()) {
+                    T allowedAnswer = (T)leafNode;
                     logger.fine(String.format("inspecting possible answer %s",allowedAnswer.renderContent(state)));
-                    if (allowedAnswer.renderContent(state).equals(response)) {
-                        state.setCurrentNodeId(allowedAnswer.getLeafNodes().get(0).getId());
+                    
+                    if (allowedAnswer.isMatch(response)) {
+                        T nextLeaf = (T)allowedAnswer.getLeafNodes().get(0);
+                        state.setCurrentNodeId(nextLeaf.getId());
                         logger.info(String.format("response '%s' matches answer %d",response,allowedAnswer.getId()));
                     }
                 }
         }
-        return this.startConversationFromState(state);
+        return startConversationFromState(state);
     }
 }

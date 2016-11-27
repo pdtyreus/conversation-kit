@@ -21,19 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl;
 
-import java.util.List;
+import com.synclab.conversationkit.model.IResponseEvaluator;
 
 /**
  *
  * @author tyreus
  */
-public interface IConversationNode<T extends IConversationState> {
-    public List<IConversationNode> getLeafNodes();
-    public void addLeafNode(IConversationNode node);
-    public int getId();
-    public String renderContent(T state);
-    public IResponseEvaluator getResponseEvaluator();
-    public IConversationSnippetRenderer<T> getRenderer();
+public class ExactMatchResponseEvaluator implements IResponseEvaluator {
+    public boolean isMatch(String nodeContent, String response) {
+        return nodeContent.equals(response);
+    }
 }

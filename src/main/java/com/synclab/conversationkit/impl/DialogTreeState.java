@@ -23,7 +23,6 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
 
 /**
@@ -33,16 +32,10 @@ import com.synclab.conversationkit.model.IConversationState;
 public class DialogTreeState implements IConversationState {
     private int currentNodeId;
 
-    /**
-     * @return the currentSnippetId
-     */
     public int getCurrentNodeId() {
         return currentNodeId;
     }
 
-    /**
-     * @param currentSnippetId the currentSnippetId to set
-     */
     public void setCurrentNodeId(int currentNodeId) {
         this.currentNodeId = currentNodeId;
     }

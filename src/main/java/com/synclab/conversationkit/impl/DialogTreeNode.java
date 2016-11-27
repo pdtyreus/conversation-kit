@@ -24,7 +24,9 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationNode;
-import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.IConversationSnippetRenderer;
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.IResponseEvaluator;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,11 +34,13 @@ import java.util.List;
  *
  * @author tyreus
  */
-public class DialogTreeNode implements IConversationSnippet<DialogTreeState>, IConversationNode<DialogTreeNode> {
-    private final List<DialogTreeNode> leafNodes;
+public class DialogTreeNode<T extends IConversationState> implements IConversationNode<T> {
+    private final List<IConversationNode> leafNodes;
     private final String content;
     private final DialogTreeNodeType type;
     private final int id;
+    private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
+    private IResponseEvaluator responseEvaluator = new ExactMatchResponseEvaluator();
 
     public int getId() {
         return id;
@@ -52,16 +56,49 @@ public class DialogTreeNode implements IConversationSnippet<DialogTreeState>, IC
         this.content = content;
         this.leafNodes = new ArrayList();
     }
+    
 
-    public List<DialogTreeNode> getLeafNodes() {
+    public List<IConversationNode> getLeafNodes() {
         return leafNodes;
     }
 
-    public void addLeafNode(DialogTreeNode node) {
+    public void addLeafNode(IConversationNode node) {
         leafNodes.add(node);
     }
 
-    public String renderContent(DialogTreeState state) {
-        return content;
+    public String renderContent(T state) {
+        return getRenderer().renderContentUsingState(content, state);
+    }
+    
+    public boolean isMatch(String response) {
+        return getResponseEvaluator().isMatch(content, response);
+    }
+
+    /**
+     * @return the renderer
+     */
+    public IConversationSnippetRenderer<T> getRenderer() {
+        return renderer;
+    }
+
+    /**
+     * @param renderer the renderer to set
+     */
+    public void setRenderer(IConversationSnippetRenderer<T> renderer) {
+        this.renderer = renderer;
+    }
+
+    /**
+     * @return the responseEvaluator
+     */
+    public IResponseEvaluator getResponseEvaluator() {
+        return responseEvaluator;
+    }
+
+    /**
+     * @param responseEvaluator the responseEvaluator to set
+     */
+    public void setResponseEvaluator(IResponseEvaluator responseEvaluator) {
+        this.responseEvaluator = responseEvaluator;
     }
 }

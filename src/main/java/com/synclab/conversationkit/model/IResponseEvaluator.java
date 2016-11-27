@@ -23,17 +23,10 @@
  */
 package com.synclab.conversationkit.model;
 
-import java.util.List;
-
 /**
  *
  * @author tyreus
  */
-public interface IConversationNode<T extends IConversationState> {
-    public List<IConversationNode> getLeafNodes();
-    public void addLeafNode(IConversationNode node);
-    public int getId();
-    public String renderContent(T state);
-    public IResponseEvaluator getResponseEvaluator();
-    public IConversationSnippetRenderer<T> getRenderer();
+public interface IResponseEvaluator {
+    public boolean isMatch(String nodeContent, String response);
 }
