@@ -27,6 +27,7 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
+import com.synclab.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +53,15 @@ public class BasicUnmatchedResponseHandler<V extends IConversationState> impleme
             public String renderContent(IConversationState state) {
                 return content;
             }
+
+            public SnippetType getType() {
+                return SnippetType.STATEMENT;
+            }
+
+            public List getSuggestedResponses() {
+                return null;
+            }
+
 
         };
 

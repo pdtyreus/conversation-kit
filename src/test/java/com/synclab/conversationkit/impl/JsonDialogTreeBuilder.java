@@ -23,6 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
@@ -31,6 +32,7 @@ import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IResponseEvaluator;
 import java.io.IOException;
 import java.io.Reader;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -62,7 +64,7 @@ public class JsonDialogTreeBuilder {
             //make the node into something
             String type = node.get("type").asString();
             String content = node.get("content").asString();
-            DialogTreeNode dtNode = new DialogTreeNode(DialogTreeNodeType.valueOf(type), id, content);
+            DialogTreeNode dtNode = new DialogTreeNode(SnippetType.valueOf(type), id, content);
             if (renderer != null) {
                 dtNode.setRenderer(renderer);
             }
@@ -72,7 +74,7 @@ public class JsonDialogTreeBuilder {
             nodeMap.put(id, dtNode);
         }
 
-        logger.info(String.format("Created {0} named nodes", nodeMap.keySet().size()));
+        logger.info(MessageFormat.format("Created {0} named nodes", nodeMap.keySet().size()));
 
         //connect the nodes
         for (Member member : keyTree) {
@@ -82,17 +84,23 @@ public class JsonDialogTreeBuilder {
 
             //make the node into something
             String type = node.get("type").asString();
-            DialogTreeNodeType nodeType = DialogTreeNodeType.valueOf(type);
+            SnippetType nodeType = SnippetType.valueOf(type);
             DialogTreeNode dtNode = nodeMap.get(id);
             if (node.get("next") != null) {
                 int nextId = node.get("next").asInt();
-                dtNode.addLeafNode(nodeMap.get(nextId));
+                DialogTreeNode nextNode = nodeMap.get(nextId);
+                dtNode.addLeafNode(nextNode);
                 switch (nodeType) {
                     case STATEMENT:
                         break;
                     case ANSWER:
                         int prevId = node.get("question").asInt();
-                        nodeMap.get(prevId).addLeafNode(dtNode);
+                        DialogTreeNode prevNode = nodeMap.get(prevId);
+                        prevNode.addLeafNode(dtNode);
+                        prevNode.addSuggestedResponse(dtNode.renderContent(null));
+                        break;
+                    case QUESTION:
+                        
                         break;
                 }
             }

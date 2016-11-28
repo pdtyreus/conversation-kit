@@ -24,15 +24,13 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
-import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.UnmatchedResponseException;
+import com.synclab.conversationkit.model.SnippetType;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Formatter;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 
@@ -41,96 +39,106 @@ import junit.framework.TestCase;
  * @author tyreus
  */
 public class DialogTreeTest extends TestCase {
-    
+
     private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
-    
-    
-    
+
     public DialogTreeTest(String testName) {
         super(testName);
-        
+
     }
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
     }
-    
+
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
     }
 
-    public void testBasicDialogTree() throws IOException{
-        
+    public void testBasicDialogTree() throws IOException {
+
         logger.info("** Initializing Basic DialogTree for testing");
-        
+
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
         DialogTree<UserDialogTreeState> tree = builder.fromJson(reader);
 
         logger.info("** Testing conversation");
-        
+
         UserDialogTreeState state = new UserDialogTreeState();
         state.setCurrentNodeId(1);
-        
+
         List<IConversationSnippet> nodes = tree.startConversationFromState(state);
         StringBuilder convo = new StringBuilder();
         Formatter formatter = new Formatter(convo);
 
         convo.append("\n");
         for (IConversationSnippet node : nodes) {
-            formatter.format("  > %-50s <\n", node.renderContent(state));
+            formatSnippet(formatter, node, state);
         }
-        
-        assertEquals(2,state.getCurrentNodeId());
-        
+
+        assertEquals(2, state.getCurrentNodeId());
+
         String response = "great";
-        formatter.format("  > %50s <\n", response);
-            nodes = tree.processResponse(response, state);
+        formatResponse(formatter, response);
+        nodes = tree.processResponse(response, state);
         for (IConversationSnippet node : nodes) {
-            formatter.format("  > %-50s <\n", node.renderContent(state));
+            formatSnippet(formatter, node, state);
         }
-        
-        assertEquals(3,state.getCurrentNodeId());
-        
+
+        assertEquals(3, state.getCurrentNodeId());
+
         logger.info(convo.toString());
-        
+
         //restart the convo
         state.setCurrentNodeId(1);
         nodes = tree.startConversationFromState(state);
-        
+
         convo = new StringBuilder();
         formatter = new Formatter(convo);
-        
+
         convo.append("\n");
         for (IConversationSnippet node : nodes) {
-            formatter.format("  > %-50s <\n", node.renderContent(state));
+            formatSnippet(formatter, node, state);
         }
-        
-        assertEquals(2,state.getCurrentNodeId());
-        
+
+        assertEquals(2, state.getCurrentNodeId());
+
         response = "bad";
-        formatter.format("  > %50s <\n", response);
+        formatResponse(formatter, response);
+
         nodes = tree.processResponse(response, state);
-        
+
         for (IConversationSnippet node : nodes) {
-            formatter.format("  > %-50s <\n", node.renderContent(state));
+            formatSnippet(formatter, node, state);
         }
-        
-        assertEquals(5,state.getCurrentNodeId());
-        
+
+        assertEquals(5, state.getCurrentNodeId());
+
         response = "No, I actually feel fine.";
-        formatter.format("  > %50s <\n", response);
+        formatResponse(formatter, response);
         nodes = tree.processResponse(response, state);
-        
+
         for (IConversationSnippet node : nodes) {
-            formatter.format("  > %-50s <\n", node.renderContent(state));
+            formatSnippet(formatter, node, state);
         }
-        
-        assertEquals(3,state.getCurrentNodeId());
-        
+
+        assertEquals(3, state.getCurrentNodeId());
+
         logger.info(convo.toString());
+    }
+
+    private void formatSnippet(Formatter formatter, IConversationSnippet node, IConversationState state) {
+        formatter.format("  > %-100s <\n", node.renderContent(state));
+        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses() != null) && !node.getSuggestedResponses().isEmpty()) {
+            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses()) + " ]");
+        }
+    }
+
+    private void formatResponse(Formatter formatter, String response) {
+        formatter.format("  > %100s <\n", response);
     }
 
 }

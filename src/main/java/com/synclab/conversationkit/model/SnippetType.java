@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.model;
 
 /**
  *
  * @author tyreus
  */
-public enum DialogTreeNodeType {
+public enum SnippetType {
     QUESTION, ANSWER, STATEMENT
 }

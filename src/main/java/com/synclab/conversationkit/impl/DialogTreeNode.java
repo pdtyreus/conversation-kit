@@ -23,6 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
@@ -39,13 +40,14 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
 
     private final List<DialogTreeNode> leafNodes;
     private final String content;
-    private final DialogTreeNodeType type;
+    private final SnippetType type;
     private final int id;
     private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
     private IResponseEvaluator responseEvaluator = new ExactMatchResponseEvaluator();
     private IUnmatchedResponseHandler unmatchedResponseHandler = new BasicUnmatchedResponseHandler();
+    private List<String> suggestedResponses = new ArrayList();
 
-    public DialogTreeNode(DialogTreeNodeType type, int id, String content) {
+    public DialogTreeNode(SnippetType type, int id, String content) {
         this.id = id;
         this.type = type;
         this.content = content;
@@ -90,7 +92,18 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
         return id;
     }
 
-    public DialogTreeNodeType getType() {
+    public SnippetType getType() {
         return type;
     }
+
+    public List<String> getSuggestedResponses() {
+        return suggestedResponses;
+    }
+
+
+    public void addSuggestedResponse(String suggestedResponse) {
+        this.suggestedResponses.add(suggestedResponse);
+    }
+    
+    
 }

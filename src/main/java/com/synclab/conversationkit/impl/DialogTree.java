@@ -23,6 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.IConversation;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationSnippet;
@@ -58,7 +59,7 @@ public class DialogTree<V extends DialogTreeState> implements IConversation<V> {
         List<IConversationSnippet> nodes = new ArrayList();
         DialogTreeNode<V> current = nodeIndex.get(state.getCurrentNodeId());
         nodes.add(current);
-        while ((current.getType() == DialogTreeNodeType.STATEMENT) && (!current.getLeafNodes().isEmpty())) {
+        while ((current.getType() == SnippetType.STATEMENT) && (!current.getLeafNodes().isEmpty())) {
             current = current.getLeafNodes().get(0);
             nodes.add(current);
             state.setCurrentNodeId(current.getId());

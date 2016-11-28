@@ -23,6 +23,8 @@
  */
 package com.synclab.conversationkit.model;
 
+import java.util.List;
+
 /**
  *
  * @author tyreus
@@ -30,4 +32,6 @@ package com.synclab.conversationkit.model;
 public interface IConversationSnippet<T extends IConversationState> {
     
     public String renderContent(T state);
+    public SnippetType getType();
+    public List<String> getSuggestedResponses();
 }
