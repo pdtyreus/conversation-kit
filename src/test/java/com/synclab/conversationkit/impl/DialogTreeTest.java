@@ -24,6 +24,7 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.SnippetType;
 import java.io.IOException;
@@ -55,6 +56,53 @@ public class DialogTreeTest extends TestCase {
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
+    }
+    
+    public void testTemplatedDialogTree() throws IOException {
+
+        logger.info("** Initializing Templated DialogTree for testing");
+        
+        //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
+        
+        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
+        DialogTree<UserDialogTreeState> tree = builder.fromJson(reader, new IConversationSnippetRenderer<UserDialogTreeState>() {
+
+            public String renderContentUsingState(String content, UserDialogTreeState state) {
+                if (state == null) {
+                    return content;
+                }
+                return content.replace("{{name}}", state.getName()).replace("{{number}}", state.getNumber());
+            }
+        
+        },null);
+
+        logger.info("** Testing conversation");
+        
+        UserDialogTreeState state = new UserDialogTreeState();
+        state.setCurrentNodeId(1);
+        state.setName("Daniel");
+        state.setNumber("3");
+
+        List<IConversationSnippet> nodes = tree.startConversationFromState(state);
+        StringBuilder convo = new StringBuilder();
+        Formatter formatter = new Formatter(convo);
+
+        convo.append("\n");
+        for (IConversationSnippet node : nodes) {
+            formatSnippet(formatter, node, state);
+        }
+
+        String response = "4";
+        formatResponse(formatter, response);
+        nodes = tree.processResponse(response, state);
+        for (IConversationSnippet node : nodes) {
+            formatSnippet(formatter, node, state);
+        }
+
+        assertEquals(4, state.getCurrentNodeId());
+
+        logger.info(convo.toString());
     }
 
     public void testBasicDialogTree() throws IOException {

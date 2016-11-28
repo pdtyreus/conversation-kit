@@ -5,8 +5,9 @@
         "next": 2
     },
     "2": {
-        "type": "QUESTION",
-        "content": "How are you feeling today?"
+        "type": "STATEMENT",
+        "content": "You've hit your head. I'm going to ask you some questions.",
+        "next":5
     },
     "3": {
         "type": "STATEMENT",
@@ -22,13 +23,13 @@
     },
     "7": {
         "type": "ANSWER",
-        "question": 2,
+        "question": 5,
         "content": "3",
         "next": 3
     },
     "8": {
         "type": "ANSWER",
-        "question": 2,
+        "question": 5,
         "content": "4",
         "next": 4
     }
