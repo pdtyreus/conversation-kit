@@ -71,6 +71,9 @@ public class JsonDialogTreeBuilder {
             if (evaluator != null) {
                 dtNode.setResponseEvaluator(evaluator);
             }
+            if (node.get("stateKey") != null) {
+                dtNode.setStateKey(node.get("stateKey").asString());
+            }
             nodeMap.put(id, dtNode);
         }
 

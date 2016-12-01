@@ -81,6 +81,9 @@ public class DialogTree<V extends DialogTreeState> implements IConversation<V> {
                         state.setCurrentNodeId(nextLeaf.getId());
                         logger.info(String.format("response '%s' matches answer %d",response,allowedAnswer.getId()));
                         matchFound = true;
+                        if (currentSnippet.getStateKey() != null) {
+                            state.put(currentSnippet.getStateKey(), response);
+                        }
                     }
                 }
         }

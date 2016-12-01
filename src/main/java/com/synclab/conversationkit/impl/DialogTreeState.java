@@ -24,20 +24,21 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationState;
+import java.util.HashMap;
 
 /**
  *
  * @author pdtyreus
  */
-public class DialogTreeState implements IConversationState {
-    private int currentNodeId;
+public class DialogTreeState extends HashMap<String,Object> implements IConversationState<String,Object> {
 
     public int getCurrentNodeId() {
-        return currentNodeId;
+        Integer id = (Integer)this.get("currentNodeId");
+        return id;
     }
 
     public void setCurrentNodeId(int currentNodeId) {
-        this.currentNodeId = currentNodeId;
+        this.put("currentNodeId", currentNodeId);
     }
     
 }

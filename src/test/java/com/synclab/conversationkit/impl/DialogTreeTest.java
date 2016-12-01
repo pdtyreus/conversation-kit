@@ -72,7 +72,12 @@ public class DialogTreeTest extends TestCase {
                 if (state == null) {
                     return content;
                 }
-                return content.replace("{{name}}", state.getName()).replace("{{number}}", state.getNumber());
+                
+                for (String key : state.keySet()) {
+                    content = content.replace("{{"+key+"}}", state.get(key).toString());
+                }
+                
+                return content;
             }
         
         },null);
@@ -82,7 +87,7 @@ public class DialogTreeTest extends TestCase {
         UserDialogTreeState state = new UserDialogTreeState();
         state.setCurrentNodeId(1);
         state.setName("Daniel");
-        state.setNumber("3");
+        state.setNumber(3);
 
         List<IConversationSnippet> nodes = tree.startConversationFromState(state);
         StringBuilder convo = new StringBuilder();

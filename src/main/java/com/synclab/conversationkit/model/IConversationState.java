@@ -23,10 +23,12 @@
  */
 package com.synclab.conversationkit.model;
 
+import java.util.Map;
+
 /**
  *
  * @author pdtyreus
  */
-public interface IConversationState {
+public interface IConversationState<String,Object> extends Map<String,Object>{
     public int getCurrentNodeId();
 }

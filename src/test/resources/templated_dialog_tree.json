@@ -11,15 +11,16 @@
     },
     "3": {
         "type": "STATEMENT",
-        "content": "Correct. {{number}} fingers."
+        "content": "Correct. {{numFingers}} fingers."
     },
     "4": {
         "type": "STATEMENT",
-        "content": "{{number}} is wrong. See a doctor."
+        "content": "{{numFingers}} is wrong. I was holding up {{number}}. See a doctor."
     },
     "5": {
         "type": "QUESTION",
-        "content": "How many fingers am I holding up?"
+        "content": "How many fingers am I holding up?",
+        "stateKey":"numFingers"
     },
     "7": {
         "type": "ANSWER",

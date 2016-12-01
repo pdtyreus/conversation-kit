@@ -42,6 +42,7 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
     private final String content;
     private final SnippetType type;
     private final int id;
+    private String stateKey;
     private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
     private IResponseEvaluator responseEvaluator = new ExactMatchResponseEvaluator();
     private IUnmatchedResponseHandler unmatchedResponseHandler = new BasicUnmatchedResponseHandler();
@@ -103,6 +104,20 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
 
     public void addSuggestedResponse(String suggestedResponse) {
         this.suggestedResponses.add(suggestedResponse);
+    }
+
+    /**
+     * @return the stateKey
+     */
+    public String getStateKey() {
+        return stateKey;
+    }
+
+    /**
+     * @param stateKey the stateKey to set
+     */
+    public void setStateKey(String stateKey) {
+        this.stateKey = stateKey;
     }
     
     
