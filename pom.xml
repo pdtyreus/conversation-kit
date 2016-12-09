@@ -21,12 +21,6 @@
     <dependencies>
         
         <dependency>
-            <groupId>org.jsweet.candies</groupId>
-            <artifactId>j4ts</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
-        </dependency>
-        
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>3.8.1</version>
@@ -44,26 +38,6 @@
         
         <plugins>
             <plugin>
-                <groupId>org.jsweet</groupId>
-                <artifactId>jsweet-maven-plugin</artifactId>
-                <version>1.2.0-SNAPSHOT</version>
-                <configuration>
-                    <sourceMap>true</sourceMap>
-                    <outDir>target/js</outDir>
-                    <targetVersion>ES5</targetVersion>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>generate-js</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>jsweet</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        
-            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <systemProperties>
@@ -77,31 +51,4 @@
         </plugins>
     </build>
     
-    <pluginRepositories>
-        <pluginRepository>
-            <id>jsweet-plugins-release</id>
-            <name>plugins-release</name>
-            <url>http://repository.jsweet.org/artifactory/plugins-release-local</url>
-        </pluginRepository>
-        <pluginRepository>
-            <snapshots />
-            <id>jsweet-plugins-snapshots</id>
-            <name>plugins-snapshot</name>
-            <url>http://repository.jsweet.org/artifactory/plugins-snapshot-local</url>
-        </pluginRepository>
-    </pluginRepositories>
-    
-    <repositories>
-        <repository>
-            <id>jsweet-central</id>
-            <name>libs-release</name>
-            <url>http://repository.jsweet.org/artifactory/libs-release-local</url>
-        </repository>
-        <repository>
-            <snapshots />
-            <id>jsweet-snapshots</id>
-            <name>libs-snapshot</name>
-            <url>http://repository.jsweet.org/artifactory/libs-snapshot-local</url>
-        </repository>
-    </repositories>
 </project>
