@@ -25,22 +25,66 @@ package com.synclab.conversationkit.impl.directed;
 
 import com.synclab.conversationkit.impl.MapBackedState;
 import com.synclab.conversationkit.model.IConversation;
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DirectedConversation <V extends MapBackedState> implements IConversation<V> {
+public class DirectedConversation <V extends IConversationState> implements IConversation<V> {
 
-    public List<IConversationSnippet> startConversationFromState(V state) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    private static Logger logger = Logger.getLogger(DirectedConversation.class.getName());
+    protected final IConversationNodeIndex<DirectedConversationNode> nodeIndex;
 
-    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public DirectedConversation(IConversationNodeIndex<DirectedConversationNode> nodeIndex) {
+        this.nodeIndex = nodeIndex;
     }
     
+    public List<IConversationSnippet> startConversationFromState(V state) {
+        List<IConversationSnippet> nodes = new ArrayList();
+        DirectedConversationNode<V> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        nodes.add(current);
+        while ((current.getType() == SnippetType.STATEMENT) && (!current.getLeafNodes().isEmpty())) {
+            current = current.getLeafNodes().get(0);
+            nodes.add(current);
+            state.setCurrentNodeId(current.getId());
+        }
+        return nodes;
+    }
+
+    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException{
+        DirectedConversationNode<V> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
+        boolean matchFound = false;
+        switch (currentSnippet.getType()) {
+            case QUESTION:
+                for (DirectedConversationNode<V> allowedAnswer : currentSnippet.getLeafNodes()) {
+                    logger.fine(String.format("inspecting possible answer %s",allowedAnswer.renderContent(state)));
+                    
+                    if (allowedAnswer.isMatchForResponse(response)) {
+                        IConversationNode nextLeaf = allowedAnswer.getLeafNodes().get(0);
+                        state.setCurrentNodeId(nextLeaf.getId());
+                        logger.info(String.format("response '%s' matches answer %d",response,allowedAnswer.getId()));
+                        matchFound = true;
+                        if (currentSnippet.getStateKey() != null) {
+                            state.set(currentSnippet.getStateKey(), allowedAnswer.evaluateMatchForResponse(response));
+                        }
+                    }
+                }
+        }
+             
+        if (!matchFound) {
+            throw new UnmatchedResponseException();
+        }
+        
+        return state;
+    }
 }

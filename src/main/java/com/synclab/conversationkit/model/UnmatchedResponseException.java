@@ -25,7 +25,7 @@ package com.synclab.conversationkit.model;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public class UnmatchedResponseException extends Exception {
 

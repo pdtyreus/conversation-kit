@@ -32,7 +32,7 @@ import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
-import com.synclab.conversationkit.model.IResponseEvaluator;
+import com.synclab.conversationkit.model.IResponseMatcher;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -50,7 +50,7 @@ public class JsonDialogTreeBuilder {
     public DialogTree<UserDialogTreeState> fromJson(Reader reader) throws IOException {
         return fromJson(reader,null,null);
     }
-    public DialogTree<UserDialogTreeState> fromJson(Reader reader, IConversationSnippetRenderer<UserDialogTreeState> renderer, IResponseEvaluator evaluator) throws IOException {
+    public DialogTree<UserDialogTreeState> fromJson(Reader reader, IConversationSnippetRenderer<UserDialogTreeState> renderer, IResponseMatcher evaluator) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
@@ -67,12 +67,12 @@ public class JsonDialogTreeBuilder {
             //make the node into something
             String type = node.get("type").asString();
             String content = node.get("content").asString();
-            DialogTreeNode dtNode = new DialogTreeNode(SnippetType.valueOf(type), id, content);
+            DialogTreeNode dtNode = new DialogTreeNode(id, SnippetType.valueOf(type), content);
             if (renderer != null) {
                 dtNode.setRenderer(renderer);
             }
             if (evaluator != null) {
-                dtNode.setResponseEvaluator(evaluator);
+                dtNode.setResponseMatcher(evaluator);
             }
             if (node.get("stateKey") != null) {
                 dtNode.setStateKey(node.get("stateKey").asString());

@@ -29,6 +29,7 @@ import com.synclab.conversationkit.model.IConversation;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,8 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DialogTree<V extends MapBackedState> implements IConversation<V> {
+public class DialogTree<V extends IConversationState> implements IConversation<V> {
+
     private static Logger logger = Logger.getLogger(DialogTree.class.getName());
     protected final IConversationNodeIndex<DialogTreeNode> nodeIndex;
 
@@ -58,38 +60,31 @@ public class DialogTree<V extends MapBackedState> implements IConversation<V> {
         return nodes;
     }
 
-    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException{
+    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException {
         DialogTreeNode<V> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-        logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
+        logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers", response, currentSnippet.getType(), currentSnippet.getLeafNodes().size()));
         boolean matchFound = false;
         switch (currentSnippet.getType()) {
             case QUESTION:
                 for (DialogTreeNode<V> allowedAnswer : currentSnippet.getLeafNodes()) {
-                    logger.fine(String.format("inspecting possible answer %s",allowedAnswer.renderContent(state)));
-                    
+                    logger.fine(String.format("inspecting possible answer %s", allowedAnswer.renderContent(state)));
+
                     if (allowedAnswer.isMatchForResponse(response)) {
                         IConversationNode nextLeaf = allowedAnswer.getLeafNodes().get(0);
                         state.setCurrentNodeId(nextLeaf.getId());
-                        logger.info(String.format("response '%s' matches answer %d",response,allowedAnswer.getId()));
+                        logger.info(String.format("response '%s' matches answer %d", response, allowedAnswer.getId()));
                         matchFound = true;
                         if (currentSnippet.getStateKey() != null) {
-                            state.put(currentSnippet.getStateKey(), response);
+                            state.set(currentSnippet.getStateKey(), response);
                         }
                     }
                 }
         }
-        
-//        List<IConversationSnippet> nodes = new ArrayList();
-//        
+
         if (!matchFound) {
-            //nodes.addAll(currentSnippet.getUnmatchedResponseHandler().handleUnmatchedResponse(response, state));
             throw new UnmatchedResponseException();
         }
-//        
-//        nodes.addAll(startConversationFromState(state));
-//        
-//        return nodes;
-        
+
         return state;
     }
 }

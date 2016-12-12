@@ -30,7 +30,7 @@ import java.util.HashMap;
  *
  * @author pdtyreus
  */
-public class MapBackedState extends HashMap<String,Object> implements IConversationState<String,Object> {
+public class MapBackedState extends HashMap<String,Object> implements IConversationState {
 
     public int getCurrentNodeId() {
         Integer id = (Integer)this.get("currentNodeId");
@@ -39,6 +39,14 @@ public class MapBackedState extends HashMap<String,Object> implements IConversat
 
     public void setCurrentNodeId(int currentNodeId) {
         this.put("currentNodeId", currentNodeId);
+    }
+
+    public void set(String propertyName, Object value) {
+        this.put(propertyName, value);
+    }
+
+    public Object get(String propertyName) {
+        return super.get(propertyName);
     }
     
 }

@@ -21,17 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl.dialogtree;
+package com.synclab.conversationkit.impl.directed;
 
 import com.synclab.conversationkit.impl.BasicConversationSnippetRenderer;
-import com.synclab.conversationkit.impl.BasicUnmatchedResponseHandler;
+import com.synclab.conversationkit.impl.ConstantValueResponseEvaluator;
 import com.synclab.conversationkit.impl.ExactMatchResponseMatcher;
-import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.IResponseEvaluator;
 import com.synclab.conversationkit.model.IResponseMatcher;
-import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
+import com.synclab.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,45 +39,58 @@ import java.util.List;
  *
  * @author pdtyreus
  */
-public class DialogTreeNode<T extends IConversationState> implements IConversationNode<DialogTreeNode, T> {
+public class DirectedConversationNode <T extends IConversationState> implements IConversationNode<DirectedConversationNode, T> {
 
-    private final List<DialogTreeNode> leafNodes;
-    private final String content;
+    private final List<DirectedConversationNode> leafNodes;
+    private final String matcherString;
+    private final String evaluatorString;
+    private final String displayedValue;
     private final SnippetType type;
     private final int id;
     private String stateKey;
     private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
-    private IResponseMatcher responseEvaluator = new ExactMatchResponseMatcher();
+    private IResponseEvaluator responseEvaluator = new ConstantValueResponseEvaluator();
+    private IResponseMatcher responseMatcher = new ExactMatchResponseMatcher();
     private final List<String> suggestedResponses = new ArrayList();
 
-    public DialogTreeNode(int id, SnippetType type, String content) {
+    public DirectedConversationNode(int id, SnippetType type, String displayedValue, String matcherString, String evaluatorString) {
         this.id = id;
         this.type = type;
-        this.content = content;
         this.leafNodes = new ArrayList();
+        this.matcherString = matcherString;
+        this.evaluatorString = evaluatorString;
+        this.displayedValue = displayedValue;
     }
 
-    public List<DialogTreeNode> getLeafNodes() {
+    public List<DirectedConversationNode> getLeafNodes() {
         return leafNodes;
     }
 
-    public void addLeafNode(DialogTreeNode node) {
+    public void addLeafNode(DirectedConversationNode node) {
         leafNodes.add(node);
     }
 
     public String renderContent(T state) {
-        return renderer.renderContentUsingState(content, state);
+        return renderer.renderContentUsingState(displayedValue, state);
     }
 
     public boolean isMatchForResponse(String response) {
-        return responseEvaluator.isMatch(content, response);
+        return responseMatcher.isMatch(matcherString, response);
+    }
+    
+    public void setResponseMatcher(IResponseMatcher responseMatcher) {
+        this.responseMatcher = responseMatcher;
+    }
+    
+    public Object evaluateMatchForResponse(String response) {
+        return responseEvaluator.evaluateMatch(evaluatorString, response);
     }
 
     public void setRenderer(IConversationSnippetRenderer<T> renderer) {
         this.renderer = renderer;
     }
 
-    public void setResponseMatcher(IResponseMatcher responseEvaluator) {
+    public void setResponseEvaluator(IResponseEvaluator responseEvaluator) {
         this.responseEvaluator = responseEvaluator;
     }
 
@@ -104,6 +117,5 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
     public void setStateKey(String stateKey) {
         this.stateKey = stateKey;
     }
-    
     
 }

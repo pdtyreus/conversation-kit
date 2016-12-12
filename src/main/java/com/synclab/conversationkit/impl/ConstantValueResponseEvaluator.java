@@ -21,17 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl;
 
-import java.util.Map;
+import com.synclab.conversationkit.model.IResponseEvaluator;
 
 /**
  *
  * @author pdtyreus
  */
-public interface IConversationState{
-    public int getCurrentNodeId();
-    public void setCurrentNodeId(int currentNodeId);
-    public void set(String propertyName, Object Value);
-    public Object get(String propertyName);
+public class ConstantValueResponseEvaluator implements IResponseEvaluator{
+
+    public Object evaluateMatch(String nodeContent, String response) {
+        return nodeContent;
+    }
+    
 }

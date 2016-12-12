@@ -25,8 +25,8 @@ package com.synclab.conversationkit.model;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public interface IResponseEvaluator {
-    public boolean isMatch(String nodeContent, String response);
+    public Object evaluateMatch(String nodeContent, String response);
 }

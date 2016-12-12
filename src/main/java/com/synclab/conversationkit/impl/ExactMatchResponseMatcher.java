@@ -23,13 +23,13 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IResponseEvaluator;
+import com.synclab.conversationkit.model.IResponseMatcher;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class ExactMatchResponseEvaluator implements IResponseEvaluator {
+public class ExactMatchResponseMatcher implements IResponseMatcher {
     public boolean isMatch(String nodeContent, String response) {
         return nodeContent.equals(response);
     }

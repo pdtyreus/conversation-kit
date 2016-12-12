@@ -23,15 +23,10 @@
  */
 package com.synclab.conversationkit.model;
 
-import java.util.Map;
-
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public interface IConversationState{
-    public int getCurrentNodeId();
-    public void setCurrentNodeId(int currentNodeId);
-    public void set(String propertyName, Object Value);
-    public Object get(String propertyName);
+public interface IResponseMatcher {
+    public boolean isMatch(String nodeContent, String response);
 }
