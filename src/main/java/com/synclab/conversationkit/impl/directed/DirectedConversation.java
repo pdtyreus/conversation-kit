@@ -26,6 +26,7 @@ package com.synclab.conversationkit.impl.directed;
 import com.synclab.conversationkit.impl.MapBackedState;
 import com.synclab.conversationkit.model.IConversation;
 import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.List;
 
 /**
@@ -38,7 +39,7 @@ public class DirectedConversation <V extends MapBackedState> implements IConvers
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public List<IConversationSnippet> processResponse(String response, V state) {
+    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

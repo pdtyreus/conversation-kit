@@ -28,6 +28,7 @@ import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.SnippetType;
+import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -101,7 +102,12 @@ public class DialogTreeTest extends TestCase {
 
         String response = "4";
         formatResponse(formatter, response);
-        nodes = tree.processResponse(response, state);
+        try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        }
+        nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
             formatSnippet(formatter, node, state);
         }
@@ -137,7 +143,12 @@ public class DialogTreeTest extends TestCase {
 
         String response = "great";
         formatResponse(formatter, response);
-        nodes = tree.processResponse(response, state);
+        try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        }
+        nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
             formatSnippet(formatter, node, state);
         }
@@ -163,7 +174,12 @@ public class DialogTreeTest extends TestCase {
         response = "bad";
         formatResponse(formatter, response);
 
-        nodes = tree.processResponse(response, state);
+        try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        }
+        nodes = tree.startConversationFromState(state);
 
         for (IConversationSnippet node : nodes) {
             formatSnippet(formatter, node, state);
@@ -173,7 +189,12 @@ public class DialogTreeTest extends TestCase {
 
         response = "No, I actually feel fine.";
         formatResponse(formatter, response);
-        nodes = tree.processResponse(response, state);
+        try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        }
+        nodes = tree.startConversationFromState(state);
 
         for (IConversationSnippet node : nodes) {
             formatSnippet(formatter, node, state);

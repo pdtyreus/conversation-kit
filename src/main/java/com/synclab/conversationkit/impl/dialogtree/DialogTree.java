@@ -29,6 +29,7 @@ import com.synclab.conversationkit.model.IConversation;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -57,7 +58,7 @@ public class DialogTree<V extends MapBackedState> implements IConversation<V> {
         return nodes;
     }
 
-    public List<IConversationSnippet> processResponse(String response, V state){
+    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException{
         DialogTreeNode<V> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
         boolean matchFound = false;
@@ -78,14 +79,17 @@ public class DialogTree<V extends MapBackedState> implements IConversation<V> {
                 }
         }
         
-        List<IConversationSnippet> nodes = new ArrayList();
-        
+//        List<IConversationSnippet> nodes = new ArrayList();
+//        
         if (!matchFound) {
-            nodes.addAll(currentSnippet.getUnmatchedResponseHandler().handleUnmatchedResponse(response, state));
+            //nodes.addAll(currentSnippet.getUnmatchedResponseHandler().handleUnmatchedResponse(response, state));
+            throw new UnmatchedResponseException();
         }
+//        
+//        nodes.addAll(startConversationFromState(state));
+//        
+//        return nodes;
         
-        nodes.addAll(startConversationFromState(state));
-        
-        return nodes;
+        return state;
     }
 }

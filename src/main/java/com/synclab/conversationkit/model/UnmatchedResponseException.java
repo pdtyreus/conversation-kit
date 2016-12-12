@@ -27,7 +27,7 @@ package com.synclab.conversationkit.model;
  *
  * @author tyreus
  */
-public class UnmatchedResponseException extends RuntimeException {
+public class UnmatchedResponseException extends Exception {
 
     /**
      * Creates a new instance of <code>UnmatchedResponseException</code> without

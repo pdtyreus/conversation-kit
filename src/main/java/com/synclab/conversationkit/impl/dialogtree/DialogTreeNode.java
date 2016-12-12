@@ -37,7 +37,7 @@ import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public class DialogTreeNode<T extends IConversationState> implements IConversationNode<DialogTreeNode, T> {
 
@@ -48,8 +48,7 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
     private String stateKey;
     private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
     private IResponseEvaluator responseEvaluator = new ExactMatchResponseEvaluator();
-    private IUnmatchedResponseHandler unmatchedResponseHandler = new BasicUnmatchedResponseHandler();
-    private List<String> suggestedResponses = new ArrayList();
+    private final List<String> suggestedResponses = new ArrayList();
 
     public DialogTreeNode(SnippetType type, int id, String content) {
         this.id = id;
@@ -74,22 +73,12 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
         return responseEvaluator.isMatch(content, response);
     }
 
-    /**
-     * @param renderer the renderer to set
-     */
     public void setRenderer(IConversationSnippetRenderer<T> renderer) {
         this.renderer = renderer;
     }
 
-    /**
-     * @param responseEvaluator the responseEvaluator to set
-     */
     public void setResponseEvaluator(IResponseEvaluator responseEvaluator) {
         this.responseEvaluator = responseEvaluator;
-    }
-
-    public IUnmatchedResponseHandler getUnmatchedResponseHandler() {
-        return unmatchedResponseHandler;
     }
 
     public int getId() {
@@ -104,21 +93,14 @@ public class DialogTreeNode<T extends IConversationState> implements IConversati
         return suggestedResponses;
     }
 
-
     public void addSuggestedResponse(String suggestedResponse) {
         this.suggestedResponses.add(suggestedResponse);
     }
 
-    /**
-     * @return the stateKey
-     */
     public String getStateKey() {
         return stateKey;
     }
 
-    /**
-     * @param stateKey the stateKey to set
-     */
     public void setStateKey(String stateKey) {
         this.stateKey = stateKey;
     }
