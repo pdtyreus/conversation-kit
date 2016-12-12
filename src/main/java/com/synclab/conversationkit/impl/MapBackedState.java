@@ -23,48 +23,22 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
-import com.synclab.conversationkit.model.SnippetType;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class BasicUnmatchedResponseHandler<V extends IConversationState> implements IUnmatchedResponseHandler<V>{
+public class MapBackedState extends HashMap<String,Object> implements IConversationState<String,Object> {
 
-    private String content = "I'm sorry, I did not understand your previous response";
-
-    public BasicUnmatchedResponseHandler() {
+    public int getCurrentNodeId() {
+        Integer id = (Integer)this.get("currentNodeId");
+        return id;
     }
 
-    public BasicUnmatchedResponseHandler(String content) {
-        this.content = content;
+    public void setCurrentNodeId(int currentNodeId) {
+        this.put("currentNodeId", currentNodeId);
     }
     
-    public List<IConversationSnippet> handleUnmatchedResponse(String response, V state) {
-        List<IConversationSnippet> snippets = new ArrayList();
-        IConversationSnippet snippet = new IConversationSnippet() {
-
-            public String renderContent(IConversationState state) {
-                return content;
-            }
-
-            public SnippetType getType() {
-                return SnippetType.STATEMENT;
-            }
-
-            public List getSuggestedResponses() {
-                return null;
-            }
-
-
-        };
-
-        snippets.add(snippet);
-        return snippets;
-    }
 }

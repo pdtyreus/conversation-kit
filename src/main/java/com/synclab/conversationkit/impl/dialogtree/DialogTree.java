@@ -21,43 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.impl.dialogtree;
 
+import com.synclab.conversationkit.impl.MapBackedState;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.IConversation;
 import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
-import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DialogTree<V extends DialogTreeState> implements IConversation<V> {
-    protected final Map<Integer, DialogTreeNode<V>> nodeIndex;
+public class DialogTree<V extends MapBackedState> implements IConversation<V> {
     private static Logger logger = Logger.getLogger(DialogTree.class.getName());
+    protected final IConversationNodeIndex<DialogTreeNode> nodeIndex;
 
-    public DialogTree(DialogTreeNode<V> rootNode) {
-        this.nodeIndex = new HashMap();
-        addToIndex(rootNode);
-    }
-
-    private void addToIndex(DialogTreeNode<V> startNode) {
-        nodeIndex.put(startNode.getId(), startNode);
-        logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(),startNode.getType(), startNode.renderContent(null)));
-        for (IConversationNode node : startNode.getLeafNodes()) {
-            addToIndex((DialogTreeNode<V>)node);
-        }
+    public DialogTree(IConversationNodeIndex<DialogTreeNode> nodeIndex) {
+        this.nodeIndex = nodeIndex;
     }
 
     public List<IConversationSnippet> startConversationFromState(V state) {
         List<IConversationSnippet> nodes = new ArrayList();
-        DialogTreeNode<V> current = nodeIndex.get(state.getCurrentNodeId());
+        DialogTreeNode<V> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         nodes.add(current);
         while ((current.getType() == SnippetType.STATEMENT) && (!current.getLeafNodes().isEmpty())) {
             current = current.getLeafNodes().get(0);
@@ -68,7 +58,7 @@ public class DialogTree<V extends DialogTreeState> implements IConversation<V> {
     }
 
     public List<IConversationSnippet> processResponse(String response, V state){
-        DialogTreeNode<V> currentSnippet = nodeIndex.get(state.getCurrentNodeId());
+        DialogTreeNode<V> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         logger.fine(String.format("processing response '%s' for node of type %s with %d allowed answers",response,currentSnippet.getType(),currentSnippet.getLeafNodes().size()));
         boolean matchFound = false;
         switch (currentSnippet.getType()) {

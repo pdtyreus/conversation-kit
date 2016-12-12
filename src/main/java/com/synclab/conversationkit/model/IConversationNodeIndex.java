@@ -21,39 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.model;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class UserDialogTreeState extends MapBackedState {
-
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return (String)this.get("name");
-    }
-
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.put("name", name);
-    }
-
-    /**
-     * @return the number
-     */
-    public int getNumber() {
-        return (Integer)this.get("number");
-    }
-
-    /**
-     * @param number the number to set
-     */
-    public void setNumber(int number) {
-        this.put("number", number);
-    }
+public interface IConversationNodeIndex<T extends IConversationNode> {
+    public T getNodeAtIndex(int id);
 }

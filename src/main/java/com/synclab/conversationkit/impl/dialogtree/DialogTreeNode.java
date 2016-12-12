@@ -21,8 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.impl.dialogtree;
 
+import com.synclab.conversationkit.impl.BasicConversationSnippetRenderer;
+import com.synclab.conversationkit.impl.BasicUnmatchedResponseHandler;
+import com.synclab.conversationkit.impl.ExactMatchResponseEvaluator;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;

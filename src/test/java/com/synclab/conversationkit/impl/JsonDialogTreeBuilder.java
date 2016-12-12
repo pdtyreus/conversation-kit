@@ -23,11 +23,14 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.impl.dialogtree.DialogTreeNode;
+import com.synclab.conversationkit.impl.dialogtree.DialogTree;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
+import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IResponseEvaluator;
 import java.io.IOException;
@@ -110,7 +113,11 @@ public class JsonDialogTreeBuilder {
 
         }
 
-        return new DialogTree(nodeMap.get(1));
+        MapBackedNodeIndex<DialogTreeNode> index     = new MapBackedNodeIndex();
+        
+        index.buildIndexFromStartNode(nodeMap.get(1));
+        
+        return new DialogTree(index);
 
     }
 

@@ -23,22 +23,32 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationState;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DialogTreeState extends HashMap<String,Object> implements IConversationState<String,Object> {
+public class MapBackedNodeIndex<T extends IConversationNode>  implements IConversationNodeIndex<T> {
 
-    public int getCurrentNodeId() {
-        Integer id = (Integer)this.get("currentNodeId");
-        return id;
+    private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
+    private final Map<Integer, T> nodeIndex = new HashMap();
+    
+    public T getNodeAtIndex(int id) {
+        return nodeIndex.get(id);
     }
-
-    public void setCurrentNodeId(int currentNodeId) {
-        this.put("currentNodeId", currentNodeId);
+    
+    public void buildIndexFromStartNode(T startNode) {
+        nodeIndex.put(startNode.getId(), startNode);
+        logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(),startNode.getType(), startNode.renderContent(null)));
+        for (Object node : startNode.getLeafNodes()) {
+            buildIndexFromStartNode((T)node);
+        }
     }
     
 }

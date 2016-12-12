@@ -21,50 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.impl.directed;
 
+import com.synclab.conversationkit.impl.MapBackedState;
+import com.synclab.conversationkit.model.IConversation;
 import com.synclab.conversationkit.model.IConversationSnippet;
-import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
-import com.synclab.conversationkit.model.SnippetType;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class BasicUnmatchedResponseHandler<V extends IConversationState> implements IUnmatchedResponseHandler<V>{
+public class DirectedConversation <V extends MapBackedState> implements IConversation<V> {
 
-    private String content = "I'm sorry, I did not understand your previous response";
-
-    public BasicUnmatchedResponseHandler() {
+    public List<IConversationSnippet> startConversationFromState(V state) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public BasicUnmatchedResponseHandler(String content) {
-        this.content = content;
+    public List<IConversationSnippet> processResponse(String response, V state) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public List<IConversationSnippet> handleUnmatchedResponse(String response, V state) {
-        List<IConversationSnippet> snippets = new ArrayList();
-        IConversationSnippet snippet = new IConversationSnippet() {
-
-            public String renderContent(IConversationState state) {
-                return content;
-            }
-
-            public SnippetType getType() {
-                return SnippetType.STATEMENT;
-            }
-
-            public List getSuggestedResponses() {
-                return null;
-            }
-
-
-        };
-
-        snippets.add(snippet);
-        return snippets;
-    }
 }

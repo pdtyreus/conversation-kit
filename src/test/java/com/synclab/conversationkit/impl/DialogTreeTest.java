@@ -23,6 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.impl.dialogtree.DialogTree;
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
