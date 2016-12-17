@@ -32,6 +32,8 @@ import java.util.Map;
 public interface IConversationState{
     public int getCurrentNodeId();
     public void setCurrentNodeId(int currentNodeId);
+    public String getCurrentResponse();
+    public void setCurrentResponse(String currentResponse);
     public void set(String propertyName, Object Value);
     public Object get(String propertyName);
 }

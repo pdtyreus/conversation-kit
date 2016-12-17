@@ -23,14 +23,32 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IResponseMatcher;
+import com.synclab.conversationkit.impl.dialogtree.DialogTreeNode;
+import com.synclab.conversationkit.model.ConversationNode;
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetType;
 
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public class ExactMatchResponseMatcher implements IResponseMatcher {
-    public boolean isMatch(String nodeContent, String response) {
-        return nodeContent.equals(response);
+public class TemplatedDialogTreeNode<T extends MapBackedState> extends DialogTreeNode<T> {
+
+    public TemplatedDialogTreeNode(int id, SnippetType type, String content) {
+        super(id, type, content);
     }
+
+    @Override
+    public String renderContent(T state) {
+        if (state == null) {
+            return content;
+        }
+        String renderedContent = content;
+        for (String key : state.keySet()) {
+            renderedContent = renderedContent.replace("{{" + key + "}}", state.get(key).toString());
+        }
+
+        return renderedContent;
+    }
+
 }

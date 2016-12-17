@@ -23,10 +23,47 @@
  */
 package com.synclab.conversationkit.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author pdtyreus
  */
-public interface IResponseEvaluator {
-    public Object evaluateMatch(String nodeContent, String response);
+public abstract class ConversationNode<T extends IConversationState> implements IConversationNode<T> {
+
+    private String stateKey;
+    private final List<IConversationEdge<T>> edges;
+    private final SnippetType type;
+    private final int id;
+
+    public ConversationNode(int id, SnippetType type) {
+        this.id = id;
+        this.type = type;
+        this.edges = new ArrayList();
+    }
+
+    public String getStateKey() {
+        return stateKey;
+    }
+
+    public void setStateKey(String stateKey) {
+        this.stateKey = stateKey;
+    }
+
+    public List<IConversationEdge<T>> getEdges() {
+        return edges;
+    }
+
+    public void addEdge(IConversationEdge<T> node) {
+        edges.add(node);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public SnippetType getType() {
+        return type;
+    }
 }

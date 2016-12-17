@@ -27,13 +27,17 @@ import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public interface IConversationNode<E, T extends IConversationState> extends IConversationSnippet<T>{
+public interface IConversationNode<T extends IConversationState> extends IConversationSnippet<T>{
 
-    public List<E> getLeafNodes();
+    public List<IConversationEdge<T>> getEdges();
 
-    public void addLeafNode(E node);
+    public void addEdge(IConversationEdge<T> edge);
 
     public int getId();
+    
+    public String renderContent(T state);
+    
+    public String getStateKey();
 }

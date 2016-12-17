@@ -27,6 +27,8 @@ package com.synclab.conversationkit.model;
  *
  * @author pdtyreus
  */
-public interface IConversationSnippetRenderer<T extends IConversationState> {
-    public String renderContentUsingState(String content, T state);
+public interface IConversationEdge<T extends IConversationState> {
+    public IConversationNode<T> getEndNode();
+    public boolean isMatchForState(T state);
+    public Object transformResponse(T state);
 }

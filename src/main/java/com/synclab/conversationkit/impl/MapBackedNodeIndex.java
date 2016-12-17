@@ -23,10 +23,12 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationState;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -34,20 +36,20 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class MapBackedNodeIndex<T extends IConversationNode>  implements IConversationNodeIndex<T> {
+public class MapBackedNodeIndex<V extends IConversationState>  implements IConversationNodeIndex<V> {
 
     private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
-    private final Map<Integer, T> nodeIndex = new HashMap();
+    private final Map<Integer, IConversationNode<V>> nodeIndex = new HashMap();
     
-    public T getNodeAtIndex(int id) {
+    public IConversationNode<V> getNodeAtIndex(int id) {
         return nodeIndex.get(id);
     }
     
-    public void buildIndexFromStartNode(T startNode) {
+    public void buildIndexFromStartNode(IConversationNode<V> startNode) {
         nodeIndex.put(startNode.getId(), startNode);
         logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(),startNode.getType(), startNode.renderContent(null)));
-        for (Object node : startNode.getLeafNodes()) {
-            buildIndexFromStartNode((T)node);
+        for (IConversationEdge<V> edge : startNode.getEdges()) {
+            buildIndexFromStartNode(edge.getEndNode());
         }
     }
     

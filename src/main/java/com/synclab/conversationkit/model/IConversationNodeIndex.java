@@ -27,6 +27,6 @@ package com.synclab.conversationkit.model;
  *
  * @author pdtyreus
  */
-public interface IConversationNodeIndex<T extends IConversationNode> {
-    public T getNodeAtIndex(int id);
+public interface IConversationNodeIndex<V extends IConversationState> {
+    public IConversationNode<V> getNodeAtIndex(int id);
 }

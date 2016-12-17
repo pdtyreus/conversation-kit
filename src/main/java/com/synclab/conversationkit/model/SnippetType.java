@@ -25,8 +25,8 @@ package com.synclab.conversationkit.model;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public enum SnippetType {
-    QUESTION, ANSWER, STATEMENT
+    QUESTION, STATEMENT
 }
