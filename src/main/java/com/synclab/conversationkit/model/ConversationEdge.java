@@ -21,19 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
-
-import com.synclab.conversationkit.model.IConversationSnippetRenderer;
-import com.synclab.conversationkit.model.IConversationState;
+package com.synclab.conversationkit.model;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class BasicConversationSnippetRenderer<T extends IConversationState> implements IConversationSnippetRenderer<T> {
+public abstract class ConversationEdge<T extends IConversationState> implements IConversationEdge<T>{
+    
+    private IConversationNode endNode;
 
-    public String renderContentUsingState(String content, T state) {
-        return content;
+    public IConversationNode getEndNode() {
+        return endNode;
     }
+
+    public void setEndNode(IConversationNode endNode) {
+        this.endNode = endNode;
+    }
+
+    @Override
+    public String toString() {
+        return "DecisionEdge {" + endNode.renderContent(null) + '}';
+    }
+    
     
 }

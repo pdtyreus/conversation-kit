@@ -23,16 +23,15 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.impl.dialogtree.DialogTreeNode;
-import com.synclab.conversationkit.impl.dialogtree.DialogTree;
+import com.synclab.conversationkit.model.ConversationNode;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
-import com.synclab.conversationkit.model.IConversationNodeIndex;
-import com.synclab.conversationkit.model.IConversationSnippetRenderer;
-import com.synclab.conversationkit.model.IResponseMatcher;
+import com.synclab.conversationkit.model.IConversationEdge;
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationState;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -47,16 +46,18 @@ import java.util.logging.Logger;
 public class JsonDialogTreeBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonDialogTreeBuilder.class.getName());
-    public DialogTree<UserDialogTreeState> fromJson(Reader reader) throws IOException {
-        return fromJson(reader,null,null);
+
+    public DirectedConversation<UserDialogTreeState> fromJson(Reader reader) throws IOException {
+        return fromJsonWithTemplates(reader);
     }
-    public DialogTree<UserDialogTreeState> fromJson(Reader reader, IConversationSnippetRenderer<UserDialogTreeState> renderer, IResponseMatcher evaluator) throws IOException {
+
+    public DirectedConversation<UserDialogTreeState> fromJsonWithTemplates(Reader reader) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject();
 
-        Map<Integer, DialogTreeNode<UserDialogTreeState>> nodeMap = new HashMap();
+        Map<Integer, TemplatedDialogTreeNode<UserDialogTreeState>> nodeMap = new HashMap();
 
         //run through once to create nodes
         for (Member member : keyTree) {
@@ -67,13 +68,8 @@ public class JsonDialogTreeBuilder {
             //make the node into something
             String type = node.get("type").asString();
             String content = node.get("content").asString();
-            DialogTreeNode dtNode = new DialogTreeNode(id, SnippetType.valueOf(type), content);
-            if (renderer != null) {
-                dtNode.setRenderer(renderer);
-            }
-            if (evaluator != null) {
-                dtNode.setResponseMatcher(evaluator);
-            }
+            SnippetType snippetType = SnippetType.valueOf(type);
+            TemplatedDialogTreeNode dtNode = new TemplatedDialogTreeNode(id, snippetType, content);
             if (node.get("stateKey") != null) {
                 dtNode.setStateKey(node.get("stateKey").asString());
             }
@@ -90,34 +86,79 @@ public class JsonDialogTreeBuilder {
 
             //make the node into something
             String type = node.get("type").asString();
-            SnippetType nodeType = SnippetType.valueOf(type);
-            DialogTreeNode dtNode = nodeMap.get(id);
-            if (node.get("next") != null) {
-                int nextId = node.get("next").asInt();
-                DialogTreeNode nextNode = nodeMap.get(nextId);
-                dtNode.addLeafNode(nextNode);
-                switch (nodeType) {
+            String content = node.get("content").asString();
+
+            SnippetType snippetType = SnippetType.valueOf(type);
+            if ((node.get("next") != null) || (node.get("answers") != null)) {
+                final TemplatedDialogTreeNode prevNode = nodeMap.get(id);
+                switch (snippetType) {
                     case STATEMENT:
-                        break;
-                    case ANSWER:
-                        int prevId = node.get("question").asInt();
-                        DialogTreeNode prevNode = nodeMap.get(prevId);
-                        prevNode.addLeafNode(dtNode);
-                        prevNode.addSuggestedResponse(dtNode.renderContent(null));
+                        for (JsonValue idVal : node.get("next").asArray()) {
+                            final ConversationNode nextNode = nodeMap.get(idVal.asInt());
+                            IConversationEdge edge = new IConversationEdge() {
+
+                                public IConversationNode getEndNode() {
+                                    return nextNode;
+                                }
+
+                                public boolean isMatchForState(IConversationState state) {
+                                    return true;
+                                }
+
+                                public Object transformResponse(IConversationState state) {
+                                    throw new UnsupportedOperationException("Not supported yet.");
+                                }
+
+                                public String toString() {
+                                    return "IConversationEdge {true}";
+                                }
+
+                            };
+
+                            prevNode.addEdge(edge);
+                            prevNode.getSuggestedResponses().add(content);
+                        }
                         break;
                     case QUESTION:
-                        
+                        for (final JsonValue answerVal : node.get("answers").asArray()) {
+                            for (JsonValue idVal : answerVal.asObject().get("next").asArray()) {
+                                final ConversationNode nextNode = nodeMap.get(idVal.asInt());
+                                final String answerContent = answerVal.asObject().get("content").asString();
+                                IConversationEdge edge = new IConversationEdge() {
+                                    
+                                    public IConversationNode getEndNode() {
+                                        return nextNode;
+                                    }
+
+                                    public boolean isMatchForState(IConversationState state) {
+                                        return answerContent.equals(state.getCurrentResponse());
+                                    }
+
+                                    public Object transformResponse(IConversationState state) {
+                                        return answerContent;
+                                    }
+
+                                    public String toString() {
+                                        return "IConversationEdge {" + answerVal.asObject().get("content") + '}';
+                                    }
+                                };
+
+                                prevNode.addEdge(edge);
+                                prevNode.getSuggestedResponses().add(answerContent);
+                            }
+                        }
                         break;
                 }
+
             }
 
         }
 
-        MapBackedNodeIndex<DialogTreeNode> index     = new MapBackedNodeIndex();
-        
+        MapBackedNodeIndex<UserDialogTreeState> index = new MapBackedNodeIndex();
+
         index.buildIndexFromStartNode(nodeMap.get(1));
-        
-        return new DialogTree(index);
+
+        return new DirectedConversation(index);
 
     }
 

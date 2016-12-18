@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public interface IUnmatchedResponseHandler<T extends IConversationState> {
     public List<IConversationSnippet> handleUnmatchedResponse(String response, T state);

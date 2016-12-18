@@ -23,15 +23,9 @@
  */
 package com.synclab.conversationkit.impl.dialogtree;
 
-import com.synclab.conversationkit.impl.BasicConversationSnippetRenderer;
-import com.synclab.conversationkit.impl.BasicUnmatchedResponseHandler;
-import com.synclab.conversationkit.impl.ExactMatchResponseMatcher;
-import com.synclab.conversationkit.model.SnippetType;
-import com.synclab.conversationkit.model.IConversationNode;
-import com.synclab.conversationkit.model.IConversationSnippetRenderer;
+import com.synclab.conversationkit.model.ConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.IResponseMatcher;
-import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
+import com.synclab.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,70 +33,22 @@ import java.util.List;
  *
  * @author pdtyreus
  */
-public class DialogTreeNode<T extends IConversationState> implements IConversationNode<DialogTreeNode, T> {
+public class DialogTreeNode<T extends IConversationState> extends ConversationNode<T> {
 
-    private final List<DialogTreeNode> leafNodes;
-    private final String content;
-    private final SnippetType type;
-    private final int id;
-    private String stateKey;
-    private IConversationSnippetRenderer<T> renderer = new BasicConversationSnippetRenderer();
-    private IResponseMatcher responseEvaluator = new ExactMatchResponseMatcher();
     private final List<String> suggestedResponses = new ArrayList();
+    protected final String content;
 
     public DialogTreeNode(int id, SnippetType type, String content) {
-        this.id = id;
-        this.type = type;
+        super(id, type);
         this.content = content;
-        this.leafNodes = new ArrayList();
     }
-
-    public List<DialogTreeNode> getLeafNodes() {
-        return leafNodes;
-    }
-
-    public void addLeafNode(DialogTreeNode node) {
-        leafNodes.add(node);
-    }
-
+    
     public String renderContent(T state) {
-        return renderer.renderContentUsingState(content, state);
-    }
-
-    public boolean isMatchForResponse(String response) {
-        return responseEvaluator.isMatch(content, response);
-    }
-
-    public void setRenderer(IConversationSnippetRenderer<T> renderer) {
-        this.renderer = renderer;
-    }
-
-    public void setResponseMatcher(IResponseMatcher responseEvaluator) {
-        this.responseEvaluator = responseEvaluator;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public SnippetType getType() {
-        return type;
+        return content;
     }
 
     public List<String> getSuggestedResponses() {
         return suggestedResponses;
-    }
-
-    public void addSuggestedResponse(String suggestedResponse) {
-        this.suggestedResponses.add(suggestedResponse);
-    }
-
-    public String getStateKey() {
-        return stateKey;
-    }
-
-    public void setStateKey(String stateKey) {
-        this.stateKey = stateKey;
     }
     
     

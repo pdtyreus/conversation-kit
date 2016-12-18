@@ -48,5 +48,17 @@ public class MapBackedState extends HashMap<String,Object> implements IConversat
     public Object get(String propertyName) {
         return super.get(propertyName);
     }
+
+    public String getCurrentResponse() {
+        return (String)this.get("currentResponse");
+    }
+
+    public void setCurrentResponse(String currentResponse) {
+        if (currentResponse == null) {
+            this.remove("currentResponse");
+        } else {
+            this.put("currentResponse", currentResponse);
+        }
+    }
     
 }

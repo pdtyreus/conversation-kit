@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public interface IConversationSnippet<T extends IConversationState> {
     

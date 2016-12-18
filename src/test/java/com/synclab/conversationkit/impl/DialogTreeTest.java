@@ -23,9 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.impl.dialogtree.DialogTree;
 import com.synclab.conversationkit.model.IConversationSnippet;
-import com.synclab.conversationkit.model.IConversationSnippetRenderer;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
@@ -68,21 +66,7 @@ public class DialogTreeTest extends TestCase {
         
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
-        DialogTree<UserDialogTreeState> tree = builder.fromJson(reader, new IConversationSnippetRenderer<UserDialogTreeState>() {
-
-            public String renderContentUsingState(String content, UserDialogTreeState state) {
-                if (state == null) {
-                    return content;
-                }
-                
-                for (String key : state.keySet()) {
-                    content = content.replace("{{"+key+"}}", state.get(key).toString());
-                }
-                
-                return content;
-            }
-        
-        },null);
+        DirectedConversation<UserDialogTreeState> tree = builder.fromJson(reader);
 
         logger.info("** Testing conversation");
         
@@ -123,7 +107,7 @@ public class DialogTreeTest extends TestCase {
 
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-        DialogTree<UserDialogTreeState> tree = builder.fromJson(reader);
+        DirectedConversation<UserDialogTreeState> tree = builder.fromJson(reader);
 
         logger.info("** Testing conversation");
 
@@ -207,7 +191,7 @@ public class DialogTreeTest extends TestCase {
 
     private void formatSnippet(Formatter formatter, IConversationSnippet node, IConversationState state) {
         formatter.format("  > %-100s <\n", node.renderContent(state));
-        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses() != null) && !node.getSuggestedResponses().isEmpty()) {
+        if ((node.getType() == SnippetType.QUESTION) && !node.getSuggestedResponses().isEmpty()) {
             formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses()) + " ]");
         }
     }
