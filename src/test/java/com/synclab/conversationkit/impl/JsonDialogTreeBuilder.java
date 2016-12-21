@@ -23,12 +23,14 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.ConversationNode;
+import com.synclab.conversationkit.impl.edge.ConversationEdge;
+import com.synclab.conversationkit.impl.node.ConversationNode;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
+import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
@@ -70,9 +72,6 @@ public class JsonDialogTreeBuilder {
             String content = node.get("content").asString();
             SnippetType snippetType = SnippetType.valueOf(type);
             TemplatedDialogTreeNode dtNode = new TemplatedDialogTreeNode(id, snippetType, content);
-            if (node.get("stateKey") != null) {
-                dtNode.setStateKey(node.get("stateKey").asString());
-            }
             nodeMap.put(id, dtNode);
         }
 
@@ -95,25 +94,7 @@ public class JsonDialogTreeBuilder {
                     case STATEMENT:
                         for (JsonValue idVal : node.get("next").asArray()) {
                             final ConversationNode nextNode = nodeMap.get(idVal.asInt());
-                            IConversationEdge edge = new IConversationEdge() {
-
-                                public IConversationNode getEndNode() {
-                                    return nextNode;
-                                }
-
-                                public boolean isMatchForState(IConversationState state) {
-                                    return true;
-                                }
-
-                                public Object transformResponse(IConversationState state) {
-                                    throw new UnsupportedOperationException("Not supported yet.");
-                                }
-
-                                public String toString() {
-                                    return "IConversationEdge {true}";
-                                }
-
-                            };
+                            ConversationEdge edge = new ConversationEdge(nextNode);
 
                             prevNode.addEdge(edge);
                             prevNode.getSuggestedResponses().add(content);
@@ -124,25 +105,11 @@ public class JsonDialogTreeBuilder {
                             for (JsonValue idVal : answerVal.asObject().get("next").asArray()) {
                                 final ConversationNode nextNode = nodeMap.get(idVal.asInt());
                                 final String answerContent = answerVal.asObject().get("content").asString();
-                                IConversationEdge edge = new IConversationEdge() {
-                                    
-                                    public IConversationNode getEndNode() {
-                                        return nextNode;
-                                    }
-
-                                    public boolean isMatchForState(IConversationState state) {
-                                        return answerContent.equals(state.getCurrentResponse());
-                                    }
-
-                                    public Object transformResponse(IConversationState state) {
-                                        return answerContent;
-                                    }
-
-                                    public String toString() {
-                                        return "IConversationEdge {" + answerVal.asObject().get("content") + '}';
-                                    }
-                                };
-
+                                String stateKey = null;
+                                if (node.get("stateKey") != null) {
+                                    stateKey = node.get("stateKey").asString();
+                                }
+                                DialogTreeEdge edge = new DialogTreeEdge(answerContent, stateKey, nextNode);
                                 prevNode.addEdge(edge);
                                 prevNode.getSuggestedResponses().add(answerContent);
                             }

@@ -24,11 +24,39 @@
 package com.synclab.conversationkit.model;
 
 /**
- *
+ * A conversation edge is a directed connection between two nodes on the 
+ * conversation graph. Each edge has exactly one start node and one end node, 
+ * but a node frequently has multiple outbound edges. The conversation
+ * implementation will look at each outbound edge from a node to decide which
+ * edge to use to continue traversing the conversation graph.
+ * 
  * @author pdtyreus
+ * @param <S> an implementation of to store the current state of the conversation
+ * for the current user
  */
-public interface IConversationEdge<T extends IConversationState> {
-    public IConversationNode<T> getEndNode();
-    public boolean isMatchForState(T state);
-    public Object transformResponse(T state);
+public interface IConversationEdge<S extends IConversationState> {
+    /**
+     * Returns the next node in the conversation graph along this edge. The 
+     * conversation will proceed along this edge if the conversation state 
+     * matches the criteria stored in the edge.
+     * @return the node at the end of this edge
+     */
+    public IConversationNode<S> getEndNode();
+    /**
+     * Returns true if the conversation should proceed along this edge based
+     * on the conversation state provided.
+     * @param state the user's conversation state
+     * @return true if the edge matches
+     */
+    public boolean isMatchForState(S state);
+    /**
+     * This function executes when the edge is chosen but before the 
+     * conversation proceeds to the next node. It should be used to update
+     * the conversation state with any information necessary based on the
+     * user's response. Generally a response will only be present in the state
+     * if the previous node was a question.
+     * @param state the user's conversation state
+     * @return an updated state
+     */
+    public S onMatch(S state);
 }

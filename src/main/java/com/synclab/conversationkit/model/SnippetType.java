@@ -24,9 +24,16 @@
 package com.synclab.conversationkit.model;
 
 /**
- *
+ * 
  * @author pdtyreus
  */
 public enum SnippetType {
-    QUESTION, STATEMENT
+    /**
+     * A snippet that requires a response from a user
+     */
+    QUESTION, 
+    /**
+     * A snippet that does not require a response from a user
+     */
+    STATEMENT
 }

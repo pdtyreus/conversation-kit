@@ -38,24 +38,24 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DirectedConversation<V extends IConversationState> implements IConversation<V> {
+public class DirectedConversation<S extends IConversationState> implements IConversation<S> {
 
     private static Logger logger = Logger.getLogger(DirectedConversation.class.getName());
-    protected final IConversationNodeIndex<V> nodeIndex;
+    protected final IConversationNodeIndex<S> nodeIndex;
 
-    public DirectedConversation(IConversationNodeIndex<V> nodeIndex) {
+    public DirectedConversation(IConversationNodeIndex<S> nodeIndex) {
         this.nodeIndex = nodeIndex;
     }
 
-    public List<IConversationSnippet> startConversationFromState(V state) {
+    public List<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
-        IConversationNode<V> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        IConversationNode<S> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         nodes.add(current);
         boolean continueTraverse = true;
         while (continueTraverse && !current.getEdges().isEmpty()) {
             //if nothing has matched, we are done
             continueTraverse = false;
-            for (IConversationEdge<V> edge : current.getEdges()) {
+            for (IConversationEdge<S> edge : current.getEdges()) {
                 //find the first edge that matches and move to that node
                 logger.fine(String.format("inspecting possible edge %s", edge));
                 if (edge.isMatchForState(state)) {
@@ -70,13 +70,13 @@ public class DirectedConversation<V extends IConversationState> implements IConv
         return nodes;
     }
 
-    public V updateStateWithResponse(V state, String response) throws UnmatchedResponseException {
-        IConversationNode<V> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException {
+        IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         state.setCurrentResponse(response);
         logger.fine(String.format("processing response '%s' for node of type %s with %d possible answers", response, currentSnippet.getType(), currentSnippet.getEdges().size()));
         boolean matchFound = false;
 
-        for (IConversationEdge<V> allowedAnswer : currentSnippet.getEdges()) {
+        for (IConversationEdge<S> allowedAnswer : currentSnippet.getEdges()) {
             logger.fine(String.format("inspecting possible answer %s", allowedAnswer));
 
             if (allowedAnswer.isMatchForState(state)) {
@@ -84,10 +84,7 @@ public class DirectedConversation<V extends IConversationState> implements IConv
                 state.setCurrentNodeId(nextNode.getId());
                 logger.info(String.format("response '%s' matches answer %s", response, allowedAnswer));
                 matchFound = true;
-                if (currentSnippet.getStateKey() != null) {
-                    logger.info(String.format("updating state of '%s' to %s", currentSnippet.getStateKey(), allowedAnswer.transformResponse(state)));
-                    state.set(currentSnippet.getStateKey(), allowedAnswer.transformResponse(state));
-                }
+                state = allowedAnswer.onMatch(state);
             }
         }
 

@@ -23,17 +23,47 @@
  */
 package com.synclab.conversationkit.model;
 
-import java.util.Map;
-
 /**
- *
+ * The conversation state is a data store designed to persist a user's progress
+ * through a conversation, help customize the messages sent by the bot to the 
+ * user, and to save data from user responses during the conversation. In many
+ * cases the implementation will be backed by a database or other permanent
+ * storage.
  * @author pdtyreus
  */
 public interface IConversationState{
+    /**
+     * Returns the id of the node representing the last message sent to the 
+     * user.
+     * @return the node id
+     */
     public int getCurrentNodeId();
+    /**
+     * Stores the id of the last message sent to the user.
+     * @param currentNodeId unique id of the node
+     */
     public void setCurrentNodeId(int currentNodeId);
+    /**
+     * Returns the last unprocessed response from the user to the bot.
+     * @return the user's response
+     */
     public String getCurrentResponse();
+    /**
+     * Stores a response from the user to the bot for subsequent processing.
+     * @param currentResponse the response entered by the user
+     */
     public void setCurrentResponse(String currentResponse);
-    public void set(String propertyName, Object Value);
+    /**
+     * Stores an arbitrary property value under the specified key.
+     * @param propertyName the name of the key (e.g. column name, hash key, etc.)
+     * @param value the value to be stored
+     */
+    public void set(String propertyName, Object value);
+    /**
+     * Return the value stored under the specified key or null if nothing is
+     * present.
+     * @param propertyName key
+     * @return stored value or null
+     */
     public Object get(String propertyName);
 }

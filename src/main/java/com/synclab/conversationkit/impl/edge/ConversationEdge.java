@@ -21,28 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl.edge;
+
+import com.synclab.conversationkit.model.IConversationEdge;
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationState;
 
 /**
- *
+ * A simple IConversationEdge implementation that always matches and does not
+ * transform responses. This implementation would be best used for connecting
+ * multiple {@link com.synclab.conversationkit.model.SnippetType}.STATEMENT nodes.
+ * 
  * @author pdtyreus
+ * @param <S> an implementation of IConversationState
  */
-public abstract class ConversationEdge<T extends IConversationState> implements IConversationEdge<T>{
-    
-    private IConversationNode endNode;
+public class ConversationEdge<S extends IConversationState> implements IConversationEdge<S> {
+
+    private final IConversationNode endNode;
+
+    public ConversationEdge(IConversationNode endNode) {
+        this.endNode = endNode;
+    }
 
     public IConversationNode getEndNode() {
         return endNode;
     }
 
-    public void setEndNode(IConversationNode endNode) {
-        this.endNode = endNode;
-    }
-
     @Override
     public String toString() {
-        return "DecisionEdge {" + endNode.renderContent(null) + '}';
+        return "ConversationEdge {" + endNode.renderContent(null) + '}';
     }
-    
-    
+
+    public boolean isMatchForState(S state) {
+        return true;
+    }
+
+    public S onMatch(S state) {
+        return state;
+    }
+
 }

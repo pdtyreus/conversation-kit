@@ -26,18 +26,33 @@ package com.synclab.conversationkit.model;
 import java.util.List;
 
 /**
- *
+ * A conversation node is a vertex on the directed conversation graph containing
+ * a statement or question for the bot to present to the user. Each node has
+ * zero or more outbound edges and zero or more inbound edges. The conversation
+ * traverses the graph between nodes in by analyzing the state and choosing
+ * the first matching edge at each vertex.
  * @author pdtyreus
+ * @param <S> an implementation of to store the current state of the conversation
+ * for the current user
  */
-public interface IConversationNode<T extends IConversationState> extends IConversationSnippet<T>{
+public interface IConversationNode<S extends IConversationState> extends IConversationSnippet<S>{
 
-    public List<IConversationEdge<T>> getEdges();
+    /**
+     * Returns a list of outbound edges from the current node. One matching 
+     * edge may be chosen to continue the conversation to the next node.
+     * @return outbound edges
+     */
+    public List<IConversationEdge<S>> getEdges();
 
-    public void addEdge(IConversationEdge<T> edge);
+    /**
+     * Adds an edge to the list of possible outbound edges.
+     * @param edge edge to add
+     */
+    public void addEdge(IConversationEdge<S> edge);
 
+    /**
+     * Returns the unique identifier for this node.
+     * @return the node id
+     */
     public int getId();
-    
-    public String renderContent(T state);
-    
-    public String getStateKey();
 }

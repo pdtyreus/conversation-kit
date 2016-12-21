@@ -21,21 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl.node;
 
+import com.synclab.conversationkit.model.IConversationEdge;
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetType;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Interface encapsulating the basic API for traversing a conversation.
- * Implementation details may vary, but generally the conversation is started
- * from a given state and runs until it requires a response from the user. The
- * user response is then used to update the conversation state, and the
- * conversation is restarted (continued) with the updated state.
+ *
  * @author pdtyreus
- * @param <S> an implementation of to store the current state of the conversation
- * for the current user
  */
-public interface IConversation<S extends IConversationState> {
-    public List<IConversationSnippet> startConversationFromState(S state);
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException;
+public abstract class ConversationNode<T extends IConversationState> implements IConversationNode<T> {
+
+    private final List<IConversationEdge<T>> edges;
+    private final SnippetType type;
+    private final int id;
+
+    public ConversationNode(int id, SnippetType type) {
+        this.id = id;
+        this.type = type;
+        this.edges = new ArrayList();
+    }
+
+    public List<IConversationEdge<T>> getEdges() {
+        return edges;
+    }
+
+    public void addEdge(IConversationEdge<T> node) {
+        edges.add(node);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public SnippetType getType() {
+        return type;
+    }
 }

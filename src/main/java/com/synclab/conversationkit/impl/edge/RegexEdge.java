@@ -21,49 +21,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl.edge;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.synclab.conversationkit.model.IConversationEdge;
+import com.synclab.conversationkit.model.IConversationNode;
+import com.synclab.conversationkit.model.IConversationState;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author pdtyreus
  */
-public abstract class ConversationNode<T extends IConversationState> implements IConversationNode<T> {
+public class RegexEdge <S extends IConversationState> implements IConversationEdge<S> {
 
-    private String stateKey;
-    private final List<IConversationEdge<T>> edges;
-    private final SnippetType type;
-    private final int id;
+    private final IConversationNode<S> endNode;
+    private final Pattern pattern;
+    private final String stateKey;
 
-    public ConversationNode(int id, SnippetType type) {
-        this.id = id;
-        this.type = type;
-        this.edges = new ArrayList();
-    }
-
-    public String getStateKey() {
-        return stateKey;
-    }
-
-    public void setStateKey(String stateKey) {
+    public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
+        this.endNode = endNode;
         this.stateKey = stateKey;
+        this.pattern = Pattern.compile(matchRegex);
+    }
+    
+    public IConversationNode<S> getEndNode() {
+        return endNode;
     }
 
-    public List<IConversationEdge<T>> getEdges() {
-        return edges;
+    public boolean isMatchForState(S state) {
+        Matcher matcher = pattern.matcher(state.getCurrentResponse());
+        return matcher.find();
     }
 
-    public void addEdge(IConversationEdge<T> node) {
-        edges.add(node);
+    public S onMatch(S state) {
+        Matcher matcher = pattern.matcher(state.getCurrentResponse());
+        if ((stateKey != null) && matcher.find()) {
+            state.set(stateKey, matcher.group());
+        } 
+        
+        return state;
     }
 
-    public int getId() {
-        return id;
+    public String toString() {
+        return "RegexEdge {" + pattern.pattern() + '}';
     }
-
-    public SnippetType getType() {
-        return type;
-    }
+    
 }

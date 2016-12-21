@@ -26,12 +26,41 @@ package com.synclab.conversationkit.model;
 import java.util.List;
 
 /**
- *
+ * A conversation snippet represents a small bit of dialog in a conversation.
+ * In the case of a chat bot, this might represent a block of text sent as one
+ * message. Snippets can be classified as a STATEMENT or QUESTION. Generally,
+ * if the snippet is a STATEMENT the conversation will proceed to the next
+ * snippet automatically. If it is a QUESTION, the conversation will stop and
+ * wait for a response from the user. However, this depends on the IConversation
+ * implementation.
+ * <p>
+ * Conversation snippets can also suggest possible responses. Some chat bot
+ * clients like Facebook Messenger support displaying suggested responses in 
+ * the interface while others like Slack do not.
+ * 
  * @author pdtyreus
+ * @param <S> an implementation of to store the current state of the conversation
+ * for the current user
  */
-public interface IConversationSnippet<T extends IConversationState> {
+public interface IConversationSnippet<S extends IConversationState> {
     
-    public String renderContent(T state);
+    /**
+     * Returns the text to be displayed to the user. The state can be used to
+     * modify the content at runtime to, for example, integrate data from
+     * previous responses.
+     * @param state the user's conversation state
+     * @return the text to be displayed to the user.
+     */
+    public String renderContent(S state);
+    /**
+     * The snippet type influences the control flow of the IConversation
+     * implementation.
+     * @return the snippet type
+     */
     public SnippetType getType();
+    /**
+     * Returns the suggested responses if supported by the chat bot client.
+     * @return the suggested responses
+     */
     public List<String> getSuggestedResponses();
 }

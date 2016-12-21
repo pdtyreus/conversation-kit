@@ -20,13 +20,14 @@
     "5": {
         "type": "QUESTION",
         "content": "How many fingers am I holding up?",
-        "stateKey": "numFingers",
         "answers": [{
                 "type": "ANSWER",
+                "stateKey": "numFingers",
                 "content": "3",
                 "next": [3]
             }, {
                 "type": "ANSWER",
+                "stateKey": "numFingers",
                 "content": "4",
                 "next": [4]
             }]
