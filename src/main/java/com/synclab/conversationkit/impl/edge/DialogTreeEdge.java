@@ -47,6 +47,7 @@ public class DialogTreeEdge<S extends IConversationState> implements IConversati
 
     private final IConversationNode<S> endNode;
     private final String answer;
+
     private final String stateKey;
 
     /**
@@ -92,6 +93,11 @@ public class DialogTreeEdge<S extends IConversationState> implements IConversati
         return state;
     }
 
+    public String getAnswer() {
+        return answer;
+    }
+        
+    @Override
     public String toString() {
         return "DialogTreeEdge {" + answer + '}';
     }

@@ -21,38 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl.node;
 
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetType;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A conversation node is a vertex on the directed conversation graph containing
- * a statement or question for the bot to present to the user. Each node has
- * zero or more outbound edges and zero or more inbound edges. The conversation
- * traverses the graph between nodes in by analyzing the state and choosing
- * the first matching edge at each vertex.
+ * A flexible implementation of IConversationNode that can specify but not 
+ * require suggested answers to questions. However, no checks are made to ensure
+ * that the suggested responses actually match an outbound edge.
+ * 
  * @author pdtyreus
  * @param <S> an implementation of IConversationState to store the state of the 
  * conversation for the current user
  */
-public interface IConversationNode<S extends IConversationState> extends IConversationSnippet<S>{
+public class ConversationGraphNode<S extends IConversationState> extends ConversationNode<S> {
 
-    /**
-     * Returns a list of outbound edges from the current node. One matching 
-     * edge may be chosen to continue the conversation to the next node.
-     * @return outbound edges
-     */
-    public Iterable<IConversationEdge<S>> getEdges();
+    protected final List<String> suggestedResponses;
+    protected final String content;
+    
+    public ConversationGraphNode(int id, SnippetType type, String content) {
+        super(id, type);
+        this.suggestedResponses = new ArrayList();
+        this.content = content;
+    }
 
-    /**
-     * Adds an edge to the list of possible outbound edges.
-     * @param edge edge to add
-     */
-    public void addEdge(IConversationEdge<S> edge);
+    public String renderContent(S state) {
+        return content;
+    }
 
-    /**
-     * Returns the unique identifier for this node.
-     * @return the node id
-     */
-    public int getId();
+    public Iterable<String> getSuggestedResponses() {
+        return suggestedResponses;
+    }
+    
+    public void addSuggestedResponse(String response) {
+        if (getType() == SnippetType.STATEMENT) {
+            throw new IllegalArgumentException("STATEMENTS cannot have suggested responses");
+        }
+        suggestedResponses.add(response);
+    }
 }

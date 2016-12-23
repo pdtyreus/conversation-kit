@@ -25,6 +25,7 @@ package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.impl.node.DialogTreeNode;
 import com.synclab.conversationkit.model.SnippetType;
+import java.util.List;
 
 /**
  *
@@ -35,7 +36,7 @@ public class TemplatedDialogTreeNode<T extends MapBackedState> extends DialogTre
     public TemplatedDialogTreeNode(int id, SnippetType type, String content) {
         super(id, type, content);
     }
-
+    
     @Override
     public String renderContent(T state) {
         if (state == null) {

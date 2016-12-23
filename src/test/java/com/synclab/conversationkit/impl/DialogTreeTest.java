@@ -75,7 +75,7 @@ public class DialogTreeTest extends TestCase {
         state.setName("Daniel");
         state.setNumber(3);
 
-        List<IConversationSnippet> nodes = tree.startConversationFromState(state);
+        Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
         StringBuilder convo = new StringBuilder();
         Formatter formatter = new Formatter(convo);
 
@@ -114,7 +114,7 @@ public class DialogTreeTest extends TestCase {
         UserDialogTreeState state = new UserDialogTreeState();
         state.setCurrentNodeId(1);
 
-        List<IConversationSnippet> nodes = tree.startConversationFromState(state);
+        Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
         StringBuilder convo = new StringBuilder();
         Formatter formatter = new Formatter(convo);
 
@@ -191,7 +191,7 @@ public class DialogTreeTest extends TestCase {
 
     private void formatSnippet(Formatter formatter, IConversationSnippet node, IConversationState state) {
         formatter.format("  > %-100s <\n", node.renderContent(state));
-        if ((node.getType() == SnippetType.QUESTION) && !node.getSuggestedResponses().isEmpty()) {
+        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses() != null)) {
             formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses()) + " ]");
         }
     }

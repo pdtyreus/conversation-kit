@@ -30,18 +30,26 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Matches responses based on a regular expression pattern. If a stateKey is 
+ * provided, the onMatch method sets the value of this key in the conversation
+ * state equal to the first group found in the match. 
  * @author pdtyreus
  */
 public class RegexEdge <S extends IConversationState> implements IConversationEdge<S> {
 
     private final IConversationNode<S> endNode;
-    private final Pattern pattern;
-    private final String stateKey;
+    protected final Pattern pattern;
+    protected final String stateKey;
 
     public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
         this.endNode = endNode;
         this.stateKey = stateKey;
+        this.pattern = Pattern.compile(matchRegex);
+    }
+    
+    public RegexEdge(String matchRegex, IConversationNode<S> endNode) {
+        this.endNode = endNode;
+        this.stateKey = null;
         this.pattern = Pattern.compile(matchRegex);
     }
     

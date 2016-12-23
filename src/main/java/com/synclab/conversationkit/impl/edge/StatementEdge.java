@@ -28,18 +28,18 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 
 /**
- * A simple IConversationEdge implementation that always matches and does not
- * transform responses. This implementation would be best used for connecting
- * multiple {@link com.synclab.conversationkit.model.SnippetType}.STATEMENT nodes.
+ * A simple IConversationEdge implementation that always matches. This 
+ * implementation would be best used for connecting multiple 
+ * {@link com.synclab.conversationkit.model.SnippetType}.STATEMENT nodes.
  * 
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class ConversationEdge<S extends IConversationState> implements IConversationEdge<S> {
+public class StatementEdge<S extends IConversationState> implements IConversationEdge<S> {
 
     private final IConversationNode endNode;
 
-    public ConversationEdge(IConversationNode endNode) {
+    public StatementEdge(IConversationNode endNode) {
         this.endNode = endNode;
     }
 

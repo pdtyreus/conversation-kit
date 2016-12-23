@@ -47,12 +47,12 @@ public class DirectedConversation<S extends IConversationState> implements IConv
         this.nodeIndex = nodeIndex;
     }
 
-    public List<IConversationSnippet> startConversationFromState(S state) {
+    public Iterable<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
         IConversationNode<S> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         nodes.add(current);
         boolean continueTraverse = true;
-        while (continueTraverse && !current.getEdges().isEmpty()) {
+        while (continueTraverse) {
             //if nothing has matched, we are done
             continueTraverse = false;
             for (IConversationEdge<S> edge : current.getEdges()) {
@@ -73,7 +73,7 @@ public class DirectedConversation<S extends IConversationState> implements IConv
     public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException {
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         state.setCurrentResponse(response);
-        logger.fine(String.format("processing response '%s' for node of type %s with %d possible answers", response, currentSnippet.getType(), currentSnippet.getEdges().size()));
+        logger.fine(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
         boolean matchFound = false;
 
         for (IConversationEdge<S> allowedAnswer : currentSnippet.getEdges()) {

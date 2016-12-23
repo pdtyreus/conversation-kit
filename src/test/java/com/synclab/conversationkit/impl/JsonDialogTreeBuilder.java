@@ -23,7 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.impl.edge.ConversationEdge;
+import com.synclab.conversationkit.impl.edge.StatementEdge;
 import com.synclab.conversationkit.impl.node.ConversationNode;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
@@ -37,6 +37,7 @@ import com.synclab.conversationkit.model.IConversationState;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -94,10 +95,8 @@ public class JsonDialogTreeBuilder {
                     case STATEMENT:
                         for (JsonValue idVal : node.get("next").asArray()) {
                             final ConversationNode nextNode = nodeMap.get(idVal.asInt());
-                            ConversationEdge edge = new ConversationEdge(nextNode);
-
+                            StatementEdge edge = new StatementEdge(nextNode);
                             prevNode.addEdge(edge);
-                            prevNode.getSuggestedResponses().add(content);
                         }
                         break;
                     case QUESTION:
@@ -111,7 +110,6 @@ public class JsonDialogTreeBuilder {
                                 }
                                 DialogTreeEdge edge = new DialogTreeEdge(answerContent, stateKey, nextNode);
                                 prevNode.addEdge(edge);
-                                prevNode.getSuggestedResponses().add(answerContent);
                             }
                         }
                         break;

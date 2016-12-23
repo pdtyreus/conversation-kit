@@ -30,5 +30,5 @@ import java.util.List;
  * @author pdtyreus
  */
 public interface IUnmatchedResponseHandler<T extends IConversationState> {
-    public List<IConversationSnippet> handleUnmatchedResponse(String response, T state);
+    public Iterable<IConversationSnippet> handleUnmatchedResponse(String response, T state);
 }

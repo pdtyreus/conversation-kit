@@ -36,6 +36,6 @@ import java.util.List;
  * for the current user
  */
 public interface IConversation<S extends IConversationState> {
-    public List<IConversationSnippet> startConversationFromState(S state);
+    public Iterable<IConversationSnippet> startConversationFromState(S state);
     public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException;
 }

@@ -23,49 +23,67 @@
  */
 package com.synclab.conversationkit.impl.node;
 
+import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
+import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A DialogTreeNode is a simple implementation of IConversationNode that holds
- * a text string to represent the displayed conversation snippet as well
- * as an optional list of suggested responses. By default the snippet and 
- * suggested responses will be rendered unchanged, but this class can easily be
- * extended to use a templating engine for string substitution.
+ * A DialogTreeNode is a restricted implementation of IConversationNode that
+ * holds a text string to represent the displayed conversation snippet as well
+ * as an optional list of allowed responses. By default the snippet and allowed
+ * responses will be rendered unchanged, but this class can easily be extended
+ * to use a template engine for string substitution.
  * <p>
- * A Dialog Tree is a type of branching conversation often seen in adventure
- * video games. The user is given a choice of what to say and makes 
- * subsequent choices until the conversation ends. The responses to the user
- * are scripted based on the choices made. Each DialogTreeNode represents
- * either a question or statement presented to the user by the bot.
- * 
+ * A dialog tree is a type of branching conversation often seen in adventure
+ * video games. The user is given a choice of what to say and makes subsequent
+ * choices until the conversation ends. The responses to the user are scripted
+ * based on the choices made. Each DialogTreeNode represents either a question
+ * or statement presented to the user by the bot.
+ * <p>
+ * A DialogTreeNode can either be a statement or question. A statement will not
+ * stop the conversation, continuing along the outbound edge to the next node if
+ * available. A question will stop the conversation and wait for a a response
+ * from the user. The suggested responses for a question are taken from the
+ * content of the outbound edges.
+ *
  * @author pdtyreus
+ * @param <S> an implementation of IConversationState to store the state of the
+ * conversation for the current user
  */
-public class DialogTreeNode<T extends IConversationState> extends ConversationNode<T> {
+public class DialogTreeNode<S extends IConversationState> extends ConversationNode<S> {
 
-    private final List<String> suggestedResponses = new ArrayList();
     protected final String content;
 
     /**
-     * 
+     * Creates a node with the specified text.
+     *
      * @param id the unique ID of the node from the underlying data store
-     * @param type the node type
+     * @param type whether the node should be a QUESTION or STATEMENT
      * @param content the text prompt displayed to the user
      */
     public DialogTreeNode(int id, SnippetType type, String content) {
         super(id, type);
         this.content = content;
     }
-    
-    public String renderContent(T state) {
+
+    public String renderContent(S state) {
         return content;
     }
 
-    public List<String> getSuggestedResponses() {
-        return suggestedResponses;
+    public Iterable<String> getSuggestedResponses() {
+        if (getType() == SnippetType.STATEMENT) {
+            return null;
+        }
+        List<String> allowed = new ArrayList();
+        for (IConversationEdge edge : edges) {
+            if (edge instanceof DialogTreeEdge) {
+                DialogTreeEdge dtEdge = (DialogTreeEdge) edge;
+                allowed.add(dtEdge.getAnswer());
+            }
+        }
+        return allowed;
     }
-    
-    
 }

@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author pdtyreus
  */
-public class BasicUnmatchedResponseHandler<V extends IConversationState> implements IUnmatchedResponseHandler<V>{
+public class BasicUnmatchedResponseHandler<S extends IConversationState> implements IUnmatchedResponseHandler<S>{
 
     private String content = "I'm sorry, I did not understand your previous response";
 
@@ -45,7 +45,7 @@ public class BasicUnmatchedResponseHandler<V extends IConversationState> impleme
         this.content = content;
     }
     
-    public List<IConversationSnippet> handleUnmatchedResponse(String response, V state) {
+    public Iterable<IConversationSnippet> handleUnmatchedResponse(String response, S state) {
         List<IConversationSnippet> snippets = new ArrayList();
         IConversationSnippet snippet = new IConversationSnippet() {
 
@@ -57,7 +57,7 @@ public class BasicUnmatchedResponseHandler<V extends IConversationState> impleme
                 return SnippetType.STATEMENT;
             }
 
-            public List getSuggestedResponses() {
+            public Iterable getSuggestedResponses() {
                 return null;
             }
 
