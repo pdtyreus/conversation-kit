@@ -1,35 +1,63 @@
 {
-    "1": {
-        "type": "STATEMENT",
-        "content": "Hello {{name}}, I'm a test bot",
-        "next": [2]
-    },
-    "2": {
-        "type": "STATEMENT",
-        "content": "You've hit your head. I'm going to ask you some questions.",
-        "next": [5]
-    },
-    "3": {
-        "type": "STATEMENT",
-        "content": "Correct. {{numFingers}} fingers."
-    },
-    "4": {
-        "type": "STATEMENT",
-        "content": "{{numFingers}} is wrong. I was holding up {{number}}. See a doctor."
-    },
-    "5": {
-        "type": "QUESTION",
-        "content": "How many fingers am I holding up?",
-        "answers": [{
-                "type": "ANSWER",
-                "stateKey": "numFingers",
-                "content": "3",
-                "next": [3]
-            }, {
-                "type": "ANSWER",
-                "stateKey": "numFingers",
-                "content": "4",
-                "next": [4]
-            }]
+    "graph": {
+        "directed": true,
+        "label": "Templated Dialog Tree",
+        "nodes": [
+            {
+                "id": "1",
+                "type": "STATEMENT",
+                "label": "Hello {{name}}, I'm a test bot"
+            },
+            {
+                "id": "2",
+                "type": "STATEMENT",
+                "label": "You've hit your head. I'm going to ask you some questions."
+            },
+            {
+                "id": "3",
+                "type": "STATEMENT",
+                "label": "Correct. {{numFingers}} fingers."
+            },
+            {
+                "id": "4",
+                "type": "STATEMENT",
+                "label": "{{numFingers}} is wrong. I was holding up {{number}}. See a doctor."
+            },
+            {
+                "id":"5",
+                "type":"QUESTION",
+                "label":"How many fingers am I holding up?"
+            }
+        ],
+        "edges": [
+            {
+                "source": "1",
+                "target": "2",
+                "directed": true
+            },
+            {
+                "source": "2",
+                "target": "5",
+                "directed": true
+            },
+            {
+                "source": "5",
+                "target": "3",
+                "directed": true,
+                "label": "3",
+                "metadata":{
+                    "stateKey":"numFingers"
+                }
+            },
+            {
+                "source": "5",
+                "target": "4",
+                "directed": true,
+                "label": "4",
+                "metadata":{
+                    "stateKey":"numFingers"
+                }
+            }
+        ]
     }
 }

@@ -97,6 +97,8 @@ public class DialogTreeTest extends TestCase {
         }
 
         assertEquals(4, state.getCurrentNodeId());
+        
+        assertEquals(response, state.get("numFingers").toString());
 
         logger.info(convo.toString());
     }

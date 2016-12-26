@@ -58,19 +58,17 @@ public class JsonDialogTreeBuilder {
 
         JsonValue value = Json.parse(reader);
 
-        JsonObject keyTree = value.asObject();
+        JsonObject keyTree = value.asObject().get("graph").asObject();
 
         Map<Integer, TemplatedDialogTreeNode<UserDialogTreeState>> nodeMap = new HashMap();
 
         //run through once to create nodes
-        for (Member member : keyTree) {
-            String name = member.getName();
-            Integer id = Integer.parseInt(name);
-            JsonObject node = member.getValue().asObject();
-
+        for (JsonValue member : keyTree.get("nodes").asArray()) {
+            JsonObject node = member.asObject();
+            Integer id = Integer.parseInt(node.get("id").asString());
             //make the node into something
             String type = node.get("type").asString();
-            String content = node.get("content").asString();
+            String content = node.get("label").asString();
             SnippetType snippetType = SnippetType.valueOf(type);
             TemplatedDialogTreeNode dtNode = new TemplatedDialogTreeNode(id, snippetType, content);
             nodeMap.put(id, dtNode);
@@ -79,42 +77,31 @@ public class JsonDialogTreeBuilder {
         logger.info(MessageFormat.format("Created {0} named nodes", nodeMap.keySet().size()));
 
         //connect the nodes
-        for (Member member : keyTree) {
-            String name = member.getName();
-            JsonObject node = member.getValue().asObject();
-            Integer id = Integer.parseInt(name);
+        for (JsonValue member : keyTree.get("edges").asArray()) {
+            JsonObject edge = member.asObject();
 
-            //make the node into something
-            String type = node.get("type").asString();
-            String content = node.get("content").asString();
+            Integer sourceId = Integer.parseInt(edge.get("source").asString());
+            Integer targetId = Integer.parseInt(edge.get("target").asString());
 
-            SnippetType snippetType = SnippetType.valueOf(type);
-            if ((node.get("next") != null) || (node.get("answers") != null)) {
-                final TemplatedDialogTreeNode prevNode = nodeMap.get(id);
-                switch (snippetType) {
-                    case STATEMENT:
-                        for (JsonValue idVal : node.get("next").asArray()) {
-                            final ConversationNode nextNode = nodeMap.get(idVal.asInt());
-                            StatementEdge edge = new StatementEdge(nextNode);
-                            prevNode.addEdge(edge);
-                        }
-                        break;
-                    case QUESTION:
-                        for (final JsonValue answerVal : node.get("answers").asArray()) {
-                            for (JsonValue idVal : answerVal.asObject().get("next").asArray()) {
-                                final ConversationNode nextNode = nodeMap.get(idVal.asInt());
-                                final String answerContent = answerVal.asObject().get("content").asString();
-                                String stateKey = null;
-                                if (node.get("stateKey") != null) {
-                                    stateKey = node.get("stateKey").asString();
-                                }
-                                DialogTreeEdge edge = new DialogTreeEdge(answerContent, stateKey, nextNode);
-                                prevNode.addEdge(edge);
-                            }
-                        }
-                        break;
-                }
+            TemplatedDialogTreeNode source = nodeMap.get(sourceId);
+            TemplatedDialogTreeNode target = nodeMap.get(targetId);
 
+            SnippetType snippetType = source.getType();
+            switch (snippetType) {
+                case STATEMENT:
+                    StatementEdge e = new StatementEdge(target);
+                    source.addEdge(e);
+                    break;
+                case QUESTION:
+                    final String answerContent = edge.get("label").asString();
+                    String stateKey = null;
+                    if ((edge.get("metadata") != null) && (edge.get("metadata").asObject().get("stateKey") != null)) {
+                        stateKey = edge.get("metadata").asObject().get("stateKey").asString();
+                    }
+                    DialogTreeEdge de = new DialogTreeEdge(answerContent, stateKey, target);
+                    source.addEdge(de);
+
+                    break;
             }
 
         }

@@ -1,44 +1,74 @@
 {
-    "1": {
-        "type": "STATEMENT",
-        "content": "Hello I'm a test bot",
-        "next": [2]
-    },
-    "2": {
-        "type": "QUESTION",
-        "content": "How are you feeling today?",
-        "answers": [{
-                "content": "great",
-                "next": [3]
-            }, {
-                "content": "bad",
-                "next": [4]
+    "graph": {
+        "directed": true,
+        "label": "Dialog Tree",
+        "nodes": [
+            {
+                "id": "1",
+                "type": "STATEMENT",
+                "label": "Hello I'm a test bot"
+            },
+            {
+                "id": "2",
+                "type": "QUESTION",
+                "label": "How are you feeling today?"
+            },
+            {
+                "id": "3",
+                "type": "STATEMENT",
+                "label": "Glad to hear it! Have a great day."
+            },
+            {
+                "id": "4",
+                "type": "STATEMENT",
+                "label": "Really sorry to hear that."
+            },
+            {
+                "id":"5",
+                "type":"QUESTION",
+                "label":"Is there anything I can do to help?"
+            },
+            {
+                "id":"6",
+                "type":"STATEMENT",
+                "label":"I'm not sure I appreciate that tone. Goodbye."
+            }
+        ],
+        "edges": [
+            {
+                "source": "1",
+                "target": "2",
+                "directed": true
+            },
+            {
+                "source": "4",
+                "target": "5",
+                "directed": true
+            },
+            {
+                "source": "2",
+                "target": "3",
+                "directed": true,
+                "label": "great"
+            },
+            {
+                "source": "2",
+                "target": "4",
+                "directed": true,
+                "label": "bad"
+            },
+            {
+                "source": "5",
+                "target": "3",
+                "directed": true,
+                "label": "No, I actually feel fine."
+            },
+            {
+                "source": "5",
+                "target": "6",
+                "directed": true,
+                "label": "Yeah, you could work for a change."
             }
         ]
-    },
-    "3": {
-        "type": "STATEMENT",
-        "content": "Glad to hear it! Have a great day"
-    },
-    "4": {
-        "type": "STATEMENT",
-        "content": "Really sorry to hear that.",
-        "next": [5]
-    },
-    "5": {
-        "type": "QUESTION",
-        "content": "Is there anything I can do to help?",
-        "answers": [{
-                "content": "No, I actually feel fine.",
-                "next": [3]
-            }, {
-                "content": "Yeah, you could work for a change.",
-                "next": [6]
-            }
-        ]
-    },
-    "6": {
-        "type": "STATEMENT",
-        "content": "I'm not sure I appreciate that tone. Goodbye."
     }
 }
