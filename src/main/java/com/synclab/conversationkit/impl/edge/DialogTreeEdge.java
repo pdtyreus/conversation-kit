@@ -28,15 +28,18 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 
 /**
- * A DialogTreeEdge is an implementation of IConversationEdge that connects one
- * IConversationNode that is a QUESTION to the IConversationNode matching the
+ * A <code>DialogTreeEdge</code> is an implementation of <code>IConversationEdge</code>
+ * that connects one
+ * <code>IConversationNode</code> that is a <code>QUESTION</code> to the 
+ * <code>IConversationNode</code> matching the
  * answer.
  * <p>
  * A Dialog Tree is a type of branching conversation often seen in adventure
  * video games. The user is given a choice of what to say and makes subsequent
  * choices until the conversation ends. The responses to the user are scripted
  * based on the choices made. Since the user can only answer questions using one
- * the supplied suggestions from the DialogTreeNode, this edge type does a
+ * the supplied suggestions from the <code>DialogTreeNode</code>, this edge 
+ * type does a
  * string match between the answer stored in the edge and the response provided
  * by the user.
  *

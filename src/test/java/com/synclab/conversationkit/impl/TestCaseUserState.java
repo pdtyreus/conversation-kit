@@ -23,31 +23,37 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.impl.node.DialogTreeNode;
-import com.synclab.conversationkit.model.SnippetType;
-import java.util.List;
-
 /**
  *
  * @author tyreus
  */
-public class TemplatedDialogTreeNode<S extends MapBackedState> extends DialogTreeNode<S> {
+public class TestCaseUserState extends MapBackedState {
 
-    public TemplatedDialogTreeNode(int id, SnippetType type, String content) {
-        super(id, type, content);
-    }
-    
-    @Override
-    public String renderContent(S state) {
-        if (state == null) {
-            return content;
-        }
-        String renderedContent = content;
-        for (String key : state.keySet()) {
-            renderedContent = renderedContent.replace("{{" + key + "}}", state.get(key).toString());
-        }
-
-        return renderedContent;
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return (String)this.get("name");
     }
 
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.put("name", name);
+    }
+
+    /**
+     * @return the number
+     */
+    public int getNumber() {
+        return (Integer)this.get("number");
+    }
+
+    /**
+     * @param number the number to set
+     */
+    public void setNumber(int number) {
+        this.put("number", number);
+    }
 }

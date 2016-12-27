@@ -23,20 +23,19 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.impl.node.DialogTreeNode;
+import com.synclab.conversationkit.impl.node.ResponseSuggestingNode;
 import com.synclab.conversationkit.model.SnippetType;
-import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class TemplatedDialogTreeNode<S extends MapBackedState> extends DialogTreeNode<S> {
+public class TemplatedNode<S extends MapBackedState> extends ResponseSuggestingNode<S> {
 
-    public TemplatedDialogTreeNode(int id, SnippetType type, String content) {
+    public TemplatedNode(int id, SnippetType type, String content) {
         super(id, type, content);
     }
-    
+
     @Override
     public String renderContent(S state) {
         if (state == null) {
@@ -49,5 +48,4 @@ public class TemplatedDialogTreeNode<S extends MapBackedState> extends DialogTre
 
         return renderedContent;
     }
-
 }

@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A DialogTreeNode is a restricted implementation of IConversationNode that
+ * A <code>DialogTreeNode</code> is a restricted implementation of 
+ * <code>IConversationNode</code> that
  * holds a text string to represent the displayed conversation snippet as well
  * as an optional list of allowed responses. By default the snippet and allowed
  * responses will be rendered unchanged, but this class can easily be extended
@@ -43,7 +44,8 @@ import java.util.List;
  * based on the choices made. Each DialogTreeNode represents either a question
  * or statement presented to the user by the bot.
  * <p>
- * A DialogTreeNode can either be a statement or question. A statement will not
+ * A <code>DialogTreeNode</code> can either be a statement or question. 
+ * A statement will not
  * stop the conversation, continuing along the outbound edge to the next node if
  * available. A question will stop the conversation and wait for a a response
  * from the user. The suggested responses for a question are taken from the

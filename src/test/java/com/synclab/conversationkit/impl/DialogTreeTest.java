@@ -25,6 +25,7 @@ package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.InvalidResponseException;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
@@ -66,11 +67,11 @@ public class DialogTreeTest extends TestCase {
         
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
-        DirectedConversation<UserDialogTreeState> tree = builder.fromJson(reader);
+        DirectedConversation<TestCaseUserState> tree = builder.readDialogTree(reader);
 
         logger.info("** Testing conversation");
         
-        UserDialogTreeState state = new UserDialogTreeState();
+        TestCaseUserState state = new TestCaseUserState();
         state.setCurrentNodeId(1);
         state.setName("Daniel");
         state.setNumber(3);
@@ -90,6 +91,8 @@ public class DialogTreeTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
+        } catch (InvalidResponseException e) {
+            fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
@@ -102,6 +105,49 @@ public class DialogTreeTest extends TestCase {
 
         logger.info(convo.toString());
     }
+    
+    public void testRegexConversation() throws IOException {
+
+        logger.info("** Initializing Templated Regex Conversation for testing");
+        
+        //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
+        
+        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/regex_dialog.json"));
+        DirectedConversation<TestCaseUserState> tree = builder.readRegexDialog(reader);
+
+        logger.info("** Testing conversation");
+        
+        TestCaseUserState state = new TestCaseUserState();
+        state.setCurrentNodeId(1);
+
+        Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
+        StringBuilder convo = new StringBuilder();
+        Formatter formatter = new Formatter(convo);
+
+        convo.append("\n");
+        for (IConversationSnippet node : nodes) {
+            formatSnippet(formatter, node, state);
+        }
+
+        String response = "4";
+        formatResponse(formatter, response);
+        try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        } catch (InvalidResponseException e) {
+            fail(e.toString());
+        }
+        nodes = tree.startConversationFromState(state);
+        for (IConversationSnippet node : nodes) {
+            formatSnippet(formatter, node, state);
+        }
+
+        assertEquals(5, state.getCurrentNodeId());
+
+        logger.info(convo.toString());
+    }
 
     public void testBasicDialogTree() throws IOException {
 
@@ -109,11 +155,11 @@ public class DialogTreeTest extends TestCase {
 
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-        DirectedConversation<UserDialogTreeState> tree = builder.fromJson(reader);
+        DirectedConversation<TestCaseUserState> tree = builder.readDialogTree(reader);
 
         logger.info("** Testing conversation");
 
-        UserDialogTreeState state = new UserDialogTreeState();
+        TestCaseUserState state = new TestCaseUserState();
         state.setCurrentNodeId(1);
 
         Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
@@ -132,6 +178,8 @@ public class DialogTreeTest extends TestCase {
         try {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        } catch (InvalidResponseException e) {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
@@ -164,6 +212,8 @@ public class DialogTreeTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
+        } catch (InvalidResponseException e) {
+            fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
 
@@ -178,6 +228,8 @@ public class DialogTreeTest extends TestCase {
         try {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        } catch (InvalidResponseException e) {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);

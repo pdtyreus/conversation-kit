@@ -27,13 +27,16 @@ import com.synclab.conversationkit.impl.edge.StatementEdge;
 import com.synclab.conversationkit.impl.node.ConversationNode;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
+import com.synclab.conversationkit.impl.edge.RegexEdge;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.InvalidResponseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -41,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
 /**
  *
@@ -50,17 +54,17 @@ public class JsonDialogTreeBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonDialogTreeBuilder.class.getName());
 
-    public DirectedConversation<UserDialogTreeState> fromJson(Reader reader) throws IOException {
-        return fromJsonWithTemplates(reader);
+    public DirectedConversation<TestCaseUserState> readDialogTree(Reader reader) throws IOException {
+        return readTemplatedDialogTree(reader);
     }
 
-    public DirectedConversation<UserDialogTreeState> fromJsonWithTemplates(Reader reader) throws IOException {
+    public DirectedConversation<TestCaseUserState> readTemplatedDialogTree(Reader reader) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject().get("graph").asObject();
 
-        Map<Integer, TemplatedDialogTreeNode<UserDialogTreeState>> nodeMap = new HashMap();
+        Map<Integer, TemplatedDialogTreeNode<TestCaseUserState>> nodeMap = new HashMap();
 
         //run through once to create nodes
         for (JsonValue member : keyTree.get("nodes").asArray()) {
@@ -106,7 +110,7 @@ public class JsonDialogTreeBuilder {
 
         }
 
-        MapBackedNodeIndex<UserDialogTreeState> index = new MapBackedNodeIndex();
+        MapBackedNodeIndex<TestCaseUserState> index = new MapBackedNodeIndex();
 
         index.buildIndexFromStartNode(nodeMap.get(1));
 
@@ -114,4 +118,101 @@ public class JsonDialogTreeBuilder {
 
     }
 
+    public DirectedConversation<TestCaseUserState> readRegexDialog(Reader reader) throws IOException {
+
+        JsonValue value = Json.parse(reader);
+
+        JsonObject keyTree = value.asObject().get("graph").asObject();
+
+        Map<Integer, TemplatedNode<TestCaseUserState>> nodeMap = new HashMap();
+
+        //run through once to create nodes
+        for (JsonValue member : keyTree.get("nodes").asArray()) {
+            JsonObject node = member.asObject();
+            Integer id = Integer.parseInt(node.get("id").asString());
+            //make the node into something
+            String type = node.get("type").asString();
+            String content = node.get("label").asString();
+            SnippetType snippetType = SnippetType.valueOf(type);
+            TemplatedNode dtNode = new TemplatedNode(id, snippetType, content);
+
+            if ((node.get("metadata") != null) && (node.get("metadata").asObject().get("suggestedResponses") != null)) {
+                JsonArray suggestions = node.get("metadata").asObject().get("suggestedResponses").asArray();
+                for (JsonValue suggestion : suggestions) {
+                    dtNode.addSuggestedResponse(suggestion.asString());
+                }
+            }
+            nodeMap.put(id, dtNode);
+        }
+
+        logger.info(MessageFormat.format("Created {0} named nodes", nodeMap.keySet().size()));
+
+        //connect the nodes
+        for (JsonValue member : keyTree.get("edges").asArray()) {
+            JsonObject edge = member.asObject();
+
+            Integer sourceId = Integer.parseInt(edge.get("source").asString());
+            Integer targetId = Integer.parseInt(edge.get("target").asString());
+
+            TemplatedNode source = nodeMap.get(sourceId);
+            TemplatedNode target = nodeMap.get(targetId);
+
+            SnippetType snippetType = source.getType();
+            switch (snippetType) {
+                case STATEMENT:
+                    StatementEdge e = new StatementEdge(target);
+                    source.addEdge(e);
+                    break;
+                case QUESTION:
+                    String stateKey = null;
+                    String pattern = null;
+                    if (edge.get("metadata") != null) {
+                        if (edge.get("metadata").asObject().get("stateKey") != null) {
+                            stateKey = edge.get("metadata").asObject().get("stateKey").asString();
+                        }
+                        if (edge.get("metadata").asObject().get("pattern") != null) {
+                            pattern = edge.get("metadata").asObject().get("pattern").asString();
+                        }
+                    }
+                    if (pattern == null) {
+                        throw new RuntimeException("Regex pattern is null for edge " + edge.toString());
+                    }
+                    RegexEdge de = new RegexEdge(pattern, stateKey, target);
+                    source.addEdge(de);
+
+                    break;
+            }
+
+        }
+
+        MapBackedNodeIndex<TestCaseUserState> index = new MapBackedNodeIndex();
+
+        index.buildIndexFromStartNode(nodeMap.get(1));
+
+        return new DirectedConversation(index);
+
+    }
+
+    private class NumberParsingRegexEdge<S extends IConversationState> extends RegexEdge<S> {
+
+        public NumberParsingRegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
+            super(matchRegex, stateKey, endNode);
+        }
+
+        @Override
+        public S onMatch(S state) throws InvalidResponseException {
+            try {
+                Matcher matcher = pattern.matcher(state.getCurrentResponse());
+                if ((stateKey != null) && matcher.find()) {
+                    Integer.parseInt(matcher.group());
+                    state.set(stateKey, matcher.group());
+                }
+
+                return state;
+            } catch (NumberFormatException e) {
+                throw new InvalidResponseException("I was unable to convert " + state.getCurrentResponse() + " into a number.");
+            }
+        }
+
+    }
 }

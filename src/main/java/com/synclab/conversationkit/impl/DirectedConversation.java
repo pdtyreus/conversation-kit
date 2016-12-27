@@ -29,6 +29,8 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.InvalidResponseException;
+import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +65,16 @@ public class DirectedConversation<S extends IConversationState> implements IConv
                     current = edge.getEndNode();
                     nodes.add(current);
                     state.setCurrentNodeId(current.getId());
-                    continueTraverse = true;
+                    if (current.getType() == SnippetType.STATEMENT) {
+                        continueTraverse = true;
+                    }
                 }
             }
         }
         return nodes;
     }
 
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException {
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, InvalidResponseException {
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         state.setCurrentResponse(response);
         logger.fine(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));

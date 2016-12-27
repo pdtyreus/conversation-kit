@@ -1,0 +1,80 @@
+{
+    "graph": {
+        "directed": true,
+        "label": "RegEx Dialog Tree",
+        "nodes": [
+            {
+                "id": "1",
+                "type": "STATEMENT",
+                "label": "This is a math test. You can answer with digits or text."
+            },
+            {
+                "id": "2",
+                "type": "QUESTION",
+                "label": "What is 3+3"
+            },
+            {
+                "id": "3",
+                "type": "STATEMENT",
+                "label": "You answered {{number}}"
+            },
+            {
+                "id": "4",
+                "type": "STATEMENT",
+                "label": "That is the correct answer. 3+3={{number}}"
+            },
+            {
+                "id":"5",
+                "type":"QUESTION",
+                "label":"\"{{number}}\" is not correct. Would you like to try again?",
+                "metadata":{
+                    "suggestedResponses":["yes","no"]
+                }
+            },
+            {
+                "id":"6",
+                "type":"STATEMENT",
+                "label":"I did not understand what you said."
+            }
+        ],
+        "edges": [
+            {
+                "source": "1",
+                "target": "2",
+                "directed": true
+            },
+            {
+                "source": "2",
+                "target": "3",
+                "directed": true,
+                "label":"Any number",
+                "metadata": {
+                    "pattern":"\\d+",
+                    "stateKey":"number"
+                }
+            },
+            {
+                "source": "2",
+                "target": "3",
+                "directed": true,
+                "label":"Any word",
+                "metadata": {
+                    "pattern":"\\w",
+                    "stateKey":"number"
+                }
+            },
+            {
+                "source": "3",
+                "target": "4",
+                "directed": true,
+                "label": "correct"
+            },
+            {
+                "source": "3",
+                "target": "5",
+                "directed": true,
+                "label": "incorrect"
+            }
+        ]
+    }
+}

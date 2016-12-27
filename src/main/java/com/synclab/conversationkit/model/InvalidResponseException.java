@@ -21,39 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.model;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class UserDialogTreeState extends MapBackedState {
+public class InvalidResponseException extends Exception {
 
     /**
-     * @return the name
+     * Creates a new instance of <code>InvalidResponseException</code> without
+     * detail message.
      */
-    public String getName() {
-        return (String)this.get("name");
+    public InvalidResponseException() {
     }
 
     /**
-     * @param name the name to set
+     * Constructs an instance of <code>InvalidResponseException</code> with the
+     * specified detail message.
+     *
+     * @param msg the detail message.
      */
-    public void setName(String name) {
-        this.put("name", name);
-    }
-
-    /**
-     * @return the number
-     */
-    public int getNumber() {
-        return (Integer)this.get("number");
-    }
-
-    /**
-     * @param number the number to set
-     */
-    public void setNumber(int number) {
-        this.put("number", number);
+    public InvalidResponseException(String msg) {
+        super(msg);
     }
 }

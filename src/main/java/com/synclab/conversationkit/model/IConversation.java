@@ -37,5 +37,5 @@ import java.util.List;
  */
 public interface IConversation<S extends IConversationState> {
     public Iterable<IConversationSnippet> startConversationFromState(S state);
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException;
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, InvalidResponseException;
 }

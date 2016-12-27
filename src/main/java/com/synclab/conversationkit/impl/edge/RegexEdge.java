@@ -26,12 +26,14 @@ package com.synclab.conversationkit.impl.edge;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.InvalidResponseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Matches responses based on a regular expression pattern. If a stateKey is 
- * provided, the onMatch method sets the value of this key in the conversation
+ * provided, the <code>onMatch</code> method sets the value of this key in 
+ * the conversation
  * state equal to the first group found in the match. 
  * @author pdtyreus
  */
@@ -62,7 +64,7 @@ public class RegexEdge <S extends IConversationState> implements IConversationEd
         return matcher.find();
     }
 
-    public S onMatch(S state) {
+    public S onMatch(S state) throws InvalidResponseException {
         Matcher matcher = pattern.matcher(state.getCurrentResponse());
         if ((stateKey != null) && matcher.find()) {
             state.set(stateKey, matcher.group());

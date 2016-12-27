@@ -28,11 +28,12 @@ import java.util.List;
 /**
  * A conversation snippet represents a small bit of dialog in a conversation.
  * In the case of a chat bot, this might represent a block of text sent as one
- * message. Snippets can be classified as a STATEMENT or QUESTION. Generally,
- * if the snippet is a STATEMENT the conversation will proceed to the next
- * snippet automatically. If it is a QUESTION, the conversation will stop and
- * wait for a response from the user. However, this depends on the IConversation
- * implementation.
+ * message. Snippets can be classified as a <code>STATEMENT</code> 
+ * or <code>QUESTION</code>. Generally, if the snippet is a 
+ * <code>STATEMENT</code> the conversation will proceed to the next 
+ * automatically. If it is a <code>QUESTION</code>, the conversation will 
+ * stop and wait for a response from the user. However, this depends on 
+ * the <code>IConversation</code> implementation.
  * <p>
  * Conversation snippets can also suggest possible responses. Some chat bot
  * clients like Facebook Messenger support displaying suggested responses in 

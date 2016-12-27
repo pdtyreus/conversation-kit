@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A flexible implementation of IConversationNode that can specify but not 
+ * A flexible implementation of <code>IConversationNode</code> that can 
+ * specify but not 
  * require suggested answers to questions. However, no checks are made to ensure
  * that the suggested responses actually match an outbound edge.
  * 
@@ -37,14 +38,14 @@ import java.util.List;
  * @param <S> an implementation of IConversationState to store the state of the 
  * conversation for the current user
  */
-public class ConversationGraphNode<S extends IConversationState> extends ConversationNode<S> {
+public class ResponseSuggestingNode<S extends IConversationState> extends ConversationNode<S> {
 
-    protected final List<String> suggestedResponses;
+    protected List<String> suggestedResponses;
     protected final String content;
     
-    public ConversationGraphNode(int id, SnippetType type, String content) {
+    public ResponseSuggestingNode(int id, SnippetType type, String content) {
         super(id, type);
-        this.suggestedResponses = new ArrayList();
+        this.suggestedResponses = null;
         this.content = content;
     }
 
@@ -59,6 +60,9 @@ public class ConversationGraphNode<S extends IConversationState> extends Convers
     public void addSuggestedResponse(String response) {
         if (getType() == SnippetType.STATEMENT) {
             throw new IllegalArgumentException("STATEMENTS cannot have suggested responses");
+        }
+        if (suggestedResponses == null) {
+            suggestedResponses = new ArrayList();
         }
         suggestedResponses.add(response);
     }

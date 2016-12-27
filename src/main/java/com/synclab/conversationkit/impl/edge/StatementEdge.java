@@ -28,9 +28,11 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 
 /**
- * A simple IConversationEdge implementation that always matches. This 
+ * A simple <code>IConversationEdge</code> implementation that always 
+ * matches. This 
  * implementation would be best used for connecting multiple 
- * {@link com.synclab.conversationkit.model.SnippetType}.STATEMENT nodes.
+ * {@link com.synclab.conversationkit.model.SnippetType}<code>.STATEMENT</code>
+ * nodes.
  * 
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
