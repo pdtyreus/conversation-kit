@@ -31,47 +31,32 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Formatter;
 import java.util.logging.Logger;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 import junit.framework.TestCase;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class DialogTreeTest extends TestCase {
-
-    private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
-
-    public DialogTreeTest(String testName) {
-        super(testName);
-
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
+public class ConversationGraphTest extends TestCase {
     
-    public void testTemplatedDialogTree() throws IOException {
+    private static final Logger logger = Logger.getLogger(ConversationGraphTest.class.getName());
+    
+    public void testDirectedConversation() throws IOException {
 
-        logger.info("** Initializing Templated DialogTree for testing");
+        logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
         
         //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
         
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
-        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
-        DirectedConversation<TestCaseUserState> tree = builder.readDialogTree(reader);
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/regex_dialog.json"));
+        DirectedConversation<TestCaseUserState> tree = builder.readRegexDialog(reader);
 
         logger.info("** Testing conversation");
         
         TestCaseUserState state = new TestCaseUserState();
         state.setCurrentNodeId(1);
-        state.setName("Daniel");
-        state.setNumber(3);
 
         Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
         StringBuilder convo = new StringBuilder();
@@ -96,90 +81,12 @@ public class DialogTreeTest extends TestCase {
             OutputUtil.formatSnippet(formatter, node, state);
         }
 
-        assertEquals(4, state.getCurrentNodeId());
-        
-        assertEquals(response, state.get("numFingers").toString());
-
-        logger.info(convo.toString());
-    }
-
-    public void testBasicDialogTree() throws IOException {
-
-        logger.info("** Initializing Basic DialogTree for testing");
-
-        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
-        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-        DirectedConversation<TestCaseUserState> tree = builder.readDialogTree(reader);
-
-        logger.info("** Testing conversation");
-
-        TestCaseUserState state = new TestCaseUserState();
-        state.setCurrentNodeId(1);
-
-        Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
-        StringBuilder convo = new StringBuilder();
-        Formatter formatter = new Formatter(convo);
-
-        convo.append("\n");
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        assertEquals(2, state.getCurrentNodeId());
-
-        String response = "great";
-        OutputUtil.formatResponse(formatter, response);
-        try {
-            tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
-            fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
-        }
-        nodes = tree.startConversationFromState(state);
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        assertEquals(3, state.getCurrentNodeId());
-
-        logger.info(convo.toString());
-
-        //restart the convo
-        state.setCurrentNodeId(1);
-        nodes = tree.startConversationFromState(state);
-
-        convo = new StringBuilder();
-        formatter = new Formatter(convo);
-
-        convo.append("\n");
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        assertEquals(2, state.getCurrentNodeId());
-
-        response = "bad";
-        OutputUtil.formatResponse(formatter, response);
-
-        try {
-            tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
-            fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
-        }
-        nodes = tree.startConversationFromState(state);
-
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
         assertEquals(5, state.getCurrentNodeId());
-
-        response = "No, I actually feel fine.";
+        
+        response = "yes";
         OutputUtil.formatResponse(formatter, response);
-        try {
+        
+         try {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
@@ -187,14 +94,27 @@ public class DialogTreeTest extends TestCase {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
-
+        for (IConversationSnippet node : nodes) {
+            OutputUtil.formatSnippet(formatter, node, state);
+        }
+        
+        response = "six";
+        OutputUtil.formatResponse(formatter, response);
+        
+         try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        } catch (InvalidResponseException e) {
+            fail(e.toString());
+        }
+        nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
             OutputUtil.formatSnippet(formatter, node, state);
         }
 
-        assertEquals(3, state.getCurrentNodeId());
-
+        assertEquals(6, state.get("answer"));
+        
         logger.info(convo.toString());
     }
-
 }

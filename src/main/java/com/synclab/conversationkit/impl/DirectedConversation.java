@@ -53,17 +53,18 @@ public class DirectedConversation<S extends IConversationState> implements IConv
         List<IConversationSnippet> nodes = new ArrayList();
         IConversationNode<S> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         nodes.add(current);
-        boolean continueTraverse = true;
+        boolean continueTraverse = (current.getType() == SnippetType.STATEMENT);
         while (continueTraverse) {
             //if nothing has matched, we are done
             continueTraverse = false;
             for (IConversationEdge<S> edge : current.getEdges()) {
                 //find the first edge that matches and move to that node
-                logger.fine(String.format("inspecting possible edge %s", edge));
+                logger.fine(String.format("evaluating STATEMENT edge %s", edge));
                 if (edge.isMatchForState(state)) {
-                    logger.info(String.format("edge '%s' matches", edge));
+                    logger.info(String.format("edge '%s' from STATEMENT matches", edge));
                     current = edge.getEndNode();
                     nodes.add(current);
+                    logger.fine(String.format("adding node '%s' of type %s", current.renderContent(state), current.getType()));
                     state.setCurrentNodeId(current.getId());
                     if (current.getType() == SnippetType.STATEMENT) {
                         continueTraverse = true;
@@ -76,26 +77,32 @@ public class DirectedConversation<S extends IConversationState> implements IConv
 
     public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, InvalidResponseException {
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-        state.setCurrentResponse(response);
-        logger.fine(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
-        boolean matchFound = false;
 
-        for (IConversationEdge<S> allowedAnswer : currentSnippet.getEdges()) {
-            logger.fine(String.format("inspecting possible answer %s", allowedAnswer));
+        if (currentSnippet.getType() == SnippetType.QUESTION) {
+            state.setCurrentResponse(response);
+            logger.fine(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
+            boolean matchFound = false;
 
-            if (allowedAnswer.isMatchForState(state)) {
-                IConversationNode nextNode = allowedAnswer.getEndNode();
-                state.setCurrentNodeId(nextNode.getId());
-                logger.info(String.format("response '%s' matches answer %s", response, allowedAnswer));
-                matchFound = true;
-                state = allowedAnswer.onMatch(state);
+            for (IConversationEdge<S> edge : currentSnippet.getEdges()) {
+                logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
+
+                if (!matchFound && edge.isMatchForState(state)) {
+                    IConversationNode nextNode = edge.getEndNode();
+                    state.setCurrentNodeId(nextNode.getId());
+                    logger.info(String.format("response '%s' matches edge %s", response, edge));
+                    logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
+                    matchFound = true;
+                    state = edge.onMatch(state);
+                }
             }
-        }
 
-        if (!matchFound) {
-            throw new UnmatchedResponseException();
+            if (!matchFound) {
+                throw new UnmatchedResponseException();
+            } else {
+                state.setCurrentResponse(null);
+            }
         } else {
-            state.setCurrentResponse(null);
+            logger.warning("trying to add response to conversation but current node is not a QUESTION");
         }
 
         return state;

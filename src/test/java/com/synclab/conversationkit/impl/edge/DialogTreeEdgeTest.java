@@ -21,38 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.impl.edge;
 
-import com.synclab.conversationkit.model.IConversationEdge;
-import com.synclab.conversationkit.model.IConversationNode;
-import com.synclab.conversationkit.model.IConversationNodeIndex;
+import com.synclab.conversationkit.impl.MapBackedState;
 import com.synclab.conversationkit.model.IConversationState;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import static junit.framework.Assert.assertEquals;
+import junit.framework.TestCase;
 
 /**
  *
  * @author pdtyreus
  */
-public class MapBackedNodeIndex<S extends IConversationState> implements IConversationNodeIndex<S> {
+public class DialogTreeEdgeTest extends TestCase {
 
-    private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
-    private final Map<Integer, IConversationNode<S>> nodeIndex = new HashMap();
-
-    public IConversationNode<S> getNodeAtIndex(int id) {
-        return nodeIndex.get(id);
+    public DialogTreeEdgeTest(String testName) {
+        super(testName);
     }
 
-    public void buildIndexFromStartNode(IConversationNode<S> startNode) {
-        nodeIndex.put(startNode.getId(), startNode);
-        logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(), startNode.getType(), startNode.renderContent(null)));
-        for (IConversationEdge<S> edge : startNode.getEdges()) {
-            if (!nodeIndex.containsKey(edge.getEndNode().getId())) {
-                buildIndexFromStartNode(edge.getEndNode());
-            }
-        }
+    public void testIsMatchForState() {
+        IConversationState state = new MapBackedState();
+
+        DialogTreeEdge instance = new DialogTreeEdge("answer", null);
+        state.setCurrentResponse("word");
+        assertEquals(false, instance.isMatchForState(state));
+        state.setCurrentResponse("answer");
+        assertEquals(true, instance.isMatchForState(state));
+    }
+
+    public void testOnMatch() throws Exception {
+        IConversationState state = new MapBackedState();
+        DialogTreeEdge instance = new DialogTreeEdge("word", "wordKey", null);
+        state.setCurrentResponse("word");
+        assertEquals(true, instance.isMatchForState(state));
+        assertEquals(null, state.get("wordKey"));
+        instance.onMatch(state);
+        assertEquals("word", state.get("wordKey"));
     }
 
 }

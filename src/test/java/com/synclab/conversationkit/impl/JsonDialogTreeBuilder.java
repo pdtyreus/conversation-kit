@@ -24,23 +24,20 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.impl.edge.StatementEdge;
-import com.synclab.conversationkit.impl.node.ConversationNode;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
+import com.synclab.conversationkit.impl.edge.JavaScriptEdge;
 import com.synclab.conversationkit.impl.edge.RegexEdge;
-import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.InvalidResponseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -157,30 +154,33 @@ public class JsonDialogTreeBuilder {
             TemplatedNode source = nodeMap.get(sourceId);
             TemplatedNode target = nodeMap.get(targetId);
 
-            SnippetType snippetType = source.getType();
-            switch (snippetType) {
-                case STATEMENT:
-                    StatementEdge e = new StatementEdge(target);
-                    source.addEdge(e);
-                    break;
-                case QUESTION:
-                    String stateKey = null;
-                    String pattern = null;
-                    if (edge.get("metadata") != null) {
-                        if (edge.get("metadata").asObject().get("stateKey") != null) {
-                            stateKey = edge.get("metadata").asObject().get("stateKey").asString();
-                        }
-                        if (edge.get("metadata").asObject().get("pattern") != null) {
-                            pattern = edge.get("metadata").asObject().get("pattern").asString();
-                        }
-                    }
-                    if (pattern == null) {
-                        throw new RuntimeException("Regex pattern is null for edge " + edge.toString());
-                    }
+            String stateKey = null;
+            String pattern = null;
+            if (edge.get("metadata") != null) {
+                if (edge.get("metadata").asObject().get("stateKey") != null) {
+                    stateKey = edge.get("metadata").asObject().get("stateKey").asString();
+                }
+                if (edge.get("metadata").asObject().get("pattern") != null) {
+                    pattern = edge.get("metadata").asObject().get("pattern").asString();
                     RegexEdge de = new RegexEdge(pattern, stateKey, target);
                     source.addEdge(de);
+                } else if (edge.get("metadata").asObject().get("isMatchForState") != null) {
+                    String isMatch = edge.get("metadata").asObject().get("isMatchForState").asString();
+                    if (edge.get("metadata").asObject().get("onMatch") != null) {
+                        String onMatch = edge.get("metadata").asObject().get("onMatch").asString();
+                        JavaScriptEdge de = new JavaScriptEdge(isMatch, onMatch, target);
+                        source.addEdge(de);
+                    } else {
+                        JavaScriptEdge de = new JavaScriptEdge(isMatch, target);
+                        source.addEdge(de);
+                    }
 
-                    break;
+                } else {
+                    throw new RuntimeException("Unknown edge spec " + edge.toString());
+                }
+            } else {
+                StatementEdge e = new StatementEdge(target);
+                source.addEdge(e);
             }
 
         }

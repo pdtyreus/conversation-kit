@@ -27,55 +27,68 @@ import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.InvalidResponseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.logging.Logger;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 /**
- * Matches responses based on a regular expression pattern. If a stateKey is 
- * provided, the <code>onMatch</code> method sets the value of this key in 
- * the conversation
- * state equal to the first group found in the match. 
+ *
  * @author pdtyreus
- * @param <S> an implementation of IConversationState
  */
-public class RegexEdge <S extends IConversationState> implements IConversationEdge<S> {
+public class JavaScriptEdge<S extends IConversationState> implements IConversationEdge<S> {
 
     private final IConversationNode<S> endNode;
-    protected final Pattern pattern;
-    protected final String stateKey;
+    private final String isMatchForState;
+    private final String onMatch;
 
-    public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
+    private final ScriptEngineManager manager = new ScriptEngineManager();
+    private final ScriptEngine engine = manager.getEngineByName("JavaScript");
+
+    private static final Logger logger = Logger.getLogger(JavaScriptEdge.class.getName());
+
+    public JavaScriptEdge(String isMatchForState, String onMatch, IConversationNode<S> endNode) {
         this.endNode = endNode;
-        this.stateKey = stateKey;
-        this.pattern = Pattern.compile(matchRegex);
+        this.isMatchForState = isMatchForState;
+        this.onMatch = onMatch;
     }
-    
-    public RegexEdge(String matchRegex, IConversationNode<S> endNode) {
+
+    public JavaScriptEdge(String isMatchForState, IConversationNode<S> endNode) {
         this.endNode = endNode;
-        this.stateKey = null;
-        this.pattern = Pattern.compile(matchRegex);
+        this.isMatchForState = isMatchForState;
+        this.onMatch = "return state;";
     }
-    
+
     public IConversationNode<S> getEndNode() {
         return endNode;
     }
 
     public boolean isMatchForState(S state) {
-        Matcher matcher = pattern.matcher(state.getCurrentResponse());
-        return matcher.find();
+        Invocable inv = (Invocable) engine;
+        String template = "function isMatchForState(state) {";
+        template += isMatchForState;
+        template += "};";
+        try {
+            engine.eval(template);
+            return (Boolean) inv.invokeFunction("isMatchForState", state);
+        } catch (Exception e) {
+            logger.severe(e.toString());
+            return false;
+        }
     }
 
     public S onMatch(S state) throws InvalidResponseException {
-        Matcher matcher = pattern.matcher(state.getCurrentResponse());
-        if ((stateKey != null) && matcher.find()) {
-            state.set(stateKey, matcher.group());
-        } 
-        
-        return state;
+        Invocable inv = (Invocable) engine;
+        String template = "function onMatch(state) {";
+        template += onMatch;
+        template += "};";
+        try {
+            engine.eval(template);
+            return (S) inv.invokeFunction("onMatch", state);
+        } catch (Exception e) {
+            throw new InvalidResponseException(e.getMessage());
+        }
     }
 
-    public String toString() {
-        return "RegexEdge {" + pattern.pattern() + '}';
-    }
-    
 }

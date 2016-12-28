@@ -23,36 +23,25 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IConversationEdge;
-import com.synclab.conversationkit.model.IConversationNode;
-import com.synclab.conversationkit.model.IConversationNodeIndex;
+import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import com.synclab.conversationkit.model.SnippetType;
+import java.util.Formatter;
 
 /**
  *
  * @author pdtyreus
  */
-public class MapBackedNodeIndex<S extends IConversationState> implements IConversationNodeIndex<S> {
-
-    private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
-    private final Map<Integer, IConversationNode<S>> nodeIndex = new HashMap();
-
-    public IConversationNode<S> getNodeAtIndex(int id) {
-        return nodeIndex.get(id);
-    }
-
-    public void buildIndexFromStartNode(IConversationNode<S> startNode) {
-        nodeIndex.put(startNode.getId(), startNode);
-        logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(), startNode.getType(), startNode.renderContent(null)));
-        for (IConversationEdge<S> edge : startNode.getEdges()) {
-            if (!nodeIndex.containsKey(edge.getEndNode().getId())) {
-                buildIndexFromStartNode(edge.getEndNode());
-            }
+public class OutputUtil {
+    
+    public static void formatSnippet(Formatter formatter, IConversationSnippet node, IConversationState state) {
+        formatter.format("  > %-100s <\n", node.renderContent(state));
+        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses() != null)) {
+            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses()) + " ]");
         }
     }
 
+    public static void formatResponse(Formatter formatter, String response) {
+        formatter.format("  > %100s <\n", response);
+    }
 }

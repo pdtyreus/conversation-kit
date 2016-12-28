@@ -16,17 +16,17 @@
             {
                 "id": "3",
                 "type": "STATEMENT",
-                "label": "You answered {{number}}"
+                "label": "You answered {{answer}}"
             },
             {
                 "id": "4",
                 "type": "STATEMENT",
-                "label": "That is the correct answer. 3+3={{number}}"
+                "label": "That is the correct answer. 3+3={{answer}}"
             },
             {
                 "id":"5",
                 "type":"QUESTION",
-                "label":"\"{{number}}\" is not correct. Would you like to try again?",
+                "label":"\"{{answer}}\" is not correct. Would you like to try again?",
                 "metadata":{
                     "suggestedResponses":["yes","no"]
                 }
@@ -50,7 +50,7 @@
                 "label":"Any number",
                 "metadata": {
                     "pattern":"\\d+",
-                    "stateKey":"number"
+                    "stateKey":"answer"
                 }
             },
             {
@@ -59,21 +59,36 @@
                 "directed": true,
                 "label":"Any word",
                 "metadata": {
-                    "pattern":"\\w",
-                    "stateKey":"number"
+                    "isMatchForState":"return true;",
+                    "onMatch":"if (state.currentResponse == 'six'){state.answer = 6};return state;"
                 }
             },
             {
                 "source": "3",
                 "target": "4",
                 "directed": true,
-                "label": "correct"
+                "label": "correct",
+                "metadata": {
+                    "isMatchForState":"return (state.answer === 6);"
+                }
             },
             {
                 "source": "3",
                 "target": "5",
                 "directed": true,
-                "label": "incorrect"
+                "label": "incorrect",
+                "metadata": {
+                    "isMatchForState":"return (state.answer != 6);"
+                }
+            },
+            {
+                "source": "5",
+                "target": "2",
+                "directed": true,
+                "label":"yes",
+                "metadata": {
+                    "pattern":"yes"
+                }
             }
         ]
     }

@@ -51,7 +51,7 @@ public class StatementEdge<S extends IConversationState> implements IConversatio
 
     @Override
     public String toString() {
-        return "ConversationEdge {" + endNode.renderContent(null) + '}';
+        return "StatementEdge {"+isMatchForState(null)+"}";
     }
 
     public boolean isMatchForState(S state) {
