@@ -26,7 +26,6 @@ package com.synclab.conversationkit.impl.edge;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.InvalidResponseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +64,7 @@ public class RegexEdge <S extends IConversationState> implements IConversationEd
         return matcher.find();
     }
 
-    public S onMatch(S state) throws InvalidResponseException {
+    public S onMatch(S state) {
         Matcher matcher = pattern.matcher(state.getCurrentResponse());
         if ((stateKey != null) && matcher.find()) {
             state.set(stateKey, matcher.group());

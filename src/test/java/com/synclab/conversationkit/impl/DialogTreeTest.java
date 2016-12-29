@@ -24,7 +24,6 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
-import com.synclab.conversationkit.model.InvalidResponseException;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -88,9 +87,7 @@ public class DialogTreeTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
-        }
+        } 
         nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
             OutputUtil.formatSnippet(formatter, node, state);
@@ -133,9 +130,7 @@ public class DialogTreeTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
-        }
+        } 
         nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
             OutputUtil.formatSnippet(formatter, node, state);
@@ -166,9 +161,7 @@ public class DialogTreeTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
-        }
+        } 
         nodes = tree.startConversationFromState(state);
 
         for (IConversationSnippet node : nodes) {
@@ -183,9 +176,7 @@ public class DialogTreeTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
-        }
+        } 
         nodes = tree.startConversationFromState(state);
 
         for (IConversationSnippet node : nodes) {

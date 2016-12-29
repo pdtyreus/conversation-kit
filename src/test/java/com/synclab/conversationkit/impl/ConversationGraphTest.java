@@ -24,7 +24,7 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
-import com.synclab.conversationkit.model.InvalidResponseException;
+import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,21 +40,20 @@ import junit.framework.TestCase;
  * @author pdtyreus
  */
 public class ConversationGraphTest extends TestCase {
-    
+
     private static final Logger logger = Logger.getLogger(ConversationGraphTest.class.getName());
-    
+
     public void testDirectedConversation() throws IOException {
 
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
-        
+
         //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
-        
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/regex_dialog.json"));
         DirectedConversation<TestCaseUserState> tree = builder.readRegexDialog(reader);
 
         logger.info("** Testing conversation");
-        
+
         TestCaseUserState state = new TestCaseUserState();
         state.setCurrentNodeId(1);
 
@@ -73,8 +72,6 @@ public class ConversationGraphTest extends TestCase {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
@@ -82,30 +79,51 @@ public class ConversationGraphTest extends TestCase {
         }
 
         assertEquals(5, state.getCurrentNodeId());
-        
-        response = "yes";
+        response = "yup";
         OutputUtil.formatResponse(formatter, response);
-        
-         try {
+
+        try {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
-            fail(e.toString());
-        } catch (InvalidResponseException e) {
-            fail(e.toString());
+            OutputUtil.formatSnippet(formatter, new IConversationSnippet<TestCaseUserState>(){
+
+                public String renderContent(TestCaseUserState state) {
+                    return "I'm sorry, I didn't understand your response '"+state.getCurrentResponse()+"'.";
+                }
+
+                public SnippetType getType() {
+                    return SnippetType.STATEMENT;
+                }
+
+                public Iterable<String> getSuggestedResponses() {
+                    return null;
+                }
+            }, state);
         }
         nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
             OutputUtil.formatSnippet(formatter, node, state);
         }
         
-        response = "six";
+        response = "yes";
         OutputUtil.formatResponse(formatter, response);
-        
-         try {
+
+        try {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
             fail(e.toString());
-        } catch (InvalidResponseException e) {
+        }
+        nodes = tree.startConversationFromState(state);
+        for (IConversationSnippet node : nodes) {
+            OutputUtil.formatSnippet(formatter, node, state);
+        }
+
+        response = "six";
+        OutputUtil.formatResponse(formatter, response);
+
+        try {
+            tree.updateStateWithResponse(state, response);
+        } catch (UnmatchedResponseException e) {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
@@ -114,7 +132,7 @@ public class ConversationGraphTest extends TestCase {
         }
 
         assertEquals(6, state.get("answer"));
-        
+
         logger.info(convo.toString());
     }
 }

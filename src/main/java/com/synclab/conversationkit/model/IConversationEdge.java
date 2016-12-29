@@ -57,8 +57,6 @@ public interface IConversationEdge<S extends IConversationState> {
      * if the previous node was a question.
      * @param state the user's conversation state
      * @return an updated state
-     * @throws com.synclab.conversationkit.model.InvalidResponseException when 
-     * an exception occurs while processing the state.
      */
-    public S onMatch(S state) throws InvalidResponseException;
+    public S onMatch(S state);
 }

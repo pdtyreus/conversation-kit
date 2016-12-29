@@ -29,7 +29,6 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.InvalidResponseException;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
@@ -51,23 +50,21 @@ public class DirectedConversation<S extends IConversationState> implements IConv
 
     public Iterable<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
-        IConversationNode<S> current = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-        nodes.add(current);
-        boolean continueTraverse = (current.getType() == SnippetType.STATEMENT);
-        while (continueTraverse) {
+        IConversationNode<S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        nodes.add(nextNode);
+        boolean matchFound = true;
+        while (matchFound && (nextNode.getType() == SnippetType.STATEMENT)) {
             //if nothing has matched, we are done
-            continueTraverse = false;
-            for (IConversationEdge<S> edge : current.getEdges()) {
+            matchFound = false;
+            for (IConversationEdge<S> edge : nextNode.getEdges()) {
                 //find the first edge that matches and move to that node
-                logger.fine(String.format("evaluating STATEMENT edge %s", edge));
-                if (edge.isMatchForState(state)) {
-                    logger.info(String.format("edge '%s' from STATEMENT matches", edge));
-                    current = edge.getEndNode();
-                    nodes.add(current);
-                    logger.fine(String.format("adding node '%s' of type %s", current.renderContent(state), current.getType()));
-                    state.setCurrentNodeId(current.getId());
-                    if (current.getType() == SnippetType.STATEMENT) {
-                        continueTraverse = true;
+                if (!matchFound) {
+                    logger.fine(String.format("evaluating STATEMENT edge %s", edge));
+                    if (edge.isMatchForState(state)) {
+                        matchFound = true;
+                        state = moveToNextNode(state, edge);
+                        nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+                        nodes.add(nextNode);
                     }
                 }
             }
@@ -75,7 +72,7 @@ public class DirectedConversation<S extends IConversationState> implements IConv
         return nodes;
     }
 
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, InvalidResponseException {
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException {
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
 
         if (currentSnippet.getType() == SnippetType.QUESTION) {
@@ -84,15 +81,13 @@ public class DirectedConversation<S extends IConversationState> implements IConv
             boolean matchFound = false;
 
             for (IConversationEdge<S> edge : currentSnippet.getEdges()) {
-                logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
+                if (!matchFound) {
+                    logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
 
-                if (!matchFound && edge.isMatchForState(state)) {
-                    IConversationNode nextNode = edge.getEndNode();
-                    state.setCurrentNodeId(nextNode.getId());
-                    logger.info(String.format("response '%s' matches edge %s", response, edge));
-                    logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
-                    matchFound = true;
-                    state = edge.onMatch(state);
+                    if (edge.isMatchForState(state)) {
+                        matchFound = true;
+                        moveToNextNode(state, edge);
+                    }
                 }
             }
 
@@ -105,6 +100,19 @@ public class DirectedConversation<S extends IConversationState> implements IConv
             logger.warning("trying to add response to conversation but current node is not a QUESTION");
         }
 
+        return state;
+    }
+
+    private S moveToNextNode(S state, IConversationEdge<S> edge) {
+        IConversationNode nextNode = edge.getEndNode();
+        state.setCurrentNodeId(nextNode.getId());
+        if (state.getCurrentResponse() != null) {
+            logger.info(String.format("response '%s' matches edge '%s'", state.getCurrentResponse(), edge));
+        } else {
+            logger.info(String.format("edge '%s' matches", edge));
+        }
+        logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
+        state = edge.onMatch(state);
         return state;
     }
 }

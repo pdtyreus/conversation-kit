@@ -25,6 +25,7 @@ package com.synclab.conversationkit.impl.edge;
 
 import com.synclab.conversationkit.impl.MapBackedState;
 import com.synclab.conversationkit.model.IConversationState;
+import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
@@ -33,6 +34,8 @@ import junit.framework.TestCase;
  * @author pdtyreus
  */
 public class JavaScriptEdgeTest extends TestCase {
+
+    private static final Logger logger = Logger.getLogger(JavaScriptEdgeTest.class.getName());
 
     public JavaScriptEdgeTest(String testName) {
         super(testName);
@@ -43,33 +46,48 @@ public class JavaScriptEdgeTest extends TestCase {
         JavaScriptEdge instance = new JavaScriptEdge("return true;", null);
         state.setCurrentResponse("word");
         assertEquals(true, instance.isMatchForState(state));
-        
+
         instance = new JavaScriptEdge("return (state.currentResponse == 'word');", null);
 
         assertEquals(true, instance.isMatchForState(state));
-        
+
         state.setCurrentResponse("number");
-        
+
         assertEquals(false, instance.isMatchForState(state));
-        
+
         instance = new JavaScriptEdge("return invalidFunc();", null);
-        
+
         assertEquals(false, instance.isMatchForState(state));
     }
 
-    public void testOnMatch() throws Exception {
+    public void testOnMatch() {
         IConversationState state = new MapBackedState();
         JavaScriptEdge instance = new JavaScriptEdge("return true;", "return state;", null);
         state.setCurrentResponse("word");
-        state.set("js",false);
+        state.set("js", false);
         assertEquals(true, instance.isMatchForState(state));
         assertEquals(null, state.get("java"));
-        state = instance.onMatch(state);
+        try {
+            state = instance.onMatch(state);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
         assertEquals(false, state.get("js"));
-        
+
         instance = new JavaScriptEdge("return true;", "state.js = true; return state;", null);
-        state = instance.onMatch(state);
+        try {
+            state = instance.onMatch(state);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
         assertEquals(true, state.get("js"));
+
+        instance = new JavaScriptEdge("return true;", "throw 'Invalid';", null);
+        try {
+            instance.onMatch(state);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
     }
 
 }

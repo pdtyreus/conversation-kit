@@ -30,11 +30,6 @@
                 "metadata":{
                     "suggestedResponses":["yes","no"]
                 }
-            },
-            {
-                "id":"6",
-                "type":"STATEMENT",
-                "label":"I did not understand what you said."
             }
         ],
         "edges": [

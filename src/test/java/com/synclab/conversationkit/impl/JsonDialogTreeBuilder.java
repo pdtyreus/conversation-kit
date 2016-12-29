@@ -34,7 +34,6 @@ import com.synclab.conversationkit.impl.edge.JavaScriptEdge;
 import com.synclab.conversationkit.impl.edge.RegexEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.InvalidResponseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -193,26 +192,4 @@ public class JsonDialogTreeBuilder {
 
     }
 
-    private class NumberParsingRegexEdge<S extends IConversationState> extends RegexEdge<S> {
-
-        public NumberParsingRegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
-            super(matchRegex, stateKey, endNode);
-        }
-
-        @Override
-        public S onMatch(S state) throws InvalidResponseException {
-            try {
-                Matcher matcher = pattern.matcher(state.getCurrentResponse());
-                if ((stateKey != null) && matcher.find()) {
-                    Integer.parseInt(matcher.group());
-                    state.set(stateKey, matcher.group());
-                }
-
-                return state;
-            } catch (NumberFormatException e) {
-                throw new InvalidResponseException("I was unable to convert " + state.getCurrentResponse() + " into a number.");
-            }
-        }
-
-    }
 }

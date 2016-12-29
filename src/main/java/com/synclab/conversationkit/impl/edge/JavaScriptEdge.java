@@ -26,7 +26,6 @@ package com.synclab.conversationkit.impl.edge;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.InvalidResponseException;
 import java.util.logging.Logger;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -34,7 +33,41 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 /**
- *
+ * An IConversationEdge implementation that delegates matching logic to external
+ * JavaScript code. Similar to a <code>RegexEdge</code>, this type of edge 
+ * allows users to store the logic for determining if an edge matches in a 
+ * location outside the source code. For instance, the string representation
+ * of the JavaScript logic could be stored in a database or file representation
+ * of the conversation graph.
+ * <p> 
+ * The supplied JavaScript code modifies the behavior of the 
+ * {@link #isMatchForState(IConversationState)}
+ * and {@link #onMatch(IConversationState)} 
+ * methods. The string representation of the JavaScript code is wrapped as
+ * follows:
+ * <pre>
+ * {@code
+ * function isMatchForState(state) {
+ *   ...value of isMatchForState...
+ * }
+ * 
+ * function onMatch(state) {
+ *   ...value of onMatch...
+ * }
+ * }
+ * </pre>
+ * <p>
+ * So, for example, if 
+ * <code>isMatchForState = "return (state.currentResponse === 'graph');"</code>
+ * then the IConversation implementation would evaluate the result of
+ * <pre>
+ * {@code
+ * function isMatchForState(state) {
+ *   return (state.currentResponse === 'graph');
+ * }
+ * }
+ * </pre>
+ * to determine if the edge matches the current state.
  * @author pdtyreus
  */
 public class JavaScriptEdge<S extends IConversationState> implements IConversationEdge<S> {
@@ -48,12 +81,26 @@ public class JavaScriptEdge<S extends IConversationState> implements IConversati
 
     private static final Logger logger = Logger.getLogger(JavaScriptEdge.class.getName());
 
+    /**
+     * Creates an edge with JavaScript code for matching and for updating the
+     * state after a match. 
+     * @param isMatchForState String of JavaScript code
+     * @param onMatch String of JavaScript code
+     * @param endNode destination node
+     */
     public JavaScriptEdge(String isMatchForState, String onMatch, IConversationNode<S> endNode) {
         this.endNode = endNode;
         this.isMatchForState = isMatchForState;
         this.onMatch = onMatch;
     }
 
+     /**
+     * Creates an edge with JavaScript code for matching. This edge will not
+     * modify the state after a match since the default <code>onMatch</code>
+     * code is just <code>return state;</code>.
+     * @param isMatchForState String of JavaScript code
+     * @param endNode destination node
+     */
     public JavaScriptEdge(String isMatchForState, IConversationNode<S> endNode) {
         this.endNode = endNode;
         this.isMatchForState = isMatchForState;
@@ -72,13 +119,16 @@ public class JavaScriptEdge<S extends IConversationState> implements IConversati
         try {
             engine.eval(template);
             return (Boolean) inv.invokeFunction("isMatchForState", state);
-        } catch (Exception e) {
+        } catch (ScriptException e) {
+            logger.warning(e.getMessage());
+            return false;
+        } catch (NoSuchMethodException e) {
             logger.severe(e.toString());
             return false;
         }
     }
 
-    public S onMatch(S state) throws InvalidResponseException {
+    public S onMatch(S state){
         Invocable inv = (Invocable) engine;
         String template = "function onMatch(state) {";
         template += onMatch;
@@ -86,8 +136,12 @@ public class JavaScriptEdge<S extends IConversationState> implements IConversati
         try {
             engine.eval(template);
             return (S) inv.invokeFunction("onMatch", state);
-        } catch (Exception e) {
-            throw new InvalidResponseException(e.getMessage());
+        } catch (ScriptException e) {
+            logger.warning(e.getMessage());
+            return state;
+        } catch (NoSuchMethodException e) {
+            logger.severe(e.toString());
+            return state;
         }
     }
 
