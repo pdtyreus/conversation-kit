@@ -33,8 +33,9 @@ import java.util.List;
 /**
  * A <code>DialogTreeNode</code> is a restricted implementation of 
  * <code>IConversationNode</code> that
- * holds a text string to represent the displayed conversation snippet as well
- * as an optional list of allowed responses. By default the snippet and allowed
+ * holds a text string to represent the displayed conversation snippet and 
+ * retrieves a list of allowed responses from the outbound edges. 
+ * By default the snippet and allowed
  * responses will be rendered unchanged, but this class can easily be extended
  * to use a template engine for string substitution.
  * <p>

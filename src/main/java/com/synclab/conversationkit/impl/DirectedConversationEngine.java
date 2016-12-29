@@ -23,7 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IConversation;
+import com.synclab.conversationkit.model.IConversationEngine;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
@@ -39,12 +39,12 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DirectedConversation<S extends IConversationState> implements IConversation<S> {
+public class DirectedConversationEngine<S extends IConversationState> implements IConversationEngine<S> {
 
-    private static Logger logger = Logger.getLogger(DirectedConversation.class.getName());
+    private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
     protected final IConversationNodeIndex<S> nodeIndex;
 
-    public DirectedConversation(IConversationNodeIndex<S> nodeIndex) {
+    public DirectedConversationEngine(IConversationNodeIndex<S> nodeIndex) {
         this.nodeIndex = nodeIndex;
     }
 

@@ -35,7 +35,7 @@ import java.util.List;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversation<S extends IConversationState> {
+public interface IConversationEngine<S extends IConversationState> {
     public Iterable<IConversationSnippet> startConversationFromState(S state);
     public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException;
 }

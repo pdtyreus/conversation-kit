@@ -50,7 +50,7 @@ public class ConversationGraphTest extends TestCase {
         //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/regex_dialog.json"));
-        DirectedConversation<TestCaseUserState> tree = builder.readRegexDialog(reader);
+        DirectedConversationEngine<TestCaseUserState> tree = builder.readRegexDialog(reader);
 
         logger.info("** Testing conversation");
 

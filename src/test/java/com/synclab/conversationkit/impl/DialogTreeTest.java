@@ -63,7 +63,7 @@ public class DialogTreeTest extends TestCase {
         
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
-        DirectedConversation<TestCaseUserState> tree = builder.readDialogTree(reader);
+        DirectedConversationEngine<TestCaseUserState> tree = builder.readDialogTree(reader);
 
         logger.info("** Testing conversation");
         
@@ -106,7 +106,7 @@ public class DialogTreeTest extends TestCase {
 
         JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-        DirectedConversation<TestCaseUserState> tree = builder.readDialogTree(reader);
+        DirectedConversationEngine<TestCaseUserState> tree = builder.readDialogTree(reader);
 
         logger.info("** Testing conversation");
 

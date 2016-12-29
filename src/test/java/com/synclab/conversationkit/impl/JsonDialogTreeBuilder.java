@@ -50,11 +50,11 @@ public class JsonDialogTreeBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonDialogTreeBuilder.class.getName());
 
-    public DirectedConversation<TestCaseUserState> readDialogTree(Reader reader) throws IOException {
+    public DirectedConversationEngine<TestCaseUserState> readDialogTree(Reader reader) throws IOException {
         return readTemplatedDialogTree(reader);
     }
 
-    public DirectedConversation<TestCaseUserState> readTemplatedDialogTree(Reader reader) throws IOException {
+    public DirectedConversationEngine<TestCaseUserState> readTemplatedDialogTree(Reader reader) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
@@ -110,11 +110,11 @@ public class JsonDialogTreeBuilder {
 
         index.buildIndexFromStartNode(nodeMap.get(1));
 
-        return new DirectedConversation(index);
+        return new DirectedConversationEngine(index);
 
     }
 
-    public DirectedConversation<TestCaseUserState> readRegexDialog(Reader reader) throws IOException {
+    public DirectedConversationEngine<TestCaseUserState> readRegexDialog(Reader reader) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
@@ -188,7 +188,7 @@ public class JsonDialogTreeBuilder {
 
         index.buildIndexFromStartNode(nodeMap.get(1));
 
-        return new DirectedConversation(index);
+        return new DirectedConversationEngine(index);
 
     }
 

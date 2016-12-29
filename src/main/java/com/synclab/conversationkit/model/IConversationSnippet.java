@@ -33,7 +33,7 @@ import java.util.List;
  * <code>STATEMENT</code> the conversation will proceed to the next 
  * automatically. If it is a <code>QUESTION</code>, the conversation will 
  * stop and wait for a response from the user. However, this depends on 
- * the <code>IConversation</code> implementation.
+ * the <code>IConversationEngine</code> implementation.
  * <p>
  * Conversation snippets can also suggest possible responses. Some chat bot
  * clients like Facebook Messenger support displaying suggested responses in 
