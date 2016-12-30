@@ -24,6 +24,7 @@
 package com.synclab.conversationkit.impl.node;
 
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetContentType;
 import com.synclab.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +43,20 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
 
     protected List<String> suggestedResponses;
     protected final String content;
+    protected final SnippetContentType contentType;
     
     public ResponseSuggestingNode(int id, SnippetType type, String content) {
         super(id, type);
         this.suggestedResponses = null;
         this.content = content;
+        this.contentType = SnippetContentType.TEXT;
+    }
+    
+    public ResponseSuggestingNode(int id, SnippetType type, String content, SnippetContentType contentType) {
+        super(id, type);
+        this.suggestedResponses = null;
+        this.content = content;
+        this.contentType = contentType;
     }
 
     public String renderContent(S state) {
@@ -65,5 +75,10 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
             suggestedResponses = new ArrayList();
         }
         suggestedResponses.add(response);
+    }
+    
+    
+    public SnippetContentType getContentType() {
+        return contentType;
     }
 }

@@ -19,7 +19,6 @@
         <url>http://www.synclab.com</url>
     </organization>
     <dependencies>
-        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -30,7 +29,6 @@
             <groupId>com.eclipsesource.minimal-json</groupId>
             <artifactId>minimal-json</artifactId>
             <version>0.9.4</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
     
@@ -50,5 +48,8 @@
             </plugin>
         </plugins>
     </build>
-    
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
 </project>

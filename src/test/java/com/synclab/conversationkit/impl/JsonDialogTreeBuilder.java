@@ -32,15 +32,12 @@ import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
 import com.synclab.conversationkit.impl.edge.JavaScriptEdge;
 import com.synclab.conversationkit.impl.edge.RegexEdge;
-import com.synclab.conversationkit.model.IConversationNode;
-import com.synclab.conversationkit.model.IConversationState;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 
 /**
  *

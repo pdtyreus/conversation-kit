@@ -24,6 +24,7 @@
 package com.synclab.conversationkit.impl;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
+import com.synclab.conversationkit.model.SnippetContentType;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
@@ -98,6 +99,11 @@ public class ConversationGraphTest extends TestCase {
                 public Iterable<String> getSuggestedResponses() {
                     return null;
                 }
+
+                public SnippetContentType getContentType() {
+                    return SnippetContentType.TEXT;
+                }
+                
             }, state);
         }
         nodes = tree.startConversationFromState(state);

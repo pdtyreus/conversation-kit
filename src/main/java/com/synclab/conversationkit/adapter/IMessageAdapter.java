@@ -21,50 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl;
+package com.synclab.conversationkit.adapter;
 
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.IUnmatchedResponseHandler;
-import com.synclab.conversationkit.model.SnippetType;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
  * @author pdtyreus
  */
-public class BasicUnmatchedResponseHandler<S extends IConversationState> implements IUnmatchedResponseHandler<S>{
-
-    private String content = "I'm sorry, I did not understand your previous response";
-
-    public BasicUnmatchedResponseHandler() {
-    }
-
-    public BasicUnmatchedResponseHandler(String content) {
-        this.content = content;
-    }
-    
-    public Iterable<IConversationSnippet> handleUnmatchedResponse(String response, S state) {
-        List<IConversationSnippet> snippets = new ArrayList();
-        IConversationSnippet snippet = new IConversationSnippet() {
-
-            public String renderContent(IConversationState state) {
-                return content;
-            }
-
-            public SnippetType getType() {
-                return SnippetType.STATEMENT;
-            }
-
-            public Iterable getSuggestedResponses() {
-                return null;
-            }
-
-
-        };
-
-        snippets.add(snippet);
-        return snippets;
-    }
+public interface IMessageAdapter {
+    public String snippetToJson(IConversationSnippet snippet, IConversationState state, Object... arguments);
 }

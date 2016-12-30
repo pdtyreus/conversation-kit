@@ -26,6 +26,7 @@ package com.synclab.conversationkit.impl.node;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetContentType;
 import com.synclab.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,4 +90,9 @@ public class DialogTreeNode<S extends IConversationState> extends ConversationNo
         }
         return allowed;
     }
+
+    public SnippetContentType getContentType() {
+        return SnippetContentType.TEXT;
+    }
+
 }

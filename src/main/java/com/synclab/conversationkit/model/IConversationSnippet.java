@@ -60,6 +60,11 @@ public interface IConversationSnippet<S extends IConversationState> {
      */
     public SnippetType getType();
     /**
+     * The type of media held in the snippet content.
+     * @return the snippet content type
+     */
+    public SnippetContentType getContentType();
+    /**
      * Returns the suggested responses if supported by the chat bot client.
      * @return the suggested responses
      */
