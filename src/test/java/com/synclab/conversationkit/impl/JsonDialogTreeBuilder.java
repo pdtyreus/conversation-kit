@@ -29,11 +29,10 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
+import com.synclab.conversationkit.impl.node.StringReplacingNode;
+import com.synclab.conversationkit.model.IConversationNode;
 import java.io.IOException;
 import java.io.Reader;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -54,7 +53,7 @@ public class JsonDialogTreeBuilder {
 
         JsonObject keyTree = value.asObject().get("graph").asObject();
 
-        Map<Integer, TemplatedDialogTreeNode<TestCaseUserState>> nodeMap = new HashMap();
+        MapBackedNodeIndex<TestCaseUserState> index = new MapBackedNodeIndex();
 
         //run through once to create nodes
         for (JsonValue member : keyTree.get("nodes").asArray()) {
@@ -64,11 +63,9 @@ public class JsonDialogTreeBuilder {
             String type = node.get("type").asString();
             String content = node.get("label").asString();
             SnippetType snippetType = SnippetType.valueOf(type);
-            TemplatedDialogTreeNode dtNode = new TemplatedDialogTreeNode(id, snippetType, content);
-            nodeMap.put(id, dtNode);
+            StringReplacingNode dtNode = new StringReplacingNode(id, snippetType, content);
+            index.addNodeToIndex(id, dtNode);
         }
-
-        logger.info(MessageFormat.format("Created {0} named nodes", nodeMap.keySet().size()));
 
         //connect the nodes
         for (JsonValue member : keyTree.get("edges").asArray()) {
@@ -77,8 +74,8 @@ public class JsonDialogTreeBuilder {
             Integer sourceId = Integer.parseInt(edge.get("source").asString());
             Integer targetId = Integer.parseInt(edge.get("target").asString());
 
-            TemplatedDialogTreeNode source = nodeMap.get(sourceId);
-            TemplatedDialogTreeNode target = nodeMap.get(targetId);
+            IConversationNode source = index.getNodeAtIndex(sourceId);
+            IConversationNode target = index.getNodeAtIndex(targetId);
 
             SnippetType snippetType = source.getType();
             switch (snippetType) {
@@ -99,10 +96,6 @@ public class JsonDialogTreeBuilder {
             }
 
         }
-
-        MapBackedNodeIndex<TestCaseUserState> index = new MapBackedNodeIndex();
-
-        index.buildIndexFromStartNode(nodeMap.get(1));
 
         return new DirectedConversationEngine(index);
 

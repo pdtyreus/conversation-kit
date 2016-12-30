@@ -32,27 +32,33 @@ import java.util.HashMap;
  */
 public class MapBackedState extends HashMap<String,Object> implements IConversationState {
 
+    @Override
     public int getCurrentNodeId() {
         Integer id = (Integer)this.get("currentNodeId");
         return id;
     }
 
+    @Override
     public void setCurrentNodeId(int currentNodeId) {
         this.put("currentNodeId", currentNodeId);
     }
 
+    @Override
     public void set(String propertyName, Object value) {
         this.put(propertyName, value);
     }
 
+    @Override
     public Object get(String propertyName) {
         return super.get(propertyName);
     }
 
+    @Override
     public String getCurrentResponse() {
         return (String)this.get("currentResponse");
     }
 
+    @Override
     public void setCurrentResponse(String currentResponse) {
         if (currentResponse == null) {
             this.remove("currentResponse");

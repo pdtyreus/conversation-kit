@@ -31,8 +31,8 @@ it reaches a node that requires input from the user or with no matching
 outbound edges.
 
 ```java
-//creating and initializing an engine instance covered later
-DirectedConversationEngine<TestCaseUserState> engine = ...
+JsonGraphBuilder<TestCaseUserState> builder = new JsonGraphBuilder();
+DirectedConversationEngine<TestCaseUserState> engine = builder.readJsonGraph("/directed_conversation.json");
 TestCaseUserState state = new TestCaseUserState();
 
 // run the engine from the starting state to an endpoint

@@ -23,12 +23,10 @@
  */
 package com.synclab.conversationkit.impl;
 
-import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationState;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -48,17 +46,6 @@ public class MapBackedNodeIndex<S extends IConversationState> implements IConver
     
     public void addNodeToIndex(int id, IConversationNode<S> node) {
         nodeIndex.put(id, node);
-    }
-
-    @Deprecated
-    public void buildIndexFromStartNode(IConversationNode<S> startNode) {
-        nodeIndex.put(startNode.getId(), startNode);
-        logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(), startNode.getType(), startNode.renderContent(null)));
-        for (IConversationEdge<S> edge : startNode.getEdges()) {
-            if (!nodeIndex.containsKey(edge.getEndNode().getId())) {
-                buildIndexFromStartNode(edge.getEndNode());
-            }
-        }
     }
 
 }
