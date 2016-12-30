@@ -59,10 +59,12 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
         this.contentType = contentType;
     }
 
+    @Override
     public String renderContent(S state) {
         return content;
     }
 
+    @Override
     public Iterable<String> getSuggestedResponses() {
         return suggestedResponses;
     }

@@ -41,10 +41,16 @@ public class MapBackedNodeIndex<S extends IConversationState> implements IConver
     private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
     private final Map<Integer, IConversationNode<S>> nodeIndex = new HashMap();
 
+    @Override
     public IConversationNode<S> getNodeAtIndex(int id) {
         return nodeIndex.get(id);
     }
+    
+    public void addNodeToIndex(int id, IConversationNode<S> node) {
+        nodeIndex.put(id, node);
+    }
 
+    @Deprecated
     public void buildIndexFromStartNode(IConversationNode<S> startNode) {
         nodeIndex.put(startNode.getId(), startNode);
         logger.info(String.format("indexing node %03d:[%-9s] %s", startNode.getId(), startNode.getType(), startNode.renderContent(null)));

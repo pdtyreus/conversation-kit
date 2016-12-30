@@ -26,12 +26,9 @@ package com.synclab.conversationkit.impl;
 import com.synclab.conversationkit.impl.edge.StatementEdge;
 import com.synclab.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
-import com.synclab.conversationkit.impl.edge.JavaScriptEdge;
-import com.synclab.conversationkit.impl.edge.RegexEdge;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -99,84 +96,6 @@ public class JsonDialogTreeBuilder {
                     source.addEdge(de);
 
                     break;
-            }
-
-        }
-
-        MapBackedNodeIndex<TestCaseUserState> index = new MapBackedNodeIndex();
-
-        index.buildIndexFromStartNode(nodeMap.get(1));
-
-        return new DirectedConversationEngine(index);
-
-    }
-
-    public DirectedConversationEngine<TestCaseUserState> readRegexDialog(Reader reader) throws IOException {
-
-        JsonValue value = Json.parse(reader);
-
-        JsonObject keyTree = value.asObject().get("graph").asObject();
-
-        Map<Integer, TemplatedNode<TestCaseUserState>> nodeMap = new HashMap();
-
-        //run through once to create nodes
-        for (JsonValue member : keyTree.get("nodes").asArray()) {
-            JsonObject node = member.asObject();
-            Integer id = Integer.parseInt(node.get("id").asString());
-            //make the node into something
-            String type = node.get("type").asString();
-            String content = node.get("label").asString();
-            SnippetType snippetType = SnippetType.valueOf(type);
-            TemplatedNode dtNode = new TemplatedNode(id, snippetType, content);
-
-            if ((node.get("metadata") != null) && (node.get("metadata").asObject().get("suggestedResponses") != null)) {
-                JsonArray suggestions = node.get("metadata").asObject().get("suggestedResponses").asArray();
-                for (JsonValue suggestion : suggestions) {
-                    dtNode.addSuggestedResponse(suggestion.asString());
-                }
-            }
-            nodeMap.put(id, dtNode);
-        }
-
-        logger.info(MessageFormat.format("Created {0} named nodes", nodeMap.keySet().size()));
-
-        //connect the nodes
-        for (JsonValue member : keyTree.get("edges").asArray()) {
-            JsonObject edge = member.asObject();
-
-            Integer sourceId = Integer.parseInt(edge.get("source").asString());
-            Integer targetId = Integer.parseInt(edge.get("target").asString());
-
-            TemplatedNode source = nodeMap.get(sourceId);
-            TemplatedNode target = nodeMap.get(targetId);
-
-            String stateKey = null;
-            String pattern = null;
-            if (edge.get("metadata") != null) {
-                if (edge.get("metadata").asObject().get("stateKey") != null) {
-                    stateKey = edge.get("metadata").asObject().get("stateKey").asString();
-                }
-                if (edge.get("metadata").asObject().get("pattern") != null) {
-                    pattern = edge.get("metadata").asObject().get("pattern").asString();
-                    RegexEdge de = new RegexEdge(pattern, stateKey, target);
-                    source.addEdge(de);
-                } else if (edge.get("metadata").asObject().get("isMatchForState") != null) {
-                    String isMatch = edge.get("metadata").asObject().get("isMatchForState").asString();
-                    if (edge.get("metadata").asObject().get("onMatch") != null) {
-                        String onMatch = edge.get("metadata").asObject().get("onMatch").asString();
-                        JavaScriptEdge de = new JavaScriptEdge(isMatch, onMatch, target);
-                        source.addEdge(de);
-                    } else {
-                        JavaScriptEdge de = new JavaScriptEdge(isMatch, target);
-                        source.addEdge(de);
-                    }
-
-                } else {
-                    throw new RuntimeException("Unknown edge spec " + edge.toString());
-                }
-            } else {
-                StatementEdge e = new StatementEdge(target);
-                source.addEdge(e);
             }
 
         }

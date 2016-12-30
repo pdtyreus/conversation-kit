@@ -21,14 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl.node;
 
-import java.util.List;
+import com.synclab.conversationkit.impl.MapBackedState;
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetType;
 
 /**
  *
  * @author pdtyreus
  */
-public interface IUnmatchedResponseHandler<T extends IConversationState> {
-    public Iterable<IConversationSnippet> handleUnmatchedResponse(String response, T state);
+public class StringReplacingNode<S extends IConversationState> extends ResponseSuggestingNode<S> {
+
+    public StringReplacingNode(int id, SnippetType type, String content) {
+        super(id, type, content);
+    }
+
+    @Override
+    public String renderContent(S state) {
+        if (state == null) {
+            return content;
+        }
+
+        if (state instanceof MapBackedState) {
+            String renderedContent = content;
+            MapBackedState map = (MapBackedState) state;
+            for (String key : map.keySet()) {
+                renderedContent = renderedContent.replace("{{" + key + "}}", state.get(key).toString());
+            }
+
+            return renderedContent;
+        } else {
+            return content;
+        }
+    }
 }

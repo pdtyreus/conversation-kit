@@ -23,6 +23,7 @@
  */
 package com.synclab.conversationkit.impl;
 
+import com.synclab.conversationkit.builder.JsonGraphBuilder;
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.SnippetContentType;
 import com.synclab.conversationkit.model.SnippetType;
@@ -49,9 +50,9 @@ public class ConversationGraphTest extends TestCase {
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
 
         //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
-        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
-        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/regex_dialog.json"));
-        DirectedConversationEngine<TestCaseUserState> tree = builder.readRegexDialog(reader);
+        JsonGraphBuilder<TestCaseUserState> builder = new JsonGraphBuilder();
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
+        DirectedConversationEngine<TestCaseUserState> tree = builder.readJsonGraph(reader);
 
         logger.info("** Testing conversation");
 
