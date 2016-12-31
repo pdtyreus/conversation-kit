@@ -66,7 +66,8 @@ public interface IConversationSnippet<S extends IConversationState> {
     public SnippetContentType getContentType();
     /**
      * Returns the suggested responses if supported by the chat bot client.
+     * @param state the user's conversation state
      * @return the suggested responses
      */
-    public Iterable<String> getSuggestedResponses();
+    public Iterable<String> getSuggestedResponses(S state);
 }

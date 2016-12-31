@@ -67,7 +67,7 @@ public class FacebookMessageAdapterTest extends TestCase {
             }
 
             @Override
-            public Iterable getSuggestedResponses() {
+            public Iterable getSuggestedResponses(IConversationState state) {
                 return null;
             }
             
@@ -98,7 +98,7 @@ public class FacebookMessageAdapterTest extends TestCase {
             }
 
             @Override
-            public Iterable getSuggestedResponses() {
+            public Iterable getSuggestedResponses(IConversationState state) {
                 return Arrays.asList("yes","no");
             }
             
@@ -131,7 +131,7 @@ public class FacebookMessageAdapterTest extends TestCase {
             }
 
             @Override
-            public Iterable getSuggestedResponses() {
+            public Iterable getSuggestedResponses(IConversationState state) {
                 return null;
             }
             

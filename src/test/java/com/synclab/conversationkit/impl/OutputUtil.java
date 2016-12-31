@@ -36,8 +36,8 @@ public class OutputUtil {
     
     public static void formatSnippet(Formatter formatter, IConversationSnippet node, IConversationState state) {
         formatter.format("  > %-100s <\n", node.renderContent(state));
-        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses() != null)) {
-            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses()) + " ]");
+        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses(state) != null)) {
+            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses(state)) + " ]");
         }
     }
 

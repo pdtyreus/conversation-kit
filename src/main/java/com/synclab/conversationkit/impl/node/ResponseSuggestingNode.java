@@ -65,7 +65,7 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
     }
 
     @Override
-    public Iterable<String> getSuggestedResponses() {
+    public Iterable<String> getSuggestedResponses(S state) {
         return suggestedResponses;
     }
     
@@ -80,6 +80,7 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
     }
     
     
+    @Override
     public SnippetContentType getContentType() {
         return contentType;
     }

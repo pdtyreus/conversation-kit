@@ -77,7 +77,7 @@ public class DialogTreeNode<S extends IConversationState> extends ConversationNo
         return content;
     }
 
-    public Iterable<String> getSuggestedResponses() {
+    public Iterable<String> getSuggestedResponses(S state) {
         if (getType() == SnippetType.STATEMENT) {
             return null;
         }

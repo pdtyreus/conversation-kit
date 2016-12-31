@@ -97,7 +97,7 @@ public class ConversationGraphTest extends TestCase {
                     return SnippetType.STATEMENT;
                 }
 
-                public Iterable<String> getSuggestedResponses() {
+                public Iterable<String> getSuggestedResponses(TestCaseUserState state) {
                     return null;
                 }
 

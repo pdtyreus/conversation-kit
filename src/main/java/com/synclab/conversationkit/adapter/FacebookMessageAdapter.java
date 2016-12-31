@@ -48,9 +48,9 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                         .add("id", (String) arguments[0])).asObject();
 
         JsonValue quickReplies = null;
-        if (snippet.getSuggestedResponses() != null) {
+        if (snippet.getSuggestedResponses(state) != null) {
             List<String> quickReplyList = new ArrayList();
-            for (Object suggestedResponse : snippet.getSuggestedResponses()) {
+            for (Object suggestedResponse : snippet.getSuggestedResponses(state)) {
                 quickReplyList.add((String) suggestedResponse);
             }
             if (!quickReplyList.isEmpty()) {
