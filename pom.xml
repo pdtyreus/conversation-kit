@@ -30,6 +30,14 @@
             <artifactId>minimal-json</artifactId>
             <version>0.9.4</version>
         </dependency>
+        
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars</artifactId>
+            <version>4.0.6</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
     
     <build>

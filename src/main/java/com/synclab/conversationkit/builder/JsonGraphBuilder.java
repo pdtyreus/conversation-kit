@@ -34,6 +34,7 @@ import com.synclab.conversationkit.impl.edge.JavaScriptEdge;
 import com.synclab.conversationkit.impl.edge.RegexEdge;
 import com.synclab.conversationkit.impl.edge.StatementEdge;
 import com.synclab.conversationkit.impl.node.DialogTreeNode;
+import com.synclab.conversationkit.impl.node.HandlebarsNode;
 import com.synclab.conversationkit.impl.node.ResponseSuggestingNode;
 import com.synclab.conversationkit.impl.node.StringReplacingNode;
 import com.synclab.conversationkit.model.IConversationNode;
@@ -57,7 +58,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
 
     protected enum NodeType {
 
-        StringReplacing, ResponseSuggesting, DialogTree
+        StringReplacing, ResponseSuggesting, DialogTree, Handlebars
     }
 
     protected enum EdgeType {
@@ -95,12 +96,16 @@ public class JsonGraphBuilder<S extends IConversationState> {
             JsonValue metadataValue = node.get("metadata");
             JsonObject metadata = null;
             if (metadataValue == null) {
-               throw new IOException("Missing \"metadata\" for node " + id);
+                throw new IOException("Missing \"metadata\" for node " + id);
             } else {
-                 metadata = metadataValue.asObject();
+                metadata = metadataValue.asObject();
             }
             SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
             NodeType nodeType = NodeType.valueOf(type);
+            SnippetContentType contentType = SnippetContentType.TEXT;
+            if (metadata.get("contentType") != null) {
+                contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+            }
 
             //make the node into something
             IConversationNode<S> conversationNode;
@@ -121,10 +126,6 @@ public class JsonGraphBuilder<S extends IConversationState> {
                     conversationNode = srNode;
                     break;
                 case ResponseSuggesting:
-                    SnippetContentType contentType = SnippetContentType.TEXT;
-                    if (metadata.get("contentType") != null) {
-                        contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
-                    }
                     ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
                     if (metadata.get("suggestedResponses") != null) {
                         JsonArray suggestions = node.get("metadata").asObject().get("suggestedResponses").asArray();
@@ -133,6 +134,15 @@ public class JsonGraphBuilder<S extends IConversationState> {
                         }
                     }
                     conversationNode = rsNode;
+                    break;
+                case Handlebars:
+                    HandlebarsNode hbNode;
+                    if (metadata.get("suggestedResponses") != null) {
+                        hbNode = new HandlebarsNode(id, snippetType, content, metadata.get("suggestedResponses").asString(), contentType);
+                    } else {
+                        hbNode = new HandlebarsNode(id, snippetType, content, contentType);
+                    }
+                    conversationNode = hbNode;
                     break;
                 default:
                     throw new IOException("Unhandled node type " + nodeType);

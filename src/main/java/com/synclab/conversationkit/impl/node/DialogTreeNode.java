@@ -73,10 +73,12 @@ public class DialogTreeNode<S extends IConversationState> extends ConversationNo
         this.content = content;
     }
 
+    @Override
     public String renderContent(S state) {
         return content;
     }
 
+    @Override
     public Iterable<String> getSuggestedResponses(S state) {
         if (getType() == SnippetType.STATEMENT) {
             return null;
