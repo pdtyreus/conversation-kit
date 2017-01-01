@@ -30,51 +30,68 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Matches responses based on a regular expression pattern. If a stateKey is 
- * provided, the <code>onMatch</code> method sets the value of this key in 
- * the conversation
- * state equal to the first group found in the match. 
+ * Matches responses based on a regular expression pattern. If a stateKey is
+ * provided, the <code>onMatch</code> method sets the value of this key in the
+ * conversation state equal to the first group found in the match or to the
+ * stateValue constructor argument if specified.
+ *
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class RegexEdge <S extends IConversationState> implements IConversationEdge<S> {
+public class RegexEdge<S extends IConversationState> implements IConversationEdge<S> {
 
     private final IConversationNode<S> endNode;
     protected final Pattern pattern;
     protected final String stateKey;
+    protected final String stateValue;
+
+    public RegexEdge(String matchRegex, String stateKey, String stateValue, IConversationNode<S> endNode) {
+        this.endNode = endNode;
+        this.stateKey = stateKey;
+        this.pattern = Pattern.compile(matchRegex);
+        this.stateValue = stateValue;
+    }
 
     public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
         this.endNode = endNode;
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex);
+        this.stateValue = null;
     }
-    
+
     public RegexEdge(String matchRegex, IConversationNode<S> endNode) {
         this.endNode = endNode;
         this.stateKey = null;
+        this.stateValue = null;
         this.pattern = Pattern.compile(matchRegex);
     }
-    
+
     public IConversationNode<S> getEndNode() {
         return endNode;
     }
 
+    @Override
     public boolean isMatchForState(S state) {
         Matcher matcher = pattern.matcher(state.getCurrentResponse());
         return matcher.find();
     }
 
+    @Override
     public S onMatch(S state) {
-        Matcher matcher = pattern.matcher(state.getCurrentResponse());
-        if ((stateKey != null) && matcher.find()) {
-            state.set(stateKey, matcher.group());
-        } 
-        
+        if (stateValue != null) {
+            state.set(stateKey, stateValue);
+        } else {
+            Matcher matcher = pattern.matcher(state.getCurrentResponse());
+            if ((stateKey != null) && matcher.find()) {
+                state.set(stateKey, matcher.group());
+            }
+        }
+
         return state;
     }
 
     public String toString() {
         return "RegexEdge {" + pattern.pattern() + '}';
     }
-    
+
 }

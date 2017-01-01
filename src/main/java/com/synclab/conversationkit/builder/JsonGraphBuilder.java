@@ -118,7 +118,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 case StringReplacing:
                     StringReplacingNode srNode = new StringReplacingNode(id, snippetType, content);
                     if (metadata.get("suggestedResponses") != null) {
-                        JsonArray suggestions = node.get("metadata").asObject().get("suggestedResponses").asArray();
+                        JsonArray suggestions = metadata.get("suggestedResponses").asArray();
                         for (JsonValue suggestion : suggestions) {
                             srNode.addSuggestedResponse(suggestion.asString());
                         }
@@ -128,7 +128,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 case ResponseSuggesting:
                     ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
                     if (metadata.get("suggestedResponses") != null) {
-                        JsonArray suggestions = node.get("metadata").asObject().get("suggestedResponses").asArray();
+                        JsonArray suggestions = metadata.get("suggestedResponses").asArray();
                         for (JsonValue suggestion : suggestions) {
                             rsNode.addSuggestedResponse(suggestion.asString());
                         }

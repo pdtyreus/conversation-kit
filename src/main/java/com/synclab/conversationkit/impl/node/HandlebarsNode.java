@@ -63,10 +63,12 @@ public class HandlebarsNode<S extends IConversationState> extends ConversationNo
         try {
             Template template = handlebars.compileInline(this.suggestions);
             String responseList = template.apply(state);
-            String[] lines = responseList.split("\n");
+            String[] lines = responseList.split("|");
             List<String> suggestedResponses = new ArrayList();
             for (String line : lines) {
-                suggestedResponses.add(line);
+                if (!line.isEmpty()) {
+                    suggestedResponses.add(line);
+                }
             }
             return suggestedResponses;
         } catch (IOException e) {
