@@ -53,7 +53,7 @@ public class HandlebarsNodeTest extends TestCase {
 
     public void testGetSuggestedResponses() {
         TestCaseUserState state = new TestCaseUserState();
-        HandlebarsNode instance = new HandlebarsNode(1,SnippetType.STATEMENT,"content","one\ntwo\n{{number}}",SnippetContentType.TEXT);
+        HandlebarsNode instance = new HandlebarsNode(1,SnippetType.STATEMENT,"content","one|two|{{number}}",SnippetContentType.TEXT);
         state.setName("Daniel");
         state.setNumber(5);
         state.set("answer", "content");

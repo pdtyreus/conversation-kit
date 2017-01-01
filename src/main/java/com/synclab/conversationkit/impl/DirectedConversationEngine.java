@@ -98,6 +98,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
             }
         } else {
             logger.warning("trying to add response to conversation but current node is not a QUESTION");
+            throw new UnmatchedResponseException();
         }
 
         return state;

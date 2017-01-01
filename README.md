@@ -4,6 +4,11 @@
 
 Created as a spare time project by P. Daniel Tyreus - [@tyreus](https://www.twitter.com/tyreus)
 
+ * Minimal dependencies
+ * Well documented
+ * Clear, concise API designed to be extended and customized
+ * Easy to [test](https://gist.github.com/pdtyreus/b599e40b3a94fba3b80ca5fdd63f11b3)
+
 ## Introduction
 
 Conversation kit aims to provide a flexible structure for processing conversations
@@ -232,6 +237,9 @@ to determine if the edge matches the current state.
 For an example of a reasonably complex conversation graph with multiple node
 types and edges all loaded from a JSON file, see
 [ConversationGraphTest](src/test/java/com/synclab/conversationkit/impl/ConversationGraphTest.java).
+
+I also have a [gist](https://gist.github.com/pdtyreus/b599e40b3a94fba3b80ca5fdd63f11b3) that
+runs a ultra-simple chat on the console, but can be extended into a nice testbed.
 
 If you have questions or suggestions, you can contact me
 [on Twitter](https://www.twitter.com/tyreus).
