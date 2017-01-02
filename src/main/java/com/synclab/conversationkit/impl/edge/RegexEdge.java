@@ -43,9 +43,9 @@ public class RegexEdge<S extends IConversationState> implements IConversationEdg
     private final IConversationNode<S> endNode;
     protected final Pattern pattern;
     protected final String stateKey;
-    protected final String stateValue;
+    protected final Object stateValue;
 
-    public RegexEdge(String matchRegex, String stateKey, String stateValue, IConversationNode<S> endNode) {
+    public RegexEdge(String matchRegex, String stateKey, Object stateValue, IConversationNode<S> endNode) {
         this.endNode = endNode;
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex);

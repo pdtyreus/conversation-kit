@@ -219,9 +219,23 @@ public class JsonGraphBuilder<S extends IConversationState> {
                         throw new IOException("RegexEdge missing \"pattern\" metadata key: " + edge);
                     }
                     String pattern = metadata.get("pattern").asString();
-                    RegexEdge de = new RegexEdge(pattern, stateKey, target);
-                    source.addEdge(de);
-
+                    if (metadata.get("stateValue") != null) {
+                        Object stateValue;
+                        if (metadata.get("stateValue").isArray()) {
+                            stateValue = metadata.get("stateValue").asArray();
+                        } else if (metadata.get("stateValue").isBoolean()) {
+                            stateValue = metadata.get("stateValue").asBoolean();
+                        } else if (metadata.get("stateValue").isNumber()) {
+                            stateValue = metadata.get("stateValue").asInt();
+                        } else {
+                            stateValue = metadata.get("stateValue").asString();
+                        }
+                        RegexEdge de = new RegexEdge(pattern, stateKey, stateValue, target);
+                        source.addEdge(de);
+                    } else {
+                        RegexEdge de = new RegexEdge(pattern, stateKey, target);
+                        source.addEdge(de);
+                    }
                     break;
                 case Statement:
                     StatementEdge e = new StatementEdge(target);
