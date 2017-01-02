@@ -48,6 +48,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
         this.nodeIndex = nodeIndex;
     }
 
+    @Override
     public Iterable<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
         IConversationNode<S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
@@ -72,6 +73,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
         return nodes;
     }
 
+    @Override
     public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException {
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
 
@@ -113,7 +115,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
             logger.info(String.format("edge '%s' matches", edge));
         }
         logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
-        state = edge.onMatch(state);
+        edge.onMatch(state);
         return state;
     }
 }

@@ -77,7 +77,7 @@ public class RegexEdge<S extends IConversationState> implements IConversationEdg
     }
 
     @Override
-    public S onMatch(S state) {
+    public void onMatch(S state) {
         if (stateValue != null) {
             state.set(stateKey, stateValue);
         } else {
@@ -86,8 +86,6 @@ public class RegexEdge<S extends IConversationState> implements IConversationEdg
                 state.set(stateKey, matcher.group());
             }
         }
-
-        return state;
     }
 
     public String toString() {

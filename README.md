@@ -141,14 +141,13 @@ edge to use to continue traversing the conversation graph.
 public interface IConversationEdge<S extends IConversationState> {
     public IConversationNode<S> getEndNode();
     public boolean isMatchForState(S state);
-    public S onMatch(S state);
+    public void onMatch(S state);
 }
 ```
 
 A conversation will continue to the end node of a given edge if that edge is
 the first to return a `true` value from `isMatchForState()`. The edge can also
-choose to modify the state after it matches by returning a new state from
-`onMatch()`.
+choose to modify the state after it matches in `onMatch()`.
 
 ### StatementEdge
 
@@ -184,13 +183,11 @@ public boolean isMatchForState(S state) {
     return matcher.find();
 }
 
-public S onMatch(S state) {
+public void onMatch(S state) {
     Matcher matcher = pattern.matcher(state.getCurrentResponse());
     if ((stateKey != null) && matcher.find()) {
         state.set(stateKey, matcher.group());
     }
-
-    return state;
 }
 ```
 

@@ -45,6 +45,7 @@ public class StatementEdge<S extends IConversationState> implements IConversatio
         this.endNode = endNode;
     }
 
+    @Override
     public IConversationNode getEndNode() {
         return endNode;
     }
@@ -54,12 +55,13 @@ public class StatementEdge<S extends IConversationState> implements IConversatio
         return "StatementEdge {"+isMatchForState(null)+"}";
     }
 
+    @Override
     public boolean isMatchForState(S state) {
         return true;
     }
 
-    public S onMatch(S state) {
-        return state;
+    @Override
+    public void onMatch(S state) {
     }
 
 }

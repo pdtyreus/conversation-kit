@@ -81,19 +81,21 @@ public class DialogTreeEdge<S extends IConversationState> implements IConversati
         this.answer = answer;
     }
 
+    @Override
     public IConversationNode<S> getEndNode() {
         return endNode;
     }
 
+    @Override
     public boolean isMatchForState(S state) {
         return answer.equals(state.getCurrentResponse());
     }
 
-    public S onMatch(S state) {
+    @Override
+    public void onMatch(S state) {
         if (this.stateKey != null) {
             state.set(this.stateKey, state.getCurrentResponse());
         }
-        return state;
     }
 
     public String getAnswer() {

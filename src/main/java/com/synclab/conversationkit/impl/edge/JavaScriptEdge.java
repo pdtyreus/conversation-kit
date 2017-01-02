@@ -128,20 +128,18 @@ public class JavaScriptEdge<S extends IConversationState> implements IConversati
         }
     }
 
-    public S onMatch(S state){
+    public void onMatch(S state){
         Invocable inv = (Invocable) engine;
         String template = "function onMatch(state) {";
         template += onMatch;
         template += "};";
         try {
             engine.eval(template);
-            return (S) inv.invokeFunction("onMatch", state);
+            inv.invokeFunction("onMatch", state);
         } catch (ScriptException e) {
             logger.warning(e.getMessage());
-            return state;
         } catch (NoSuchMethodException e) {
             logger.severe(e.toString());
-            return state;
         }
     }
 

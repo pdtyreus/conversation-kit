@@ -56,7 +56,6 @@ public interface IConversationEdge<S extends IConversationState> {
      * user's response. Generally a response will only be present in the state
      * if the previous node was a question.
      * @param state the user's conversation state
-     * @return an updated state
      */
-    public S onMatch(S state);
+    public void onMatch(S state);
 }

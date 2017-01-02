@@ -68,7 +68,7 @@ public class JavaScriptEdgeTest extends TestCase {
         assertEquals(true, instance.isMatchForState(state));
         assertEquals(null, state.get("java"));
         try {
-            state = instance.onMatch(state);
+            instance.onMatch(state);
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -76,7 +76,7 @@ public class JavaScriptEdgeTest extends TestCase {
 
         instance = new JavaScriptEdge("return true;", "state.js = true; return state;", null);
         try {
-            state = instance.onMatch(state);
+            instance.onMatch(state);
         } catch (Exception e) {
             fail(e.getMessage());
         }
