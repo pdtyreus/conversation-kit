@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2017 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,45 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.impl.node;
+package com.synclab.conversationkit.impl.edge;
 
 import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
-import com.synclab.conversationkit.model.SnippetType;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Convenience base class for creating nodes.
+ * Convenience base class for creating edges.
  * 
  * @author pdtyreus
  */
-public abstract class ConversationNode<S extends IConversationState> implements IConversationNode<S> {
+public abstract class ConversationEdge<S extends IConversationState> implements IConversationEdge<S> {
+    private final IConversationNode<S> endNode;
 
-    protected final List<IConversationEdge<S>> edges;
-    private final SnippetType type;
-    private final int id;
-
-    public ConversationNode(int id, SnippetType type) {
-        this.id = id;
-        this.type = type;
-        this.edges = new ArrayList();
+    public ConversationEdge(IConversationNode<S> endNode) {
+        this.endNode = endNode;
     }
 
-    public Iterable<IConversationEdge<S>> getEdges() {
-        return edges;
+    @Override
+    public IConversationNode<S> getEndNode() {
+        return endNode;
     }
-
-    public void addEdge(IConversationEdge<S> edge) {
-        edges.add(edge);
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public SnippetType getType() {
-        return type;
-    }
+    
 }

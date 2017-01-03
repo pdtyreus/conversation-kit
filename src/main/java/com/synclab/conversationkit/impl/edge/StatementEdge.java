@@ -23,7 +23,6 @@
  */
 package com.synclab.conversationkit.impl.edge;
 
-import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 
@@ -37,17 +36,10 @@ import com.synclab.conversationkit.model.IConversationState;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class StatementEdge<S extends IConversationState> implements IConversationEdge<S> {
-
-    private final IConversationNode endNode;
+public class StatementEdge<S extends IConversationState> extends ConversationEdge<S> {
 
     public StatementEdge(IConversationNode endNode) {
-        this.endNode = endNode;
-    }
-
-    @Override
-    public IConversationNode getEndNode() {
-        return endNode;
+        super(endNode);
     }
 
     @Override

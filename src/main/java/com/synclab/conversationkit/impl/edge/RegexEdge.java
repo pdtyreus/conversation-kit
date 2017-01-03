@@ -38,37 +38,33 @@ import java.util.regex.Pattern;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class RegexEdge<S extends IConversationState> implements IConversationEdge<S> {
+public class RegexEdge<S extends IConversationState> extends ConversationEdge<S> {
 
-    private final IConversationNode<S> endNode;
     protected final Pattern pattern;
     protected final String stateKey;
     protected final Object stateValue;
 
     public RegexEdge(String matchRegex, String stateKey, Object stateValue, IConversationNode<S> endNode) {
-        this.endNode = endNode;
+        super(endNode);
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex);
         this.stateValue = stateValue;
     }
 
     public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
-        this.endNode = endNode;
+        super(endNode);
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex);
         this.stateValue = null;
     }
 
     public RegexEdge(String matchRegex, IConversationNode<S> endNode) {
-        this.endNode = endNode;
+        super(endNode);
         this.stateKey = null;
         this.stateValue = null;
         this.pattern = Pattern.compile(matchRegex);
     }
 
-    public IConversationNode<S> getEndNode() {
-        return endNode;
-    }
 
     @Override
     public boolean isMatchForState(S state) {

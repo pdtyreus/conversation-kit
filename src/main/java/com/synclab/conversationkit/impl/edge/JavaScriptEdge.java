@@ -70,9 +70,8 @@ import javax.script.ScriptException;
  * to determine if the edge matches the current state.
  * @author pdtyreus
  */
-public class JavaScriptEdge<S extends IConversationState> implements IConversationEdge<S> {
+public class JavaScriptEdge<S extends IConversationState> extends ConversationEdge<S> {
 
-    private final IConversationNode<S> endNode;
     private final String isMatchForState;
     private final String onMatch;
 
@@ -89,7 +88,7 @@ public class JavaScriptEdge<S extends IConversationState> implements IConversati
      * @param endNode destination node
      */
     public JavaScriptEdge(String isMatchForState, String onMatch, IConversationNode<S> endNode) {
-        this.endNode = endNode;
+        super(endNode);
         this.isMatchForState = isMatchForState;
         this.onMatch = onMatch;
     }
@@ -102,13 +101,9 @@ public class JavaScriptEdge<S extends IConversationState> implements IConversati
      * @param endNode destination node
      */
     public JavaScriptEdge(String isMatchForState, IConversationNode<S> endNode) {
-        this.endNode = endNode;
+        super(endNode);
         this.isMatchForState = isMatchForState;
         this.onMatch = "return state;";
-    }
-
-    public IConversationNode<S> getEndNode() {
-        return endNode;
     }
 
     public boolean isMatchForState(S state) {
