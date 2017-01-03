@@ -37,6 +37,7 @@ import com.synclab.conversationkit.impl.node.DialogTreeNode;
 import com.synclab.conversationkit.impl.node.HandlebarsNode;
 import com.synclab.conversationkit.impl.node.ResponseSuggestingNode;
 import com.synclab.conversationkit.impl.node.StringReplacingNode;
+import com.synclab.conversationkit.model.IConversationEdge;
 import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
 import com.synclab.conversationkit.model.SnippetContentType;
@@ -47,7 +48,8 @@ import java.text.MessageFormat;
 import java.util.logging.Logger;
 
 /**
- * I/O class for loading a directed conversation from a JSON file.
+ * I/O class for loading a directed conversation from a JSON file. Extend this
+ * class to handle custom node and edge types.
  *
  * @author pdtyreus
  * @see <a href="http://jsongraphformat.info/">JSON Graph Format</a>
@@ -64,6 +66,145 @@ public class JsonGraphBuilder<S extends IConversationState> {
     protected enum EdgeType {
 
         DialogTree, JavaScript, Regex, Statement
+    }
+
+    /**
+     * Creates an <code>IConversationNode</code> from JSON. Override this
+     * to handle additional node types. The call to <code>super.nodeFromJson()</code> will 
+     * return null if the node type is not currently handled.
+     * 
+     * @param id the node id
+     * @param type the node type
+     * @param content the value of the content key
+     * @param metadata the additional metadata in the json
+     * @return a node or null
+     * @throws IOException 
+     */
+    protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, JsonObject metadata) throws IOException {
+
+        SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
+        NodeType nodeType = NodeType.valueOf(type);
+        SnippetContentType contentType = SnippetContentType.TEXT;
+        if (metadata.get("contentType") != null) {
+            contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+        }
+
+        //make the node into something
+        IConversationNode<S> conversationNode = null;
+
+        switch (nodeType) {
+            case DialogTree:
+                DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, content);
+                conversationNode = dtNode;
+                break;
+            case StringReplacing:
+                StringReplacingNode srNode = new StringReplacingNode(id, snippetType, content);
+                if (metadata.get("suggestedResponses") != null) {
+                    JsonArray suggestions = metadata.get("suggestedResponses").asArray();
+                    for (JsonValue suggestion : suggestions) {
+                        srNode.addSuggestedResponse(suggestion.asString());
+                    }
+                }
+                conversationNode = srNode;
+                break;
+            case ResponseSuggesting:
+                ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
+                if (metadata.get("suggestedResponses") != null) {
+                    JsonArray suggestions = metadata.get("suggestedResponses").asArray();
+                    for (JsonValue suggestion : suggestions) {
+                        rsNode.addSuggestedResponse(suggestion.asString());
+                    }
+                }
+                conversationNode = rsNode;
+                break;
+            case Handlebars:
+                HandlebarsNode hbNode;
+                if (metadata.get("suggestedResponses") != null) {
+                    hbNode = new HandlebarsNode(id, snippetType, content, metadata.get("suggestedResponses").asString(), contentType);
+                } else {
+                    hbNode = new HandlebarsNode(id, snippetType, content, contentType);
+                }
+                conversationNode = hbNode;
+                break;
+            default:
+                return null;
+        }
+
+        return conversationNode;
+    }
+
+    /**
+     * Creates an <code>IConversationEdge</code> from JSON. Override this
+     * to handle additional edge types. The call to <code>super.edgeFromJson()</code> will 
+     * return null if the edge type is not currently handled.
+     * 
+     * @param type the edge type
+     * @param metadata the additional metadata in the json
+     * @param target the target node
+     * @return an edge or null
+     * @throws IOException 
+     */
+    protected IConversationEdge<S> edgeFromJson(String type, JsonObject metadata, IConversationNode<S> target) throws IOException {
+
+        EdgeType edgeType;
+        try {
+            edgeType = EdgeType.valueOf(type);
+        } catch (Exception e) {
+            return null;
+        }
+        String stateKey = null;
+        if ((metadata != null) && (metadata.get("stateKey") != null)) {
+            stateKey = metadata.get("stateKey").asString();
+        }
+        switch (edgeType) {
+            case DialogTree:
+                if ((metadata == null) || (metadata.get("answer") == null)) {
+                    throw new IOException("DialogTreeEdge missing \"answer\" metadata key: " + metadata);
+                }
+                DialogTreeEdge dte = new DialogTreeEdge(metadata.get("answer").asString(), stateKey, target);
+                return dte;
+            case JavaScript:
+
+                if ((metadata == null) || (metadata.get("isMatchForState") == null)) {
+                    throw new IOException("JavaScriptEdge missing \"isMatchForState\" metadata key: " + metadata);
+                }
+                String isMatch = metadata.get("isMatchForState").asString();
+                if (metadata.get("onMatch") != null) {
+                    String onMatch = metadata.get("onMatch").asString();
+                    JavaScriptEdge de = new JavaScriptEdge(isMatch, onMatch, target);
+                    return de;
+                } else {
+                    JavaScriptEdge de = new JavaScriptEdge(isMatch, target);
+                    return de;
+                }
+            case Regex:
+                if ((metadata == null) || (metadata.get("pattern") == null)) {
+                    throw new IOException("RegexEdge missing \"pattern\" metadata key: " + metadata);
+                }
+                String pattern = metadata.get("pattern").asString();
+                if (metadata.get("stateValue") != null) {
+                    Object stateValue;
+                    if (metadata.get("stateValue").isArray()) {
+                        stateValue = metadata.get("stateValue").asArray();
+                    } else if (metadata.get("stateValue").isBoolean()) {
+                        stateValue = metadata.get("stateValue").asBoolean();
+                    } else if (metadata.get("stateValue").isNumber()) {
+                        stateValue = metadata.get("stateValue").asInt();
+                    } else {
+                        stateValue = metadata.get("stateValue").asString();
+                    }
+                    RegexEdge de = new RegexEdge(pattern, stateKey, stateValue, target);
+                    return de;
+                } else {
+                    RegexEdge de = new RegexEdge(pattern, stateKey, target);
+                    return de;
+                }
+            case Statement:
+                StatementEdge e = new StatementEdge(target);
+                return e;
+            default:
+                return null;
+        }
     }
 
     public DirectedConversationEngine<S> readJsonGraph(Reader reader) throws IOException {
@@ -84,13 +225,13 @@ public class JsonGraphBuilder<S extends IConversationState> {
             } catch (Exception e) {
                 throw new IOException("Missing or Invalid \"id\" for node: " + node.toString());
             }
-            //validate
             if (node.get("label") == null) {
                 throw new IOException("Missing \"label\" for node " + id);
             }
             if (node.get("type") == null) {
                 throw new IOException("Missing \"type\" for node " + id);
             }
+
             String type = node.get("type").asString();
             String content = node.get("label").asString();
             JsonValue metadataValue = node.get("metadata");
@@ -100,55 +241,12 @@ public class JsonGraphBuilder<S extends IConversationState> {
             } else {
                 metadata = metadataValue.asObject();
             }
-            SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
-            NodeType nodeType = NodeType.valueOf(type);
-            SnippetContentType contentType = SnippetContentType.TEXT;
-            if (metadata.get("contentType") != null) {
-                contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+
+            IConversationNode<S> conversationNode = nodeFromJson(id, type, content, metadata);
+            if (conversationNode == null) {
+                throw new IOException("Unhandled node " + node);
             }
-
-            //make the node into something
-            IConversationNode<S> conversationNode;
-
-            switch (nodeType) {
-                case DialogTree:
-                    DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, content);
-                    conversationNode = dtNode;
-                    break;
-                case StringReplacing:
-                    StringReplacingNode srNode = new StringReplacingNode(id, snippetType, content);
-                    if (metadata.get("suggestedResponses") != null) {
-                        JsonArray suggestions = metadata.get("suggestedResponses").asArray();
-                        for (JsonValue suggestion : suggestions) {
-                            srNode.addSuggestedResponse(suggestion.asString());
-                        }
-                    }
-                    conversationNode = srNode;
-                    break;
-                case ResponseSuggesting:
-                    ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
-                    if (metadata.get("suggestedResponses") != null) {
-                        JsonArray suggestions = metadata.get("suggestedResponses").asArray();
-                        for (JsonValue suggestion : suggestions) {
-                            rsNode.addSuggestedResponse(suggestion.asString());
-                        }
-                    }
-                    conversationNode = rsNode;
-                    break;
-                case Handlebars:
-                    HandlebarsNode hbNode;
-                    if (metadata.get("suggestedResponses") != null) {
-                        hbNode = new HandlebarsNode(id, snippetType, content, metadata.get("suggestedResponses").asString(), contentType);
-                    } else {
-                        hbNode = new HandlebarsNode(id, snippetType, content, contentType);
-                    }
-                    conversationNode = hbNode;
-                    break;
-                default:
-                    throw new IOException("Unhandled node type " + nodeType);
-            }
-
-            index.addNodeToIndex(id, conversationNode);
+            index.addNodeToIndex(conversationNode.getId(), conversationNode);
             i++;
         }
 
@@ -160,9 +258,6 @@ public class JsonGraphBuilder<S extends IConversationState> {
         for (JsonValue member : keyTree.get("edges").asArray()) {
             JsonObject edge = member.asObject();
 
-            if (edge.get("label") == null) {
-                throw new IOException("Missing \"label\" for edge: " + edge.toString());
-            }
             if (edge.get("type") == null) {
                 throw new IOException("Missing \"type\" for edge: " + edge.toString());
             }
@@ -172,13 +267,6 @@ public class JsonGraphBuilder<S extends IConversationState> {
             if (edge.get("target") == null) {
                 throw new IOException("Missing \"target\" for edge: " + edge.toString());
             }
-            String type = edge.get("type").asString();
-            String content = edge.get("label").asString();
-            JsonValue metadataValue = edge.get("metadata");
-            JsonObject metadata = null;
-            if (metadataValue != null) {
-                metadata = metadataValue.asObject();
-            }
 
             Integer sourceId = Integer.parseInt(edge.get("source").asString());
             Integer targetId = Integer.parseInt(edge.get("target").asString());
@@ -186,64 +274,18 @@ public class JsonGraphBuilder<S extends IConversationState> {
             IConversationNode<S> source = index.getNodeAtIndex(sourceId);
             IConversationNode<S> target = index.getNodeAtIndex(targetId);
 
-            EdgeType edgeType = EdgeType.valueOf(type);
-            String stateKey = null;
-            if ((metadata != null) && (metadata.get("stateKey") != null)) {
-                stateKey = metadata.get("stateKey").asString();
+            String type = edge.get("type").asString();
+            JsonValue metadataValue = edge.get("metadata");
+            JsonObject metadata = null;
+            if (metadataValue != null) {
+                metadata = metadataValue.asObject();
             }
-            switch (edgeType) {
-                case DialogTree:
-                    if ((metadata == null) || (metadata.get("answer") == null)) {
-                        throw new IOException("DialogTreeEdge missing \"answer\" metadata key: " + edge);
-                    }
-                    DialogTreeEdge dte = new DialogTreeEdge(metadata.get("answer").asString(), stateKey, target);
-                    source.addEdge(dte);
-                    break;
-                case JavaScript:
 
-                    if ((metadata == null) || (metadata.get("isMatchForState") == null)) {
-                        throw new IOException("JavaScriptEdge missing \"isMatchForState\" metadata key: " + edge);
-                    }
-                    String isMatch = metadata.get("isMatchForState").asString();
-                    if (metadata.get("onMatch") != null) {
-                        String onMatch = metadata.get("onMatch").asString();
-                        JavaScriptEdge de = new JavaScriptEdge(isMatch, onMatch, target);
-                        source.addEdge(de);
-                    } else {
-                        JavaScriptEdge de = new JavaScriptEdge(isMatch, target);
-                        source.addEdge(de);
-                    }
-                    break;
-                case Regex:
-                    if ((metadata == null) || (metadata.get("pattern") == null)) {
-                        throw new IOException("RegexEdge missing \"pattern\" metadata key: " + edge);
-                    }
-                    String pattern = metadata.get("pattern").asString();
-                    if (metadata.get("stateValue") != null) {
-                        Object stateValue;
-                        if (metadata.get("stateValue").isArray()) {
-                            stateValue = metadata.get("stateValue").asArray();
-                        } else if (metadata.get("stateValue").isBoolean()) {
-                            stateValue = metadata.get("stateValue").asBoolean();
-                        } else if (metadata.get("stateValue").isNumber()) {
-                            stateValue = metadata.get("stateValue").asInt();
-                        } else {
-                            stateValue = metadata.get("stateValue").asString();
-                        }
-                        RegexEdge de = new RegexEdge(pattern, stateKey, stateValue, target);
-                        source.addEdge(de);
-                    } else {
-                        RegexEdge de = new RegexEdge(pattern, stateKey, target);
-                        source.addEdge(de);
-                    }
-                    break;
-                case Statement:
-                    StatementEdge e = new StatementEdge(target);
-                    source.addEdge(e);
-                    break;
-                default:
-                    throw new IOException("Unhandled node edge " + edgeType);
+            IConversationEdge<S> conversationEdge = edgeFromJson(type, metadata, target);
+            if (conversationEdge == null) {
+                throw new IOException("Unhandled edge " + edge);
             }
+            source.addEdge(conversationEdge);
             i++;
         }
 
