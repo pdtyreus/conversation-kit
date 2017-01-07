@@ -40,20 +40,20 @@ public class RegexEdgeTest extends TestCase {
     public void testIsMatchForState() {
         IConversationState state = new MapBackedState();
         RegexEdge instance = new RegexEdge("\\d+",null);
-        state.setCurrentResponse("word");
+        state.setMostRecentResponse("word");
         assertEquals(false,instance.isMatchForState(state));
-        state.setCurrentResponse("5");
+        state.setMostRecentResponse("5");
         assertEquals(true,instance.isMatchForState(state));
         
         instance = new RegexEdge("\\w+","word",null);
-        state.setCurrentResponse("word");
+        state.setMostRecentResponse("word");
         assertEquals(true,instance.isMatchForState(state));
     }
 
     public void testOnMatch() throws Exception {
         IConversationState state = new MapBackedState();
         RegexEdge instance = new RegexEdge("\\w+","wordKey",null);
-        state.setCurrentResponse("word");
+        state.setMostRecentResponse("word");
         assertEquals(true,instance.isMatchForState(state));
         assertEquals(null, state.get("wordKey"));
         instance.onMatch(state);

@@ -68,7 +68,7 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
 
     @Override
     public boolean isMatchForState(S state) {
-        Matcher matcher = pattern.matcher(state.getCurrentResponse());
+        Matcher matcher = pattern.matcher(state.getMostRecentResponse());
         return matcher.find();
     }
 
@@ -77,7 +77,7 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
         if (stateValue != null) {
             state.set(stateKey, stateValue);
         } else {
-            Matcher matcher = pattern.matcher(state.getCurrentResponse());
+            Matcher matcher = pattern.matcher(state.getMostRecentResponse());
             if ((stateKey != null) && matcher.find()) {
                 state.set(stateKey, matcher.group());
             }

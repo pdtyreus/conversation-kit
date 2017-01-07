@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2017 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,39 +23,22 @@
  */
 package com.synclab.conversationkit.impl.edge;
 
-import com.synclab.conversationkit.impl.MapBackedState;
+import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationState;
-import static junit.framework.Assert.assertEquals;
-import junit.framework.TestCase;
 
 /**
- *
+ * Edge that matches no-like responses.
  * @author pdtyreus
  */
-public class DialogTreeEdgeTest extends TestCase {
+public class NegativeEdge <S extends IConversationState> extends RegexEdge<S> {
 
-    public DialogTreeEdgeTest(String testName) {
-        super(testName);
+    private static final String NO = "\\bno\\b|\\bnope\\b|\\bnah\\b|\\bnone\\b|\\bnot really\\b";
+    
+    public NegativeEdge(String stateKey, Object stateValue, IConversationNode<S> endNode) {
+        super(NO,stateKey,stateValue,endNode);
     }
-
-    public void testIsMatchForState() {
-        IConversationState state = new MapBackedState();
-
-        DialogTreeEdge instance = new DialogTreeEdge("answer", null);
-        state.setMostRecentResponse("word");
-        assertEquals(false, instance.isMatchForState(state));
-        state.setMostRecentResponse("answer");
-        assertEquals(true, instance.isMatchForState(state));
+    
+    public NegativeEdge(IConversationNode<S> endNode) {
+        super(NO,endNode);
     }
-
-    public void testOnMatch() throws Exception {
-        IConversationState state = new MapBackedState();
-        DialogTreeEdge instance = new DialogTreeEdge("word", "wordKey", null);
-        state.setMostRecentResponse("word");
-        assertEquals(true, instance.isMatchForState(state));
-        assertEquals(null, state.get("wordKey"));
-        instance.onMatch(state);
-        assertEquals("word", state.get("wordKey"));
-    }
-
 }

@@ -58,12 +58,12 @@ import javax.script.ScriptException;
  * </pre>
  * <p>
  * So, for example, if 
- * <code>isMatchForState = "return (state.currentResponse === 'graph');"</code>
+ * <code>isMatchForState = "return (state.mostRecentResponse === 'graph');"</code>
  * then the IConversation implementation would evaluate the result of
  * <pre>
  * {@code
  * function isMatchForState(state) {
- *   return (state.currentResponse === 'graph');
+ *   return (state.mostRecentResponse === 'graph');
  * }
  * }
  * </pre>

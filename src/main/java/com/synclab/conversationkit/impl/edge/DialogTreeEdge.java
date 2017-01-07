@@ -79,13 +79,13 @@ public class DialogTreeEdge<S extends IConversationState> extends ConversationEd
 
     @Override
     public boolean isMatchForState(S state) {
-        return answer.equals(state.getCurrentResponse());
+        return answer.equals(state.getMostRecentResponse());
     }
 
     @Override
     public void onMatch(S state) {
         if (this.stateKey != null) {
-            state.set(this.stateKey, state.getCurrentResponse());
+            state.set(this.stateKey, state.getMostRecentResponse());
         }
     }
 

@@ -78,7 +78,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
 
         if (currentSnippet.getType() == SnippetType.QUESTION) {
-            state.setCurrentResponse(response);
+            state.setMostRecentResponse(response);
             logger.fine(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
             boolean matchFound = false;
 
@@ -95,8 +95,6 @@ public class DirectedConversationEngine<S extends IConversationState> implements
 
             if (!matchFound) {
                 throw new UnmatchedResponseException();
-            } else {
-                state.setCurrentResponse(null);
             }
         } else {
             logger.warning("trying to add response to conversation but current node is not a QUESTION");
@@ -109,8 +107,8 @@ public class DirectedConversationEngine<S extends IConversationState> implements
     private S moveToNextNode(S state, IConversationEdge<S> edge) {
         IConversationNode nextNode = edge.getEndNode();
         state.setCurrentNodeId(nextNode.getId());
-        if (state.getCurrentResponse() != null) {
-            logger.info(String.format("response '%s' matches edge '%s'", state.getCurrentResponse(), edge));
+        if (state.getMostRecentResponse() != null) {
+            logger.info(String.format("response '%s' matches edge '%s'", state.getMostRecentResponse(), edge));
         } else {
             logger.info(String.format("edge '%s' matches", edge));
         }

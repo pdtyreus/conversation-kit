@@ -72,7 +72,7 @@
                 "type":"JavaScript",
                 "metadata": {
                     "isMatchForState":"return true;",
-                    "onMatch":"if (state.currentResponse == 'six'){state.answer = 6};return state;"
+                    "onMatch":"if (state.mostRecentResponse == 'six'){state.answer = 6};return state;"
                 }
             },
             {
@@ -100,9 +100,8 @@
                 "target": "2",
                 "directed": true,
                 "label":"yes",
-                "type":"Regex",
+                "type":"Affirmative",
                 "metadata": {
-                    "pattern":"yes"
                 }
             }
         ]

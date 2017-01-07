@@ -44,14 +44,14 @@ public class JavaScriptEdgeTest extends TestCase {
     public void testIsMatchForState() {
         IConversationState state = new MapBackedState();
         JavaScriptEdge instance = new JavaScriptEdge("return true;", null);
-        state.setCurrentResponse("word");
+        state.setMostRecentResponse("word");
         assertEquals(true, instance.isMatchForState(state));
 
-        instance = new JavaScriptEdge("return (state.currentResponse == 'word');", null);
+        instance = new JavaScriptEdge("return (state.mostRecentResponse == 'word');", null);
 
         assertEquals(true, instance.isMatchForState(state));
 
-        state.setCurrentResponse("number");
+        state.setMostRecentResponse("number");
 
         assertEquals(false, instance.isMatchForState(state));
 
@@ -63,7 +63,7 @@ public class JavaScriptEdgeTest extends TestCase {
     public void testOnMatch() {
         IConversationState state = new MapBackedState();
         JavaScriptEdge instance = new JavaScriptEdge("return true;", "return state;", null);
-        state.setCurrentResponse("word");
+        state.setMostRecentResponse("word");
         state.set("js", false);
         assertEquals(true, instance.isMatchForState(state));
         assertEquals(null, state.get("java"));

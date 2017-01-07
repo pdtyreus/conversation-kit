@@ -166,7 +166,7 @@ that connects one
 
 ```java
 public boolean isMatchForState(S state) {
-    return answer.equals(state.getCurrentResponse());
+    return answer.equals(state.getMostRecentResponse());
 }
 ```
 
@@ -179,12 +179,12 @@ the conversation state equal to the first group found in the match.
 
 ```java
 public boolean isMatchForState(S state) {
-    Matcher matcher = pattern.matcher(state.getCurrentResponse());
+    Matcher matcher = pattern.matcher(state.getMostRecentResponse());
     return matcher.find();
 }
 
 public void onMatch(S state) {
-    Matcher matcher = pattern.matcher(state.getCurrentResponse());
+    Matcher matcher = pattern.matcher(state.getMostRecentResponse());
     if ((stateKey != null) && matcher.find()) {
         state.set(stateKey, matcher.group());
     }
@@ -218,13 +218,13 @@ function onMatch(state) {
 
 So, for example, if
 ```java
-isMatchForState = "return (state.currentResponse === 'graph');"
+isMatchForState = "return (state.mostRecentResponse === 'graph');"
 ```
 then the IConversation implementation would evaluate the result of
 
 ```javascript
 function isMatchForState(state) {
-  return (state.currentResponse === 'graph');
+  return (state.mostRecentResponse === 'graph');
 }
 ```
 to determine if the edge matches the current state.

@@ -47,12 +47,12 @@ public interface IConversationState{
      * Returns the last unprocessed response from the user to the bot.
      * @return the user's response
      */
-    public String getCurrentResponse();
+    public String getMostRecentResponse();
     /**
      * Stores a response from the user to the bot for subsequent processing.
      * @param currentResponse the response entered by the user
      */
-    public void setCurrentResponse(String currentResponse);
+    public void setMostRecentResponse(String currentResponse);
     /**
      * Stores an arbitrary property value under the specified key.
      * @param propertyName the name of the key (e.g. column name, hash key, etc.)

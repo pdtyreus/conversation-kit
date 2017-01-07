@@ -54,16 +54,16 @@ public class MapBackedState extends HashMap<String,Object> implements IConversat
     }
 
     @Override
-    public String getCurrentResponse() {
-        return (String)this.get("currentResponse");
+    public String getMostRecentResponse() {
+        return (String)this.get("mostRecentResponse");
     }
 
     @Override
-    public void setCurrentResponse(String currentResponse) {
+    public void setMostRecentResponse(String currentResponse) {
         if (currentResponse == null) {
-            this.remove("currentResponse");
+            this.remove("mostRecentResponse");
         } else {
-            this.put("currentResponse", currentResponse);
+            this.put("mostRecentResponse", currentResponse);
         }
     }
     

@@ -29,8 +29,10 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.synclab.conversationkit.impl.DirectedConversationEngine;
 import com.synclab.conversationkit.impl.MapBackedNodeIndex;
+import com.synclab.conversationkit.impl.edge.AffirmativeEdge;
 import com.synclab.conversationkit.impl.edge.DialogTreeEdge;
 import com.synclab.conversationkit.impl.edge.JavaScriptEdge;
+import com.synclab.conversationkit.impl.edge.NegativeEdge;
 import com.synclab.conversationkit.impl.edge.RegexEdge;
 import com.synclab.conversationkit.impl.edge.StatementEdge;
 import com.synclab.conversationkit.impl.node.DialogTreeNode;
@@ -65,25 +67,32 @@ public class JsonGraphBuilder<S extends IConversationState> {
 
     protected enum EdgeType {
 
-        DialogTree, JavaScript, Regex, Statement
+        DialogTree, JavaScript, Regex, Statement, Affirmative, Negative
     }
 
     /**
-     * Creates an <code>IConversationNode</code> from JSON. Override this
-     * to handle additional node types. The call to <code>super.nodeFromJson()</code> will 
-     * return null if the node type is not currently handled.
-     * 
+     * Creates an <code>IConversationNode</code> from JSON. Override this to
+     * handle additional node types. The call to
+     * <code>super.nodeFromJson()</code> will return null if the node type is
+     * not currently handled.
+     *
      * @param id the node id
      * @param type the node type
      * @param content the value of the content key
      * @param metadata the additional metadata in the json
      * @return a node or null
-     * @throws IOException 
+     * @throws IOException
      */
     protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, JsonObject metadata) throws IOException {
 
         SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
-        NodeType nodeType = NodeType.valueOf(type);
+
+        NodeType nodeType;
+        try {
+            nodeType = NodeType.valueOf(type);
+        } catch (Exception e) {
+            return null;
+        }
         SnippetContentType contentType = SnippetContentType.TEXT;
         if (metadata.get("contentType") != null) {
             contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
@@ -134,15 +143,16 @@ public class JsonGraphBuilder<S extends IConversationState> {
     }
 
     /**
-     * Creates an <code>IConversationEdge</code> from JSON. Override this
-     * to handle additional edge types. The call to <code>super.edgeFromJson()</code> will 
-     * return null if the edge type is not currently handled.
-     * 
+     * Creates an <code>IConversationEdge</code> from JSON. Override this to
+     * handle additional edge types. The call to
+     * <code>super.edgeFromJson()</code> will return null if the edge type is
+     * not currently handled.
+     *
      * @param type the edge type
      * @param metadata the additional metadata in the json
      * @param target the target node
      * @return an edge or null
-     * @throws IOException 
+     * @throws IOException
      */
     protected IConversationEdge<S> edgeFromJson(String type, JsonObject metadata, IConversationNode<S> target) throws IOException {
 
@@ -155,6 +165,19 @@ public class JsonGraphBuilder<S extends IConversationState> {
         String stateKey = null;
         if ((metadata != null) && (metadata.get("stateKey") != null)) {
             stateKey = metadata.get("stateKey").asString();
+        }
+        Object stateValue = null;
+        if ((metadata != null) && metadata.get("stateValue") != null) {
+
+            if (metadata.get("stateValue").isArray()) {
+                stateValue = metadata.get("stateValue").asArray();
+            } else if (metadata.get("stateValue").isBoolean()) {
+                stateValue = metadata.get("stateValue").asBoolean();
+            } else if (metadata.get("stateValue").isNumber()) {
+                stateValue = metadata.get("stateValue").asInt();
+            } else {
+                stateValue = metadata.get("stateValue").asString();
+            }
         }
         switch (edgeType) {
             case DialogTree:
@@ -171,33 +194,31 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 String isMatch = metadata.get("isMatchForState").asString();
                 if (metadata.get("onMatch") != null) {
                     String onMatch = metadata.get("onMatch").asString();
-                    JavaScriptEdge de = new JavaScriptEdge(isMatch, onMatch, target);
-                    return de;
+                    return new JavaScriptEdge(isMatch, onMatch, target);
                 } else {
-                    JavaScriptEdge de = new JavaScriptEdge(isMatch, target);
-                    return de;
+                    return new JavaScriptEdge(isMatch, target);
                 }
             case Regex:
                 if ((metadata == null) || (metadata.get("pattern") == null)) {
                     throw new IOException("RegexEdge missing \"pattern\" metadata key: " + metadata);
                 }
                 String pattern = metadata.get("pattern").asString();
-                if (metadata.get("stateValue") != null) {
-                    Object stateValue;
-                    if (metadata.get("stateValue").isArray()) {
-                        stateValue = metadata.get("stateValue").asArray();
-                    } else if (metadata.get("stateValue").isBoolean()) {
-                        stateValue = metadata.get("stateValue").asBoolean();
-                    } else if (metadata.get("stateValue").isNumber()) {
-                        stateValue = metadata.get("stateValue").asInt();
-                    } else {
-                        stateValue = metadata.get("stateValue").asString();
-                    }
-                    RegexEdge de = new RegexEdge(pattern, stateKey, stateValue, target);
-                    return de;
+                if (stateValue != null) {
+                    return new RegexEdge(pattern, stateKey, stateValue, target);
                 } else {
-                    RegexEdge de = new RegexEdge(pattern, stateKey, target);
-                    return de;
+                    return new RegexEdge(pattern, stateKey, target);
+                }
+            case Affirmative:
+                if (stateValue != null) {
+                    return new AffirmativeEdge(stateKey, stateValue, target);
+                } else {
+                    return new AffirmativeEdge(target);
+                }
+            case Negative:
+                if (stateValue != null) {
+                    return new NegativeEdge(stateKey, stateValue, target);
+                } else {
+                    return new NegativeEdge(target);
                 }
             case Statement:
                 StatementEdge e = new StatementEdge(target);

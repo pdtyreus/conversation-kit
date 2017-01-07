@@ -90,7 +90,7 @@ public class ConversationGraphTest extends TestCase {
             OutputUtil.formatSnippet(formatter, new IConversationSnippet<TestCaseUserState>(){
 
                 public String renderContent(TestCaseUserState state) {
-                    return "I'm sorry, I didn't understand your response '"+state.getCurrentResponse()+"'.";
+                    return "I'm sorry, I didn't understand your response '"+state.getMostRecentResponse()+"'.";
                 }
 
                 public SnippetType getType() {
