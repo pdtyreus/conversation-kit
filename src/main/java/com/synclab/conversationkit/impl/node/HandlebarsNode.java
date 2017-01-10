@@ -60,8 +60,11 @@ public class HandlebarsNode<S extends IConversationState> extends ConversationNo
 
     @Override
     public Iterable<String> getSuggestedResponses(S state) {
+        if (suggestions == null) {
+            return null;
+        }
         try {
-            Template template = handlebars.compileInline(this.suggestions);
+            Template template = handlebars.compileInline(suggestions);
             String responseList = template.apply(state);
             String[] lines = responseList.split("\\|");
             List<String> suggestedResponses = new ArrayList();

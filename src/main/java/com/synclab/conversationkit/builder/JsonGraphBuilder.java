@@ -295,6 +295,14 @@ public class JsonGraphBuilder<S extends IConversationState> {
             IConversationNode<S> source = index.getNodeAtIndex(sourceId);
             IConversationNode<S> target = index.getNodeAtIndex(targetId);
 
+            if (source == null) {
+                throw new IOException("Source node missing for edge " + edge);
+            }
+
+            if (target == null) {
+                throw new IOException("Target node missing for edge " + edge);
+            }
+
             String type = edge.get("type").asString();
             JsonValue metadataValue = edge.get("metadata");
             JsonObject metadata = null;

@@ -97,7 +97,8 @@ public class DirectedConversationEngine<S extends IConversationState> implements
                 throw new UnmatchedResponseException();
             }
         } else {
-            logger.warning("trying to add response to conversation but current node is not a QUESTION");
+            logger.warning("adding response to conversation but current node is not a QUESTION");
+            state.setMostRecentResponse(response);
             throw new UnmatchedResponseException();
         }
 
