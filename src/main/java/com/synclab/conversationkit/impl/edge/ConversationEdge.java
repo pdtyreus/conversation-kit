@@ -43,5 +43,9 @@ public abstract class ConversationEdge<S extends IConversationState> implements 
     public IConversationNode<S> getEndNode() {
         return endNode;
     }
-    
+
+    @Override
+    public void onMatch(S state) {
+    }
+
 }
