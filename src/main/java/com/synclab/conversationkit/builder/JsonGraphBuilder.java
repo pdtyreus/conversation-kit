@@ -37,6 +37,7 @@ import com.synclab.conversationkit.impl.edge.RegexEdge;
 import com.synclab.conversationkit.impl.edge.StatementEdge;
 import com.synclab.conversationkit.impl.node.DialogTreeNode;
 import com.synclab.conversationkit.impl.node.HandlebarsNode;
+import com.synclab.conversationkit.impl.node.HiddenNode;
 import com.synclab.conversationkit.impl.node.ResponseSuggestingNode;
 import com.synclab.conversationkit.impl.node.StringReplacingNode;
 import com.synclab.conversationkit.model.IConversationEdge;
@@ -62,7 +63,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
 
     protected enum NodeType {
 
-        StringReplacing, ResponseSuggesting, DialogTree, Handlebars
+        StringReplacing, ResponseSuggesting, DialogTree, Handlebars, Hidden
     }
 
     protected enum EdgeType {
@@ -102,6 +103,9 @@ public class JsonGraphBuilder<S extends IConversationState> {
         IConversationNode<S> conversationNode = null;
 
         switch (nodeType) {
+            case Hidden:
+                conversationNode = new HiddenNode(id,snippetType);
+                break;
             case DialogTree:
                 DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, content);
                 conversationNode = dtNode;

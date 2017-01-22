@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2017 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.synclab.conversationkit.model;
+package com.synclab.conversationkit.impl.node;
+
+import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetContentType;
+import com.synclab.conversationkit.model.SnippetType;
 
 /**
- *
+ * An implementation of <code>IConversationNode</code> that serves simply
+ * as a pass-though node that renders no content.
+ * 
  * @author pdtyreus
  */
-public enum SnippetContentType {
-    TEXT, IMAGE, VIDEO, AUDIO, FILE, NOTHING
+public class HiddenNode <S extends IConversationState> extends ConversationNode<S> {
+
+    public HiddenNode(int id, SnippetType type) {
+        super(id, type);
+    }
+
+    @Override
+    public String renderContent(S state) {
+        return null;
+    }
+
+    @Override
+    public SnippetContentType getContentType() {
+        return SnippetContentType.NOTHING;
+    }
+
+    @Override
+    public Iterable<String> getSuggestedResponses(S state) {
+        return null;
+    }
+    
 }

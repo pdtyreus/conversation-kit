@@ -29,6 +29,7 @@ import com.synclab.conversationkit.model.IConversationNode;
 import com.synclab.conversationkit.model.IConversationNodeIndex;
 import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
+import com.synclab.conversationkit.model.SnippetContentType;
 import com.synclab.conversationkit.model.SnippetType;
 import com.synclab.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
@@ -52,7 +53,9 @@ public class DirectedConversationEngine<S extends IConversationState> implements
     public Iterable<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
         IConversationNode<S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-        nodes.add(nextNode);
+        if (nextNode.getContentType() != SnippetContentType.NOTHING) {
+            nodes.add(nextNode);
+        }
         boolean matchFound = true;
         while (matchFound && (nextNode.getType() == SnippetType.STATEMENT)) {
             //if nothing has matched, we are done
@@ -65,7 +68,9 @@ public class DirectedConversationEngine<S extends IConversationState> implements
                         matchFound = true;
                         state = moveToNextNode(state, edge);
                         nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-                        nodes.add(nextNode);
+                        if (nextNode.getContentType() != SnippetContentType.NOTHING) {
+                            nodes.add(nextNode);
+                        }
                     }
                 }
             }

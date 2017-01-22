@@ -16,8 +16,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- *
+ * An implementation of <code>IConversationNode</code> backed by the
+ * Handlebars template engine. You must include the Handlebars jars on
+ * your classpath to use this node type.
+ * 
  * @author pdtyreus
+ * @see <a href="http://jknack.github.io/handlebars.java/">Handlebars Java</a>
  */
 public class HandlebarsNode<S extends IConversationState> extends ConversationNode<S> {
 
