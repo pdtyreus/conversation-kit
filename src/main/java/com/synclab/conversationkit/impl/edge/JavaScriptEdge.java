@@ -116,9 +116,15 @@ public class JavaScriptEdge<S extends IConversationState> extends ConversationEd
             return (Boolean) inv.invokeFunction("isMatchForState", state);
         } catch (ScriptException e) {
             logger.warning(e.getMessage());
+            logger.warning(isMatchForState);
             return false;
         } catch (NoSuchMethodException e) {
             logger.severe(e.toString());
+            logger.severe(isMatchForState);
+            return false;
+        } catch (NullPointerException e) {
+            logger.warning(e.getMessage());
+            logger.warning(isMatchForState);
             return false;
         }
     }
