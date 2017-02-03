@@ -30,17 +30,36 @@ import com.synclab.conversationkit.model.IConversationSnippet;
 import com.synclab.conversationkit.model.IConversationState;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
 public class FacebookMessageAdapter implements IMessageAdapter {
+    
+    private static final Logger logger = Logger.getLogger(FacebookMessageAdapter.class.getName());
 
+    public String typingOnJson(IConversationState state, Object... arguments) {
+        if (arguments.length == 0) {
+            throw new IllegalArgumentException("The user's phone number or facebookId should be sent as the first argument.");
+        }
+
+        JsonObject json = Json.object()
+                .add("recipient", Json.object()
+                        .add("id", (String) arguments[0])).asObject();
+        
+        json.add("sender_action", "typing_on");
+        
+        logger.fine(json.toString());
+        
+        return json.toString();
+    }
+    
     @Override
     public String snippetToJson(IConversationSnippet snippet, IConversationState state, Object... arguments) {
         if (arguments.length == 0) {
-            throw new IllegalArgumentException("The user's phone number should be sent as the first argument.");
+            throw new IllegalArgumentException("The user's phone number or facebookId should be sent as the first argument.");
         }
 
         JsonObject json = Json.object()
@@ -97,6 +116,9 @@ public class FacebookMessageAdapter implements IMessageAdapter {
             message.add("quick_replies", quickReplies);
         }
         json.add("message", message);
+        
+        logger.fine(json.toString());
+        
         return json.toString();
 
     }
