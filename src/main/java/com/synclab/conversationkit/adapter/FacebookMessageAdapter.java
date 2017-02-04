@@ -40,14 +40,16 @@ public class FacebookMessageAdapter implements IMessageAdapter {
     
     private static final Logger logger = Logger.getLogger(FacebookMessageAdapter.class.getName());
 
-    public String typingOnJson(IConversationState state, Object... arguments) {
-        if (arguments.length == 0) {
-            throw new IllegalArgumentException("The user's phone number or facebookId should be sent as the first argument.");
-        }
+    /**
+     * Generates the JSON string to indicate that the bot is typing.
+     * @param userId Facebook user ID or phone number
+     * @return String representation of JSON payload
+     */
+    public String typingOnToJson(String userId) {
 
         JsonObject json = Json.object()
                 .add("recipient", Json.object()
-                        .add("id", (String) arguments[0])).asObject();
+                        .add("id", userId)).asObject();
         
         json.add("sender_action", "typing_on");
         
