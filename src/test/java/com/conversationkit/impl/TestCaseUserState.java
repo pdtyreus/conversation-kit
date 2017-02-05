@@ -23,11 +23,9 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.MapBackedState;
-
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public class TestCaseUserState extends MapBackedState {
 

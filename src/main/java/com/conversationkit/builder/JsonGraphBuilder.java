@@ -36,7 +36,6 @@ import com.conversationkit.impl.edge.NegativeEdge;
 import com.conversationkit.impl.edge.RegexEdge;
 import com.conversationkit.impl.edge.StatementEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
-import com.conversationkit.impl.node.HandlebarsNode;
 import com.conversationkit.impl.node.HiddenNode;
 import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.conversationkit.impl.node.StringReplacingNode;
@@ -63,7 +62,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
 
     protected enum NodeType {
 
-        StringReplacing, ResponseSuggesting, DialogTree, Handlebars, Hidden
+        StringReplacing, ResponseSuggesting, DialogTree, Hidden
     }
 
     protected enum EdgeType {
@@ -129,15 +128,6 @@ public class JsonGraphBuilder<S extends IConversationState> {
                     }
                 }
                 conversationNode = rsNode;
-                break;
-            case Handlebars:
-                HandlebarsNode hbNode;
-                if (metadata.get("suggestedResponses") != null) {
-                    hbNode = new HandlebarsNode(id, snippetType, content, metadata.get("suggestedResponses").asString(), contentType);
-                } else {
-                    hbNode = new HandlebarsNode(id, snippetType, content, contentType);
-                }
-                conversationNode = hbNode;
                 break;
             default:
                 return null;
