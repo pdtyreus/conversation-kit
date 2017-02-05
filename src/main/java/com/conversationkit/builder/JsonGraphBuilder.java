@@ -79,23 +79,19 @@ public class JsonGraphBuilder<S extends IConversationState> {
      * @param id the node id
      * @param type the node type
      * @param content the value of the content key
+     * @param snippetType question or statement
+     * @param contentType content type to render
      * @param metadata the additional metadata in the json
      * @return a node or null
      * @throws IOException
      */
-    protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, JsonObject metadata) throws IOException {
-
-        SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
-
+    protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
+     
         NodeType nodeType;
         try {
             nodeType = NodeType.valueOf(type);
         } catch (Exception e) {
             return null;
-        }
-        SnippetContentType contentType = SnippetContentType.TEXT;
-        if (metadata.get("contentType") != null) {
-            contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
         }
 
         //make the node into something
@@ -256,8 +252,14 @@ public class JsonGraphBuilder<S extends IConversationState> {
             } else {
                 metadata = metadataValue.asObject();
             }
+            
+            SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
+        SnippetContentType contentType = SnippetContentType.TEXT;
+        if (metadata.get("contentType") != null) {
+            contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+        }
 
-            IConversationNode<S> conversationNode = nodeFromJson(id, type, content, metadata);
+            IConversationNode<S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
             if (conversationNode == null) {
                 throw new IOException("Unhandled node " + node);
             }
