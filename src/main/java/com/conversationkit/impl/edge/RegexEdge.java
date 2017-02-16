@@ -30,10 +30,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Matches responses based on a regular expression pattern. If a stateKey is
+ * Matches responses based on a regular expression pattern. If a <code>stateKey</code> is
  * provided, the <code>onMatch</code> method sets the value of this key in the
  * conversation state equal to the first group found in the match or to the
- * stateValue constructor argument if specified.
+ * <code>stateValue</code> constructor argument if specified.
  *
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
@@ -44,25 +44,74 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
     protected final String stateKey;
     protected final Object stateValue;
 
+    /**
+     * Creates a RegEx edge that matches the pattern specified. The value of
+     * flags is passed to Pattern.compile() to generate Pattern. If a <code>stateKey</code> is
+     * provided, the <code>onMatch</code> method sets the value of this key in the
+     * conversation state equal to the first group found in the match or to the
+     * <code>stateValue</code> constructor argument if specified.
+     * 
+     * @param matchRegex RegEx string pattern 
+     * @param stateKey state key to update
+     * @param stateValue value for state key
+     * @param flags value passed to Pattern.compile()
+     * @param endNode next node after a match
+     */
+    public RegexEdge(String matchRegex, String stateKey, Object stateValue, int flags, IConversationNode<S> endNode) {
+        super(endNode);
+        this.stateKey = stateKey;
+        this.pattern = Pattern.compile(matchRegex, flags);
+        this.stateValue = stateValue;
+    }
+    
+     /**
+     * Creates a RegEx edge that matches the pattern specified. The RegEx is case
+     * insensitive by default. If a <code>stateKey</code> is
+     * provided, the <code>onMatch</code> method sets the value of this key in the
+     * conversation state equal to the first group found in the match or to the
+     * <code>stateValue</code> constructor argument if specified.
+     * 
+     * @param matchRegex RegEx string pattern 
+     * @param stateKey state key to update
+     * @param stateValue value for the state key
+     * @param endNode next node after a match
+     */
     public RegexEdge(String matchRegex, String stateKey, Object stateValue, IConversationNode<S> endNode) {
         super(endNode);
         this.stateKey = stateKey;
-        this.pattern = Pattern.compile(matchRegex);
+        this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
         this.stateValue = stateValue;
     }
 
+    /**
+     * Creates a RegEx edge that matches the pattern specified. The RegEx is case
+     * insensitive by default. If a <code>stateKey</code> is
+     * provided, the <code>onMatch</code> method sets the value of this key in the
+     * conversation state equal to the first group found in the match.
+     * 
+     * @param matchRegex RegEx string pattern 
+     * @param stateKey state key to update
+     * @param endNode next node after a match
+     */
     public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
         super(endNode);
         this.stateKey = stateKey;
-        this.pattern = Pattern.compile(matchRegex);
+        this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
         this.stateValue = null;
     }
 
+     /**
+     * Creates a RegEx edge that matches the pattern specified. The RegEx is case
+     * insensitive by default. 
+     * 
+     * @param matchRegex RegEx string pattern 
+     * @param endNode next node after a match
+     */
     public RegexEdge(String matchRegex, IConversationNode<S> endNode) {
         super(endNode);
         this.stateKey = null;
         this.stateValue = null;
-        this.pattern = Pattern.compile(matchRegex);
+        this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
     }
 
 
