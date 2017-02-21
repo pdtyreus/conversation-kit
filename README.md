@@ -1,11 +1,14 @@
 # Conversation Kit
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Maven Central](https://img.shields.io/maven-central/v/com.conversationkit/conversation-kit.svg)](https://mvnrepository.com/artifact/com.conversationkit/conversation-kit)
+
 **A directed graph model for conversational UIs :speech_balloon:**
 
 Created as a spare time project by P. Daniel Tyreus - [@tyreus](https://www.twitter.com/tyreus)
 
  * Minimal dependencies
- * Well documented
+ * Well [documented](http://www.javadoc.io/doc/com.conversationkit/conversation-kit)
  * Clear, concise API designed to be extended and customized
  * Easy to [test](https://gist.github.com/pdtyreus/b599e40b3a94fba3b80ca5fdd63f11b3)
 
@@ -24,6 +27,18 @@ node spoken by the bot requires a response from the user. Each edge directs the
 conversation to the next node based on the response chosen.
 
 ![Dialog Tree](https://upload.wikimedia.org/wikipedia/commons/3/31/Dialog_tree_example.svg)
+
+## Installation
+
+The artifacts are available on Maven Central
+
+```xml
+<dependency>
+  <groupId>com.conversationkit</groupId>
+  <artifactId>conversation-kit</artifactId>
+  <version>1.1.0</version>
+</dependency>
+```
 
 ## Directed Conversations
 

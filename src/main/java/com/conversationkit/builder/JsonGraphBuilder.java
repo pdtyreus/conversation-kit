@@ -81,9 +81,9 @@ public class JsonGraphBuilder<S extends IConversationState> {
      * @param content the value of the content key
      * @param snippetType question or statement
      * @param contentType content type to render
-     * @param metadata the additional metadata in the json
+     * @param metadata the additional metadata in the JSON
      * @return a node or null
-     * @throws IOException
+     * @throws IOException exception parsing JSON
      */
     protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
      
@@ -139,10 +139,10 @@ public class JsonGraphBuilder<S extends IConversationState> {
      * not currently handled.
      *
      * @param type the edge type
-     * @param metadata the additional metadata in the json
+     * @param metadata the additional metadata in the JSON
      * @param target the target node
      * @return an edge or null
-     * @throws IOException
+     * @throws IOException exception parsing JSON
      */
     protected IConversationEdge<S> edgeFromJson(String type, JsonObject metadata, IConversationNode<S> target) throws IOException {
 
