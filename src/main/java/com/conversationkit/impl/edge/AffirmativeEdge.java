@@ -32,7 +32,7 @@ import com.conversationkit.model.IConversationState;
  */
 public class AffirmativeEdge <S extends IConversationState> extends RegexEdge<S> {
 
-    private static final String YES = "\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
+    private static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
     
     public AffirmativeEdge(String stateKey, Object stateValue, IConversationNode<S> endNode) {
         super(YES,stateKey,stateValue,endNode);
