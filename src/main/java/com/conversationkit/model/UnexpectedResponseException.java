@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2017 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,29 +24,30 @@
 package com.conversationkit.model;
 
 /**
- * An <code>UnmatchedResponseException</code> is thrown when 
- * the <code>IConversationEngine</code>
- * implementation cannot match the response to any outbound 
- * <code>IConversationEdge</code>.
+ * An <code>UnexpectedResponseException</code> is thrown when the 
+ * <code>IConversationEngine</code> is not expecting a response from the user.
+ * Most frequently this would happen when the <code>IConversationState</code>
+ * reflects that the current node is a <code>STATEMENT</code>, not a 
+ * <code>QUESTION</code>.
  * 
  * @author pdtyreus
  */
-public class UnmatchedResponseException extends Exception {
+public class UnexpectedResponseException extends Exception {
 
     /**
-     * Creates a new instance of <code>UnmatchedResponseException</code> without
-     * detail message.
+     * Creates a new instance of <code>UnexpectedResponseException</code>
+     * without detail message.
      */
-    public UnmatchedResponseException() {
+    public UnexpectedResponseException() {
     }
 
     /**
-     * Constructs an instance of <code>UnmatchedResponseException</code> with
+     * Constructs an instance of <code>UnexpectedResponseException</code> with
      * the specified detail message.
      *
      * @param msg the detail message.
      */
-    public UnmatchedResponseException(String msg) {
+    public UnexpectedResponseException(String msg) {
         super(msg);
     }
 }

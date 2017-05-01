@@ -31,6 +31,7 @@ import com.conversationkit.model.IConversationSnippet;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
+import com.conversationkit.model.UnexpectedResponseException;
 import com.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +80,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
     }
 
     @Override
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException {
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException {
         IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
 
         if (currentSnippet.getType() == SnippetType.QUESTION) {
@@ -102,9 +103,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
                 throw new UnmatchedResponseException();
             }
         } else {
-            logger.warning("adding response to conversation but current node is not a QUESTION");
-            state.setMostRecentResponse(response);
-            throw new UnmatchedResponseException();
+            throw new UnexpectedResponseException(String.format("received response '%s' to node %d which is not a QUESTION",response,state.getCurrentNodeId()));
         }
 
         return state;

@@ -4,7 +4,7 @@
     <groupId>com.conversationkit</groupId>
     <artifactId>conversation-kit</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <name>conversation-kit core</name>
     <description>A directed graph model for conversational UIs.</description>
     <url>http://conversationkit.com</url>

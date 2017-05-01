@@ -25,6 +25,7 @@ package com.conversationkit.impl;
 
 import com.conversationkit.impl.DirectedConversationEngine;
 import com.conversationkit.model.IConversationSnippet;
+import com.conversationkit.model.UnexpectedResponseException;
 import com.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -86,7 +87,7 @@ public class DialogTreeTest extends TestCase {
         OutputUtil.formatResponse(formatter, response);
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         } 
         nodes = tree.startConversationFromState(state);
@@ -129,7 +130,7 @@ public class DialogTreeTest extends TestCase {
         OutputUtil.formatResponse(formatter, response);
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         } 
         nodes = tree.startConversationFromState(state);
@@ -160,7 +161,7 @@ public class DialogTreeTest extends TestCase {
 
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         } 
         nodes = tree.startConversationFromState(state);
@@ -175,7 +176,7 @@ public class DialogTreeTest extends TestCase {
         OutputUtil.formatResponse(formatter, response);
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         } 
         nodes = tree.startConversationFromState(state);
@@ -185,6 +186,17 @@ public class DialogTreeTest extends TestCase {
         }
 
         assertEquals(3, state.getCurrentNodeId());
+        
+        response = "You still there?";
+        OutputUtil.formatResponse(formatter, response);
+        try {
+            tree.updateStateWithResponse(state, response);
+            fail("Should have thrown an UnexpectedResponseException");
+        } catch (UnmatchedResponseException e) {
+            fail(e.toString());
+        } catch (UnexpectedResponseException e) {
+            //expected
+        }
 
         logger.info(convo.toString());
     }
