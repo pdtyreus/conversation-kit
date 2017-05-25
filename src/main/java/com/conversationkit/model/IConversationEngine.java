@@ -36,6 +36,27 @@ import java.util.List;
  * for the current user
  */
 public interface IConversationEngine<S extends IConversationState> {
+    /**
+     * Follows the conversation graph starting at the current node defined by the state
+     * parameter.  Implementation details may vary, but generally this method will
+     * return all the <code>IConversationSnippet</code>s along the graph until
+     * it reaches a node that requires a response from the user. The <code>state</code>
+     * is updated to reflect the new <code>currentNodeId</code>.
+     * 
+     * @param state initial state
+     * @return IConversationSnippets to display to the user
+     */
     public Iterable<IConversationSnippet> startConversationFromState(S state);
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException;
+    
+    /**
+     * Updates the conversation with a response from the user and advances the 
+     * currentNodeId if a matching edge is found.
+     * 
+     * @param state the current IConversationState
+     * @param response the user's response
+     * @return the updated state
+     * @throws UnmatchedResponseException if no outbound edges from the current node match the response
+     * @throws UnexpectedResponseException if the conversation is in a state where it is not expecting a response (e.g. the current node is not a QUESTION)
+     */
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException;
 }

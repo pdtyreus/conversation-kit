@@ -24,7 +24,11 @@
 package com.conversationkit.model;
 
 /**
- *
+ * An <code>UnmatchedResponseException</code> is thrown when 
+ * the <code>IConversationEngine</code>
+ * implementation cannot match the response to any outbound 
+ * <code>IConversationEdge</code>.
+ * 
  * @author pdtyreus
  */
 public class UnmatchedResponseException extends Exception {

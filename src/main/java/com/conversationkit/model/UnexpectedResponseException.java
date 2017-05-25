@@ -21,24 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.edge;
-
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+package com.conversationkit.model;
 
 /**
- * Edge that matches yes-like responses.
+ * An <code>UnexpectedResponseException</code> is thrown when the 
+ * <code>IConversationEngine</code> is not expecting a response from the user.
+ * Most frequently this would happen when the <code>IConversationState</code>
+ * reflects that the current node is a <code>STATEMENT</code>, not a 
+ * <code>QUESTION</code>.
+ * 
  * @author pdtyreus
  */
-public class AffirmativeEdge <S extends IConversationState> extends RegexEdge<S> {
+public class UnexpectedResponseException extends Exception {
 
-    private static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
-    
-    public AffirmativeEdge(String stateKey, Object stateValue, IConversationNode<S> endNode) {
-        super(YES,stateKey,stateValue,endNode);
+    /**
+     * Creates a new instance of <code>UnexpectedResponseException</code>
+     * without detail message.
+     */
+    public UnexpectedResponseException() {
     }
-    
-    public AffirmativeEdge(IConversationNode<S> endNode) {
-        super(YES,endNode);
+
+    /**
+     * Constructs an instance of <code>UnexpectedResponseException</code> with
+     * the specified detail message.
+     *
+     * @param msg the detail message.
+     */
+    public UnexpectedResponseException(String msg) {
+        super(msg);
     }
 }

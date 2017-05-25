@@ -66,10 +66,12 @@ with the response and let the engine run again.
 ```java
 try {
     state = engine.updateStateWithResponse(state, response);
+    snippets = engine.startConversationFromState(state);
+} catch (UnexpectedResponseException e) {
+    // the current node is not a QUESTION
 } catch (UnmatchedResponseException e) {
-
+    // no outbound edges matched the response
 }
-snippets = engine.startConversationFromState(state);
 ```
 
 ## Conversation State

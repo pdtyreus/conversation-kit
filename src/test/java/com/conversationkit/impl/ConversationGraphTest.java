@@ -28,6 +28,7 @@ import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.model.IConversationSnippet;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
+import com.conversationkit.model.UnexpectedResponseException;
 import com.conversationkit.model.UnmatchedResponseException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -73,7 +74,7 @@ public class ConversationGraphTest extends TestCase {
         OutputUtil.formatResponse(formatter, response);
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
@@ -107,6 +108,8 @@ public class ConversationGraphTest extends TestCase {
                 }
                 
             }, state);
+        } catch (UnexpectedResponseException e) {
+            fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
         for (IConversationSnippet node : nodes) {
@@ -118,7 +121,7 @@ public class ConversationGraphTest extends TestCase {
 
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
@@ -131,7 +134,7 @@ public class ConversationGraphTest extends TestCase {
 
         try {
             tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
+        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
             fail(e.toString());
         }
         nodes = tree.startConversationFromState(state);
