@@ -145,6 +145,38 @@ public class FacebookMessageAdapterTest extends TestCase {
         assertEquals(phoneNumber, value.asObject().get("recipient").asObject().get("id").asString());
         assertEquals(url, value.asObject().get("message").asObject().get("attachment").asObject().get("payload").asObject().get("url").asString());
         assertEquals("image", value.asObject().get("message").asObject().get("attachment").asObject().get("type").asString());
+        
+        snippet = new IConversationSnippet(){
+
+            @Override
+            public String renderContent(IConversationState state) {
+                return text;
+            }
+
+            @Override
+            public SnippetType getType() {
+                return SnippetType.STATEMENT;
+            }
+
+            @Override
+            public SnippetContentType getContentType() {
+                return SnippetContentType.LOCATION_REQUEST;
+            }
+
+            @Override
+            public Iterable getSuggestedResponses(IConversationState state) {
+                return Arrays.asList("decline");
+            }
+            
+        };
+        
+        phoneNumber = "+1415000000";
+        result = instance.snippetToJson(snippet, null, phoneNumber);
+        logger.info(result);
+        value = Json.parse(result);
+        assertEquals(text, value.asObject().get("message").asObject().get("text").asString());
+        assertEquals(2, value.asObject().get("message").asObject().get("quick_replies").asArray().size());
+        assertEquals("location", value.asObject().get("message").asObject().get("quick_replies").asArray().get(0).asObject().get("content_type").asString());
     }
     
 }

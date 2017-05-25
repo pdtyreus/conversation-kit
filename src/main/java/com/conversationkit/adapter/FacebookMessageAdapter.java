@@ -37,11 +37,12 @@ import java.util.logging.Logger;
  * @author pdtyreus
  */
 public class FacebookMessageAdapter implements IMessageAdapter {
-    
+
     private static final Logger logger = Logger.getLogger(FacebookMessageAdapter.class.getName());
 
     /**
      * Generates the JSON string to indicate that the bot is typing.
+     *
      * @param userId Facebook user ID or phone number
      * @return String representation of JSON payload
      */
@@ -50,14 +51,14 @@ public class FacebookMessageAdapter implements IMessageAdapter {
         JsonObject json = Json.object()
                 .add("recipient", Json.object()
                         .add("id", userId)).asObject();
-        
+
         json.add("sender_action", "typing_on");
-        
+
         logger.fine(json.toString());
-        
+
         return json.toString();
     }
-    
+
     @Override
     public String snippetToJson(IConversationSnippet snippet, IConversationState state, Object... arguments) {
         if (arguments.length == 0) {
@@ -85,7 +86,7 @@ public class FacebookMessageAdapter implements IMessageAdapter {
             }
         }
 
-        String type = "";
+        String type = null;
         switch (snippet.getContentType()) {
             case TEXT:
                 JsonObject message = Json.object()
@@ -94,6 +95,23 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                     message.add("quick_replies", quickReplies);
                 }
                 json.add("message", message);
+                return json.toString();
+            case LOCATION_REQUEST:
+                JsonObject locationMessage = Json.object()
+                        .add("text", snippet.renderContent(state));
+                JsonValue quickRepliesWithLocation = Json.array();
+
+                quickRepliesWithLocation.asArray().add(Json.object()
+                        .add("content_type", "location"));
+
+                if (quickReplies != null) {
+                    for (JsonValue value : quickReplies.asArray()) {
+                        quickRepliesWithLocation.asArray().add(value);
+                    }
+                }
+                
+                locationMessage.add("quick_replies", quickRepliesWithLocation);
+                json.add("message", locationMessage);
                 return json.toString();
             case AUDIO:
                 type = "audio";
@@ -114,13 +132,14 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                         .add("type", type)
                         .add("payload", Json.object()
                                 .add("url", snippet.renderContent(state))));
+
         if (quickReplies != null) {
             message.add("quick_replies", quickReplies);
         }
         json.add("message", message);
-        
+
         logger.fine(json.toString());
-        
+
         return json.toString();
 
     }
