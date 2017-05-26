@@ -28,5 +28,5 @@ package com.conversationkit.model;
  * @author pdtyreus
  */
 public enum SnippetContentType {
-    TEXT, IMAGE, VIDEO, AUDIO, FILE, NOTHING, LOCATION_REQUEST
+    TEXT, IMAGE, VIDEO, AUDIO, FILE, NOTHING, LOCATION_REQUEST, BUTTONS
 }

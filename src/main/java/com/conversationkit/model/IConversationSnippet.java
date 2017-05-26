@@ -70,4 +70,10 @@ public interface IConversationSnippet<S extends IConversationState> {
      * @return the suggested responses
      */
     public Iterable<String> getSuggestedResponses(S state);
+    
+    /**
+     * Returns the buttons to render if supported by the chat bot client.
+     * @return the buttons to render
+     */
+    public Iterable<IConversationSnippetButton> getButtons();
 }

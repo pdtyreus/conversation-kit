@@ -34,6 +34,7 @@ import java.util.List;
  * Convenience base class for creating nodes.
  * 
  * @author pdtyreus
+ * @param <S>
  */
 public abstract class ConversationNode<S extends IConversationState> implements IConversationNode<S> {
 
@@ -47,18 +48,22 @@ public abstract class ConversationNode<S extends IConversationState> implements 
         this.edges = new ArrayList();
     }
 
+    @Override
     public Iterable<IConversationEdge<S>> getEdges() {
         return edges;
     }
 
+    @Override
     public void addEdge(IConversationEdge<S> edge) {
         edges.add(edge);
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public SnippetType getType() {
         return type;
     }

@@ -23,6 +23,7 @@
  */
 package com.conversationkit.impl.node;
 
+import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
@@ -42,6 +43,7 @@ import java.util.List;
 public class ResponseSuggestingNode<S extends IConversationState> extends ConversationNode<S> {
 
     protected List<String> suggestedResponses;
+    protected List<IConversationSnippetButton> buttons;
     protected final String content;
     protected final SnippetContentType contentType;
     
@@ -78,7 +80,18 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
         }
         suggestedResponses.add(response);
     }
+
+    @Override
+    public Iterable<IConversationSnippetButton> getButtons() {
+        return buttons;
+    }
     
+    public void addButton(ConversationNodeButton button) {
+        if (buttons == null) {
+            buttons = new ArrayList();
+        }
+        buttons.add(button);
+    }
     
     @Override
     public SnippetContentType getContentType() {
