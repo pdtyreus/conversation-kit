@@ -31,7 +31,7 @@ package com.conversationkit.model;
  * storage.
  * @author pdtyreus
  */
-public interface IConversationState{
+public interface IConversationState<K,V>{
     /**
      * Returns the id of the node representing the last message sent to the 
      * user.
@@ -58,12 +58,12 @@ public interface IConversationState{
      * @param propertyName the name of the key (e.g. column name, hash key, etc.)
      * @param value the value to be stored
      */
-    public void set(String propertyName, Object value);
+    public void set(K propertyName, V value);
     /**
      * Return the value stored under the specified key or null if nothing is
      * present.
      * @param propertyName key
      * @return stored value or null
      */
-    public Object get(String propertyName);
+    public V get(Object propertyName);
 }
