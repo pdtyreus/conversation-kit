@@ -25,6 +25,7 @@ package com.conversationkit.impl.node;
 
 import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
@@ -93,8 +94,14 @@ public class DialogTreeNode<S extends IConversationState> extends ConversationNo
         return allowed;
     }
 
+    @Override
     public SnippetContentType getContentType() {
         return SnippetContentType.TEXT;
+    }
+    
+    @Override
+    public Iterable<IConversationSnippetButton> getButtons() {
+        return null;
     }
 
 }

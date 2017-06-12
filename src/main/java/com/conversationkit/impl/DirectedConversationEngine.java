@@ -85,7 +85,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
 
         if (currentSnippet.getType() == SnippetType.QUESTION) {
             state.setMostRecentResponse(response);
-            logger.fine(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
+            logger.info(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
             boolean matchFound = false;
 
             for (IConversationEdge<S> edge : currentSnippet.getEdges()) {

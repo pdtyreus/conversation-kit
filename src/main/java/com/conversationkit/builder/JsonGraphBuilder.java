@@ -35,6 +35,7 @@ import com.conversationkit.impl.edge.JavaScriptEdge;
 import com.conversationkit.impl.edge.NegativeEdge;
 import com.conversationkit.impl.edge.RegexEdge;
 import com.conversationkit.impl.edge.StatementEdge;
+import com.conversationkit.impl.node.ConversationNodeButton;
 import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.impl.node.HiddenNode;
 import com.conversationkit.impl.node.ResponseSuggestingNode;
@@ -44,9 +45,12 @@ import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
+import com.eclipsesource.json.JsonObject.Member;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -86,7 +90,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
      * @throws IOException exception parsing JSON
      */
     protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
-     
+
         NodeType nodeType;
         try {
             nodeType = NodeType.valueOf(type);
@@ -99,7 +103,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
 
         switch (nodeType) {
             case Hidden:
-                conversationNode = new HiddenNode(id,snippetType);
+                conversationNode = new HiddenNode(id, snippetType);
                 break;
             case DialogTree:
                 DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, content);
@@ -122,6 +126,34 @@ public class JsonGraphBuilder<S extends IConversationState> {
                     for (JsonValue suggestion : suggestions) {
                         rsNode.addSuggestedResponse(suggestion.asString());
                     }
+                } else if (metadata.get("buttons") != null) {
+                    JsonArray buttons = metadata.get("buttons").asArray();
+                    for (JsonValue button : buttons) {
+                        Map<String, Object> attributes = new HashMap();
+                        String text = null;
+                        String buttonType = null;
+                        String value = null;
+                        for (Member member : button.asObject()) {
+                            if (member.getName().equals("text")) {
+                                text = member.getValue().asString();
+                            } else if (member.getName().equals("type")) {
+                                buttonType = member.getValue().asString();
+                            } else if (member.getName().equals("value")) {
+                                value = member.getValue().asString();
+                            } else {
+                                if (member.getValue().isBoolean()) {
+                                    attributes.put(member.getName(), member.getValue().asBoolean());
+                                } else if (member.getValue().isNumber()) {
+                                    attributes.put(member.getName(), member.getValue().asInt());
+                                } else {
+                                    attributes.put(member.getName(), member.getValue().asString());
+                                }
+                            }
+                            ConversationNodeButton cnb = new ConversationNodeButton(buttonType,text,value,attributes);
+                            rsNode.addButton(cnb);
+                        }
+                    }
+
                 }
                 conversationNode = rsNode;
                 break;
@@ -252,12 +284,12 @@ public class JsonGraphBuilder<S extends IConversationState> {
             } else {
                 metadata = metadataValue.asObject();
             }
-            
+
             SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
-        SnippetContentType contentType = SnippetContentType.TEXT;
-        if (metadata.get("contentType") != null) {
-            contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
-        }
+            SnippetContentType contentType = SnippetContentType.TEXT;
+            if (metadata.get("contentType") != null) {
+                contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+            }
 
             IConversationNode<S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
             if (conversationNode == null) {
