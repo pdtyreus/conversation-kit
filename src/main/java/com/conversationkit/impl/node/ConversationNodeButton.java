@@ -24,40 +24,52 @@
 package com.conversationkit.impl.node;
 
 import com.conversationkit.model.IConversationSnippetButton;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * An implementation of <code>IConversationNode</code> that serves simply
- * as a pass-though node that renders no content.
- * 
+ *
  * @author pdtyreus
  */
-public class HiddenNode <S extends IConversationState> extends ConversationNode<S> {
+public class ConversationNodeButton implements IConversationSnippetButton {
+    private final String type;
+    private final String text;
+    private final String value;
+    private final Map<String,Object> attributes;
 
-    public HiddenNode(int id, SnippetType type) {
-        super(id, type);
+    public ConversationNodeButton(String type, String text, String value, Map<String, Object> attributes) {
+        this.type = type;
+        this.text = text;
+        this.value = value;
+        this.attributes = attributes;
+    }
+
+    public ConversationNodeButton(String type, String text, String value) {
+        this.type = type;
+        this.text = text;
+        this.value = value;
+        this.attributes = new HashMap();
+    }
+    
+    
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     @Override
-    public String renderContent(S state) {
-        return null;
+    public String getText() {
+        return text;
     }
 
     @Override
-    public SnippetContentType getContentType() {
-        return SnippetContentType.NOTHING;
+    public String getValue() {
+        return value;
     }
 
     @Override
-    public Iterable<String> getSuggestedResponses(S state) {
-        return null;
+    public Map<String,Object> getAttributes() {
+        return attributes;
     }
-
-    @Override
-    public Iterable<IConversationSnippetButton> getButtons() {
-        return null;
-    }
-
 }

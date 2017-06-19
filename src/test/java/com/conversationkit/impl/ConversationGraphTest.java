@@ -26,6 +26,7 @@ package com.conversationkit.impl;
 import com.conversationkit.impl.DirectedConversationEngine;
 import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.model.IConversationSnippet;
+import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
 import com.conversationkit.model.UnexpectedResponseException;
@@ -105,6 +106,11 @@ public class ConversationGraphTest extends TestCase {
 
                 public SnippetContentType getContentType() {
                     return SnippetContentType.TEXT;
+                }
+
+                @Override
+                public Iterable<IConversationSnippetButton> getButtons() {
+                    return null;
                 }
                 
             }, state);
