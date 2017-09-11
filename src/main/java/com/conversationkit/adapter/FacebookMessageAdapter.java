@@ -132,22 +132,26 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                 attachment.add("type", "template");
                 message.add("attachment", attachment);
                 json.add("message", message);
+                logger.info(json.toString());
                 return json.toString();
             case AUDIO:
                 type = "audio";
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
                 break;
             case VIDEO:
                 type = "video";
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
                 break;
             case FILE:
                 type = "file";
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
                 break;
             case IMAGE:
                 type = "image";
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
                 break;
 
         }
-        message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
 
         if (quickReplies != null) {
             message.add("quick_replies", quickReplies);
@@ -173,18 +177,18 @@ public class FacebookMessageAdapter implements IMessageAdapter {
 
         switch (type) {
             case web_url:
-                button.add("type", iButton.getText());
+                button.add("type", iButton.getType());
                 button.add("url", iButton.getValue());
                 button.add("title", iButton.getText());
                 break;
             case postback:
             case phone_number:
-                button.add("type", iButton.getText());
+                button.add("type", iButton.getType());
                 button.add("payload", iButton.getValue());
                 button.add("title", iButton.getText());
                 break;
             case element_share:
-                button.add("type", iButton.getText());
+                button.add("type", iButton.getType());
                 break;
         }
 
