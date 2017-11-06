@@ -49,7 +49,9 @@ import com.eclipsesource.json.JsonObject.Member;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -111,50 +113,24 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 break;
             case StringReplacing:
                 StringReplacingNode srNode = new StringReplacingNode(id, snippetType, content);
-                if (metadata.get("suggestedResponses") != null) {
-                    JsonArray suggestions = metadata.get("suggestedResponses").asArray();
-                    for (JsonValue suggestion : suggestions) {
-                        srNode.addSuggestedResponse(suggestion.asString());
-                    }
+                for (String suggestion : createSuggestionsFromMetadata(metadata)) {
+                    srNode.addSuggestedResponse(suggestion);
+                }
+                for (ConversationNodeButton button : createButtonsFromMetadata(metadata)) {
+                    srNode.addButton(button);
                 }
                 conversationNode = srNode;
                 break;
             case ResponseSuggesting:
                 ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
-                if (metadata.get("suggestedResponses") != null) {
-                    JsonArray suggestions = metadata.get("suggestedResponses").asArray();
-                    for (JsonValue suggestion : suggestions) {
-                        rsNode.addSuggestedResponse(suggestion.asString());
-                    }
-                } else if (metadata.get("buttons") != null) {
-                    JsonArray buttons = metadata.get("buttons").asArray();
-                    for (JsonValue button : buttons) {
-                        Map<String, Object> attributes = new HashMap();
-                        String text = null;
-                        String buttonType = null;
-                        String value = null;
-                        for (Member member : button.asObject()) {
-                            if (member.getName().equals("text")) {
-                                text = member.getValue().asString();
-                            } else if (member.getName().equals("type")) {
-                                buttonType = member.getValue().asString();
-                            } else if (member.getName().equals("value")) {
-                                value = member.getValue().asString();
-                            } else {
-                                if (member.getValue().isBoolean()) {
-                                    attributes.put(member.getName(), member.getValue().asBoolean());
-                                } else if (member.getValue().isNumber()) {
-                                    attributes.put(member.getName(), member.getValue().asInt());
-                                } else {
-                                    attributes.put(member.getName(), member.getValue().asString());
-                                }
-                            }
-                            ConversationNodeButton cnb = new ConversationNodeButton(buttonType,text,value,attributes);
-                            rsNode.addButton(cnb);
-                        }
-                    }
 
+                for (String suggestion : createSuggestionsFromMetadata(metadata)) {
+                    rsNode.addSuggestedResponse(suggestion);
                 }
+                for (ConversationNodeButton button : createButtonsFromMetadata(metadata)) {
+                    rsNode.addButton(button);
+                }
+
                 conversationNode = rsNode;
                 break;
             default:
@@ -162,6 +138,54 @@ public class JsonGraphBuilder<S extends IConversationState> {
         }
 
         return conversationNode;
+    }
+
+    protected List<ConversationNodeButton> createButtonsFromMetadata(JsonObject metadata) throws IOException{
+        List<ConversationNodeButton> cnButtons = new ArrayList();
+
+        if (metadata.get("buttons") != null) {
+            JsonArray buttons = metadata.get("buttons").asArray();
+            for (JsonValue button : buttons) {
+                Map<String, Object> attributes = new HashMap();
+                String text = null;
+                String buttonType = null;
+                String value = null;
+                for (Member member : button.asObject()) {
+                    if (member.getName().equals("text")) {
+                        text = member.getValue().asString();
+                    } else if (member.getName().equals("type")) {
+                        buttonType = member.getValue().asString();
+                    } else if (member.getName().equals("value")) {
+                        value = member.getValue().asString();
+                    } else {
+                        if (member.getValue().isBoolean()) {
+                            attributes.put(member.getName(), member.getValue().asBoolean());
+                        } else if (member.getValue().isNumber()) {
+                            attributes.put(member.getName(), member.getValue().asInt());
+                        } else {
+                            attributes.put(member.getName(), member.getValue().asString());
+                        }
+                    }
+                }
+                
+                ConversationNodeButton cnb = new ConversationNodeButton(buttonType, text, value, attributes);
+                cnButtons.add(cnb);
+            }
+
+        }
+        return cnButtons;
+    }
+
+    protected List<String> createSuggestionsFromMetadata(JsonObject metadata) {
+
+        List<String> s = new ArrayList();
+        if (metadata.get("suggestedResponses") != null) {
+            JsonArray suggestions = metadata.get("suggestedResponses").asArray();
+            for (JsonValue suggestion : suggestions) {
+                s.add(suggestion.asString());
+            }
+        }
+        return s;
     }
 
     /**
@@ -285,10 +309,23 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 metadata = metadataValue.asObject();
             }
 
-            SnippetType snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
+            SnippetType snippetType = SnippetType.STATEMENT;
+            if (metadata.get("snippetType") != null) {
+                try {
+                    snippetType=SnippetType.valueOf(metadata.get("snippetType").asString());
+                } catch (Exception e) {
+                    throw new IOException("Unknown \"snippetType\" " + metadata.get("snippetType").asString() + " for node " + id);
+                }
+            } else {
+                throw new IOException("Missing \"snippetType\" for node " + id);
+            }
             SnippetContentType contentType = SnippetContentType.TEXT;
             if (metadata.get("contentType") != null) {
-                contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+                try {
+                    contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
+                } catch (Exception e) {
+                    throw new IOException("Unknown \"contentType\" " + metadata.get("contentType").asString() + " for node " + id);
+                }
             }
 
             IConversationNode<S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);

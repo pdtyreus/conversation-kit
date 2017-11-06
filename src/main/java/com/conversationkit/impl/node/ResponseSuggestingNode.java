@@ -73,7 +73,7 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
     
     public void addSuggestedResponse(String response) {
         if (getType() == SnippetType.STATEMENT) {
-            throw new IllegalArgumentException("STATEMENTS cannot have suggested responses");
+            throw new IllegalArgumentException("STATEMENTS cannot have suggested responses ["+getId()+"]");
         }
         if (suggestedResponses == null) {
             suggestedResponses = new ArrayList();
