@@ -30,7 +30,7 @@ import java.util.HashMap;
  *
  * @author pdtyreus
  */
-public class MapBackedState extends HashMap<String,Object> implements IConversationState<String,Object> {
+public class MapBackedState<R> extends HashMap<String,Object> implements IConversationState<R> {
 
     @Override
     public int getCurrentNodeId() {
@@ -49,22 +49,22 @@ public class MapBackedState extends HashMap<String,Object> implements IConversat
     }
 
     @Override
-    public Object get(Object propertyName) {
-        return super.get(propertyName);
+    public R getMostRecentResponse() {
+        return (R)this.get("mostRecentResponse");
     }
 
     @Override
-    public String getMostRecentResponse() {
-        return (String)this.get("mostRecentResponse");
-    }
-
-    @Override
-    public void setMostRecentResponse(String currentResponse) {
+    public void setMostRecentResponse(R currentResponse) {
         if (currentResponse == null) {
             this.remove("mostRecentResponse");
         } else {
             this.put("mostRecentResponse", currentResponse);
         }
+    }
+
+    @Override
+    public Object get(String propertyName) {
+        return super.get(propertyName);
     }
     
 }

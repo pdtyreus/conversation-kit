@@ -40,7 +40,7 @@ import java.util.List;
  * @param <S> an implementation of IConversationState to store the state of the 
  * conversation for the current user
  */
-public class ResponseSuggestingNode<S extends IConversationState> extends ConversationNode<S> {
+public class ResponseSuggestingNode<R,S extends IConversationState<R>> extends ConversationNode<R,S> {
 
     protected List<String> suggestedResponses;
     protected List<IConversationSnippetButton> buttons;

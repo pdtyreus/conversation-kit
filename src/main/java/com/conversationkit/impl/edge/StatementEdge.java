@@ -36,7 +36,7 @@ import com.conversationkit.model.IConversationState;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class StatementEdge<S extends IConversationState> extends ConversationEdge<S> {
+public class StatementEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
 
     public StatementEdge(IConversationNode endNode) {
         super(endNode);
@@ -44,16 +44,12 @@ public class StatementEdge<S extends IConversationState> extends ConversationEdg
 
     @Override
     public String toString() {
-        return "StatementEdge {"+isMatchForState(null)+"}";
+        return "StatementEdge {"+isMatchForResponse(null)+"}";
     }
 
     @Override
-    public boolean isMatchForState(S state) {
+    public boolean isMatchForResponse(R state) {
         return true;
-    }
-
-    @Override
-    public void onMatch(S state) {
     }
 
 }

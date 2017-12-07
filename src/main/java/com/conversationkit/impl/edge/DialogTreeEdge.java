@@ -44,7 +44,7 @@ import com.conversationkit.model.IConversationState;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class DialogTreeEdge<S extends IConversationState> extends ConversationEdge<S> {
+public class DialogTreeEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
 
     private final String answer;
     private final String stateKey;
@@ -58,7 +58,7 @@ public class DialogTreeEdge<S extends IConversationState> extends ConversationEd
      * @param stateKey the value of the key to update in the conversation state
      * @param endNode next node in the conversation
      */
-    public DialogTreeEdge(String answer, String stateKey, IConversationNode<S> endNode) {
+    public DialogTreeEdge(String answer, String stateKey, IConversationNode<R,S> endNode) {
         super(endNode);
         this.stateKey = stateKey;
         this.answer = answer;
@@ -71,22 +71,15 @@ public class DialogTreeEdge<S extends IConversationState> extends ConversationEd
      * @param answer string value to match
      * @param endNode next node in the conversation
      */
-    public DialogTreeEdge(String answer, IConversationNode<S> endNode) {
+    public DialogTreeEdge(String answer, IConversationNode<R,S> endNode) {
         super(endNode);
         this.stateKey = null;
         this.answer = answer;
     }
 
     @Override
-    public boolean isMatchForState(S state) {
-        return answer.equals(state.getMostRecentResponse());
-    }
-
-    @Override
-    public void onMatch(S state) {
-        if (this.stateKey != null) {
-            state.set(this.stateKey, state.getMostRecentResponse());
-        }
+    public boolean isMatchForResponse(R state) {
+        return answer.equals(state.toString());
     }
 
     public String getAnswer() {

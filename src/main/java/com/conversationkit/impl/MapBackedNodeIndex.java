@@ -34,17 +34,17 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class MapBackedNodeIndex<S extends IConversationState> implements IConversationNodeIndex<S> {
+public class MapBackedNodeIndex<R,S extends IConversationState<R>> implements IConversationNodeIndex<R,S> {
 
     private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
-    private final Map<Integer, IConversationNode<S>> nodeIndex = new HashMap();
+    private final Map<Integer, IConversationNode<R,S>> nodeIndex = new HashMap();
 
     @Override
-    public IConversationNode<S> getNodeAtIndex(int id) {
+    public IConversationNode<R,S> getNodeAtIndex(int id) {
         return nodeIndex.get(id);
     }
     
-    public void addNodeToIndex(int id, IConversationNode<S> node) {
+    public void addNodeToIndex(int id, IConversationNode<R,S> node) {
         nodeIndex.put(id, node);
     }
 

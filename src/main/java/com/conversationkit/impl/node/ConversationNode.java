@@ -36,9 +36,9 @@ import java.util.List;
  * @author pdtyreus
  * @param <S>
  */
-public abstract class ConversationNode<S extends IConversationState> implements IConversationNode<S> {
+public abstract class ConversationNode<R,S extends IConversationState<R>> implements IConversationNode<R,S> {
 
-    protected final List<IConversationEdge<S>> edges;
+    protected final List<IConversationEdge<R,S>> edges;
     private final SnippetType type;
     private final int id;
 
@@ -49,12 +49,12 @@ public abstract class ConversationNode<S extends IConversationState> implements 
     }
 
     @Override
-    public Iterable<IConversationEdge<S>> getEdges() {
+    public Iterable<IConversationEdge<R,S>> getEdges() {
         return edges;
     }
 
     @Override
-    public void addEdge(IConversationEdge<S> edge) {
+    public void addEdge(IConversationEdge<R,S> edge) {
         edges.add(edge);
     }
 

@@ -34,7 +34,7 @@ import com.conversationkit.model.SnippetType;
  * 
  * @author pdtyreus
  */
-public class HiddenNode <S extends IConversationState> extends ConversationNode<S> {
+public class HiddenNode <R,S extends IConversationState<R>> extends ConversationNode<R,S> {
 
     public HiddenNode(int id, SnippetType type) {
         super(id, type);

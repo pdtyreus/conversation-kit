@@ -32,20 +32,16 @@ import com.conversationkit.model.IConversationState;
  * 
  * @author pdtyreus
  */
-public abstract class ConversationEdge<S extends IConversationState> implements IConversationEdge<S> {
-    private final IConversationNode<S> endNode;
+public abstract class ConversationEdge<R,S extends IConversationState<R>> implements IConversationEdge<R,S> {
+    private final IConversationNode<R,S> endNode;
 
-    public ConversationEdge(IConversationNode<S> endNode) {
+    public ConversationEdge(IConversationNode<R,S> endNode) {
         this.endNode = endNode;
     }
 
     @Override
-    public IConversationNode<S> getEndNode() {
+    public IConversationNode<R,S> getEndNode() {
         return endNode;
-    }
-
-    @Override
-    public void onMatch(S state) {
     }
 
 }

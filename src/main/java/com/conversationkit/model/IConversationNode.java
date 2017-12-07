@@ -35,20 +35,20 @@ import java.util.List;
  * @param <S> an implementation of IConversationState to store the state of the 
  * conversation for the current user
  */
-public interface IConversationNode<S extends IConversationState> extends IConversationSnippet<S>{
+public interface IConversationNode<R,S extends IConversationState<R>> extends IConversationSnippet<S>{
 
     /**
      * Returns a list of outbound edges from the current node. One matching 
      * edge may be chosen to continue the conversation to the next node.
      * @return outbound edges
      */
-    public Iterable<IConversationEdge<S>> getEdges();
+    public Iterable<IConversationEdge<R,S>> getEdges();
 
     /**
      * Adds an edge to the list of possible outbound edges.
      * @param edge edge to add
      */
-    public void addEdge(IConversationEdge<S> edge);
+    public void addEdge(IConversationEdge<R,S> edge);
 
     /**
      * Returns the unique identifier for this node.

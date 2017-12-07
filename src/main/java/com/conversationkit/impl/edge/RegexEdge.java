@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class RegexEdge<S extends IConversationState> extends ConversationEdge<S> {
+public class RegexEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
 
     protected final Pattern pattern;
     protected final String stateKey;
@@ -57,7 +57,7 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
      * @param flags value passed to Pattern.compile()
      * @param endNode next node after a match
      */
-    public RegexEdge(String matchRegex, String stateKey, Object stateValue, int flags, IConversationNode<S> endNode) {
+    public RegexEdge(String matchRegex, String stateKey, Object stateValue, int flags, IConversationNode<R,S> endNode) {
         super(endNode);
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex, flags);
@@ -76,7 +76,7 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
      * @param stateValue value for the state key
      * @param endNode next node after a match
      */
-    public RegexEdge(String matchRegex, String stateKey, Object stateValue, IConversationNode<S> endNode) {
+    public RegexEdge(String matchRegex, String stateKey, Object stateValue, IConversationNode<R,S> endNode) {
         super(endNode);
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
@@ -93,7 +93,7 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
      * @param stateKey state key to update
      * @param endNode next node after a match
      */
-    public RegexEdge(String matchRegex, String stateKey, IConversationNode<S> endNode) {
+    public RegexEdge(String matchRegex, String stateKey, IConversationNode<R,S> endNode) {
         super(endNode);
         this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
@@ -107,7 +107,7 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
      * @param matchRegex RegEx string pattern 
      * @param endNode next node after a match
      */
-    public RegexEdge(String matchRegex, IConversationNode<S> endNode) {
+    public RegexEdge(String matchRegex, IConversationNode<R,S> endNode) {
         super(endNode);
         this.stateKey = null;
         this.stateValue = null;
@@ -116,24 +116,12 @@ public class RegexEdge<S extends IConversationState> extends ConversationEdge<S>
 
 
     @Override
-    public boolean isMatchForState(S state) {
-        if (state.getMostRecentResponse() != null) {
-            Matcher matcher = pattern.matcher(state.getMostRecentResponse());
+    public boolean isMatchForResponse(R state) {
+        if (state.toString() != null) {
+            Matcher matcher = pattern.matcher(state.toString());
             return matcher.find();
         } else {
             return false;
-        }
-    }
-
-    @Override
-    public void onMatch(S state) {
-        if (stateValue != null) {
-            state.set(stateKey, stateValue);
-        } else {
-            Matcher matcher = pattern.matcher(state.getMostRecentResponse());
-            if ((stateKey != null) && matcher.find()) {
-                state.set(stateKey, matcher.group());
-            }
         }
     }
 

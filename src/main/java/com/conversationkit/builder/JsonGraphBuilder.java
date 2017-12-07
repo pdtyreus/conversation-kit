@@ -62,7 +62,7 @@ import java.util.logging.Logger;
  * @author pdtyreus
  * @see <a href="http://jsongraphformat.info/">JSON Graph Format</a>
  */
-public class JsonGraphBuilder<S extends IConversationState> {
+public class JsonGraphBuilder<R,S extends IConversationState<R>> {
 
     private static final Logger logger = Logger.getLogger(JsonGraphBuilder.class.getName());
 
@@ -91,7 +91,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
      * @return a node or null
      * @throws IOException exception parsing JSON
      */
-    protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
+    protected IConversationNode<R,S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
 
         NodeType nodeType;
         try {
@@ -101,7 +101,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
         }
 
         //make the node into something
-        IConversationNode<S> conversationNode = null;
+        IConversationNode<R,S> conversationNode = null;
 
         switch (nodeType) {
             case Hidden:
@@ -200,7 +200,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
      * @return an edge or null
      * @throws IOException exception parsing JSON
      */
-    protected IConversationEdge<S> edgeFromJson(String type, JsonObject metadata, IConversationNode<S> target) throws IOException {
+    protected IConversationEdge<R,S> edgeFromJson(String type, JsonObject metadata, IConversationNode<R,S> target) throws IOException {
 
         EdgeType edgeType;
         try {
@@ -274,13 +274,13 @@ public class JsonGraphBuilder<S extends IConversationState> {
         }
     }
 
-    public DirectedConversationEngine<S> readJsonGraph(Reader reader) throws IOException {
+    public DirectedConversationEngine<R,S> readJsonGraph(Reader reader) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject().get("graph").asObject();
 
-        MapBackedNodeIndex<S> index = new MapBackedNodeIndex();
+        MapBackedNodeIndex<R,S> index = new MapBackedNodeIndex();
 
         int i = 0;
         //run through once to create nodes
@@ -328,7 +328,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 }
             }
 
-            IConversationNode<S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
+            IConversationNode<R,S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
             if (conversationNode == null) {
                 throw new IOException("Unhandled node " + node);
             }
@@ -357,8 +357,8 @@ public class JsonGraphBuilder<S extends IConversationState> {
             Integer sourceId = Integer.parseInt(edge.get("source").asString());
             Integer targetId = Integer.parseInt(edge.get("target").asString());
 
-            IConversationNode<S> source = index.getNodeAtIndex(sourceId);
-            IConversationNode<S> target = index.getNodeAtIndex(targetId);
+            IConversationNode<R,S> source = index.getNodeAtIndex(sourceId);
+            IConversationNode<R,S> target = index.getNodeAtIndex(targetId);
 
             if (source == null) {
                 throw new IOException("Source node missing for edge " + edge);
@@ -375,7 +375,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 metadata = metadataValue.asObject();
             }
 
-            IConversationEdge<S> conversationEdge = edgeFromJson(type, metadata, target);
+            IConversationEdge<R,S> conversationEdge = edgeFromJson(type, metadata, target);
             if (conversationEdge == null) {
                 throw new IOException("Unhandled edge " + edge);
             }

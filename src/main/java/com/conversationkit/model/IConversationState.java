@@ -31,7 +31,7 @@ package com.conversationkit.model;
  * storage.
  * @author pdtyreus
  */
-public interface IConversationState<K,V>{
+public interface IConversationState<R>{
     /**
      * Returns the id of the node representing the last message sent to the 
      * user.
@@ -47,23 +47,23 @@ public interface IConversationState<K,V>{
      * Returns the last unprocessed response from the user to the bot.
      * @return the user's response
      */
-    public String getMostRecentResponse();
+    public R getMostRecentResponse();
     /**
      * Stores a response from the user to the bot for subsequent processing.
      * @param currentResponse the response entered by the user
      */
-    public void setMostRecentResponse(String currentResponse);
+    public void setMostRecentResponse(R currentResponse);
     /**
      * Stores an arbitrary property value under the specified key.
      * @param propertyName the name of the key (e.g. column name, hash key, etc.)
      * @param value the value to be stored
      */
-    public void set(K propertyName, V value);
+    public void set(String propertyName, Object value);
     /**
      * Return the value stored under the specified key or null if nothing is
      * present.
      * @param propertyName key
      * @return stored value or null
      */
-    public V get(Object propertyName);
+    public Object get(String propertyName);
 }

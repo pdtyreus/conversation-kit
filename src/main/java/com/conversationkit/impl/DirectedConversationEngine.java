@@ -41,19 +41,19 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DirectedConversationEngine<S extends IConversationState> implements IConversationEngine<S> {
+public class DirectedConversationEngine<R,S extends IConversationState<R>> implements IConversationEngine<R,S> {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
-    protected final IConversationNodeIndex<S> nodeIndex;
+    protected final IConversationNodeIndex<R,S> nodeIndex;
 
-    public DirectedConversationEngine(IConversationNodeIndex<S> nodeIndex) {
+    public DirectedConversationEngine(IConversationNodeIndex<R,S> nodeIndex) {
         this.nodeIndex = nodeIndex;
     }
 
     @Override
     public Iterable<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
-        IConversationNode<S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        IConversationNode<R,S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         if (nextNode.getContentType() != SnippetContentType.NOTHING) {
             nodes.add(nextNode);
         }
@@ -61,11 +61,11 @@ public class DirectedConversationEngine<S extends IConversationState> implements
         while (matchFound && (nextNode.getType() == SnippetType.STATEMENT)) {
             //if nothing has matched, we are done
             matchFound = false;
-            for (IConversationEdge<S> edge : nextNode.getEdges()) {
+            for (IConversationEdge<R,S> edge : nextNode.getEdges()) {
                 //find the first edge that matches and move to that node
                 if (!matchFound) {
                     logger.fine(String.format("evaluating STATEMENT edge %s", edge));
-                    if (edge.isMatchForState(state)) {
+                    if (edge.isMatchForResponse(state.getMostRecentResponse())) {
                         matchFound = true;
                         state = moveToNextNode(state, edge);
                         nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
@@ -80,19 +80,20 @@ public class DirectedConversationEngine<S extends IConversationState> implements
     }
 
     @Override
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException {
-        IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+    public S updateStateWithResponse(S state, R response) throws UnmatchedResponseException, UnexpectedResponseException {
+        IConversationNode<R,S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
 
         if (currentSnippet.getType() == SnippetType.QUESTION) {
+            //todo transform response
             state.setMostRecentResponse(response);
             logger.info(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
             boolean matchFound = false;
 
-            for (IConversationEdge<S> edge : currentSnippet.getEdges()) {
+            for (IConversationEdge<R,S> edge : currentSnippet.getEdges()) {
                 if (!matchFound) {
                     logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
 
-                    if (edge.isMatchForState(state)) {
+                    if (edge.isMatchForResponse(response)) {
                         matchFound = true;
                         moveToNextNode(state, edge);
                     }
@@ -109,7 +110,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
         return state;
     }
 
-    private S moveToNextNode(S state, IConversationEdge<S> edge) {
+    private S moveToNextNode(S state, IConversationEdge<R,S> edge) {
         IConversationNode nextNode = edge.getEndNode();
         state.setCurrentNodeId(nextNode.getId());
         if (state.getMostRecentResponse() != null) {
@@ -118,7 +119,7 @@ public class DirectedConversationEngine<S extends IConversationState> implements
             logger.info(String.format("edge '%s' matches", edge));
         }
         logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
-        edge.onMatch(state);
+        //edge.onMatch(state);
         return state;
     }
 }

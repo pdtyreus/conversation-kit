@@ -31,7 +31,7 @@ import com.conversationkit.model.SnippetType;
  *
  * @author pdtyreus
  */
-public class StringReplacingNode<S extends IConversationState> extends ResponseSuggestingNode<S> {
+public class StringReplacingNode<R,S extends IConversationState<R>> extends ResponseSuggestingNode<R,S> {
 
     public StringReplacingNode(int id, SnippetType type, String content) {
         super(id, type, content);
@@ -46,7 +46,8 @@ public class StringReplacingNode<S extends IConversationState> extends ResponseS
         if (state instanceof MapBackedState) {
             String renderedContent = content;
             MapBackedState map = (MapBackedState) state;
-            for (String key : map.keySet()) {
+            for (Object okey : map.keySet()) {
+                String key = (String)okey;
                 renderedContent = renderedContent.replace("{{" + key + "}}", state.get(key).toString());
             }
 

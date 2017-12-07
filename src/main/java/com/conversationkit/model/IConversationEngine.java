@@ -35,7 +35,7 @@ import java.util.List;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversationEngine<S extends IConversationState> {
+public interface IConversationEngine<R,S extends IConversationState<R>> {
     /**
      * Follows the conversation graph starting at the current node defined by the state
      * parameter.  Implementation details may vary, but generally this method will
@@ -58,5 +58,5 @@ public interface IConversationEngine<S extends IConversationState> {
      * @throws UnmatchedResponseException if no outbound edges from the current node match the response
      * @throws UnexpectedResponseException if the conversation is in a state where it is not expecting a response (e.g. the current node is not a QUESTION)
      */
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException;
+    public S updateStateWithResponse(S state, R response) throws UnmatchedResponseException, UnexpectedResponseException;
 }

@@ -30,15 +30,15 @@ import com.conversationkit.model.IConversationState;
  * Edge that matches yes-like responses.
  * @author pdtyreus
  */
-public class AffirmativeEdge <S extends IConversationState> extends RegexEdge<S> {
+public class AffirmativeEdge <R,S extends IConversationState<R>> extends RegexEdge<R,S> {
 
     private static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
     
-    public AffirmativeEdge(String stateKey, Object stateValue, IConversationNode<S> endNode) {
+    public AffirmativeEdge(String stateKey, Object stateValue, IConversationNode<R,S> endNode) {
         super(YES,stateKey,stateValue,endNode);
     }
     
-    public AffirmativeEdge(IConversationNode<S> endNode) {
+    public AffirmativeEdge(IConversationNode<R,S> endNode) {
         super(YES,endNode);
     }
 }
