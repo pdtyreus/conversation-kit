@@ -25,6 +25,8 @@ package com.conversationkit.impl;
 
 import com.conversationkit.impl.DirectedConversationEngine;
 import com.conversationkit.builder.JsonGraphBuilder;
+import com.conversationkit.impl.transformer.BasicStringResponseTransformer;
+import com.conversationkit.model.IConversationResponseTransformer;
 import com.conversationkit.model.IConversationSnippet;
 import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.SnippetContentType;
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Formatter;
+import java.util.Optional;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -53,9 +56,10 @@ public class ConversationGraphTest extends TestCase {
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
 
         //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
-        JsonGraphBuilder<TestCaseUserState> builder = new JsonGraphBuilder();
+        JsonGraphBuilder<String, TestCaseUserState> builder = new JsonGraphBuilder();
+        builder.setDefaultResponseTransformer(new BasicStringResponseTransformer());
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
-        DirectedConversationEngine<TestCaseUserState> tree = builder.readJsonGraph(reader);
+        DirectedConversationEngine<String, TestCaseUserState> tree = builder.readJsonGraph(reader);
 
         logger.info("** Testing conversation");
 
@@ -90,10 +94,11 @@ public class ConversationGraphTest extends TestCase {
         try {
             tree.updateStateWithResponse(state, response);
         } catch (UnmatchedResponseException e) {
-            OutputUtil.formatSnippet(formatter, new IConversationSnippet<TestCaseUserState>(){
+            final String failedResponse = response;
+            OutputUtil.formatSnippet(formatter, new IConversationSnippet<TestCaseUserState>() {
 
                 public String renderContent(TestCaseUserState state) {
-                    return "I'm sorry, I didn't understand your response '"+state.getMostRecentResponse()+"'.";
+                    return "I'm sorry, I didn't understand your response '" + failedResponse + "'.";
                 }
 
                 public SnippetType getType() {
@@ -112,7 +117,7 @@ public class ConversationGraphTest extends TestCase {
                 public Iterable<IConversationSnippetButton> getButtons() {
                     return null;
                 }
-                
+
             }, state);
         } catch (UnexpectedResponseException e) {
             fail(e.toString());
@@ -121,7 +126,7 @@ public class ConversationGraphTest extends TestCase {
         for (IConversationSnippet node : nodes) {
             OutputUtil.formatSnippet(formatter, node, state);
         }
-        
+
         response = "yes";
         OutputUtil.formatResponse(formatter, response);
 
@@ -148,7 +153,7 @@ public class ConversationGraphTest extends TestCase {
             OutputUtil.formatSnippet(formatter, node, state);
         }
 
-        assertEquals(6, state.get("answer"));
+        assertEquals("6", state.get("answer"));
 
         logger.info(convo.toString());
     }

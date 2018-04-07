@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2017 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,53 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.impl.transformer;
 
+import com.conversationkit.impl.MapBackedState;
+import com.conversationkit.impl.edge.JavaScriptEdge;
 import com.conversationkit.model.IConversationState;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
+import junit.framework.TestCase;
 
 /**
  *
  * @author pdtyreus
  */
-public class MapBackedState extends HashMap<String,Object> implements IMapBackedState {
+public class JavaScriptStateTransformerTest extends TestCase {
 
-    @Override
-    public int getCurrentNodeId() {
-        Integer id = (Integer)this.get("currentNodeId");
-        return id;
-    }
-
-    @Override
-    public void setCurrentNodeId(int currentNodeId) {
-        this.put("currentNodeId", currentNodeId);
-    }
-
-    //@Override
-//    public void set(String propertyName, Object value) {
-//        this.put(propertyName, value);
-//    }
-
-//    @Override
-//    public R getMostRecentResponse() {
-//        return (R)this.get("mostRecentResponse");
-//    }
-//
-//    @Override
-//    public void setMostRecentResponse(R currentResponse) {
-//        if (currentResponse == null) {
-//            this.remove("mostRecentResponse");
-//        } else {
-//            this.put("mostRecentResponse", currentResponse);
-//        }
-//    }
-
-    @Override
-    public Object get(String propertyName) {
-        return super.get(propertyName);
+    public void testTransformState() {
+        
+        MapBackedState state = new MapBackedState();
+        JavaScriptStateTransformer<String,MapBackedState> instance = new JavaScriptStateTransformer("return {js:true};");
+        
+        Optional<String> response = Optional.empty();
+        
+        Optional<Map<String,Object>> newState = instance.transformState(response, state);
+        
+        assertEquals(true,newState.isPresent());
+        Map<String,Object> s = newState.get();
+        assertEquals(true,s.get("js"));
     }
     
-    @Override public Object put(String key, Object value) {
-        return super.put(key, value);
-    }
+    
 }

@@ -26,6 +26,7 @@ package com.conversationkit.impl.edge;
 import com.conversationkit.impl.edge.RegexEdge;
 import com.conversationkit.impl.MapBackedState;
 import com.conversationkit.model.IConversationState;
+import java.util.Optional;
 import junit.framework.TestCase;
 
 /**
@@ -33,32 +34,24 @@ import junit.framework.TestCase;
  * @author pdtyreus
  */
 public class RegexEdgeTest extends TestCase {
-    
+
     public RegexEdgeTest(String testName) {
         super(testName);
     }
 
     public void testIsMatchForState() {
-        IConversationState state = new MapBackedState();
-        RegexEdge instance = new RegexEdge("\\d+",null);
-        state.setMostRecentResponse("word");
-        assertEquals(false,instance.isMatchForState(state));
-        state.setMostRecentResponse("5");
-        assertEquals(true,instance.isMatchForState(state));
-        
-        instance = new RegexEdge("\\w+","word",null);
-        state.setMostRecentResponse("word");
-        assertEquals(true,instance.isMatchForState(state));
+        MapBackedState state = new MapBackedState();
+        RegexEdge<String, MapBackedState> instance = new RegexEdge("\\d+", null);
+
+        Optional<String> response = Optional.of("word");
+
+        assertEquals(false, instance.isMatchForState(response, state));
+        response = Optional.of("5");
+        assertEquals(true, instance.isMatchForState(response, state));
+
+        instance = new RegexEdge("\\w+", null);
+        response = Optional.of("word");
+        assertEquals(true, instance.isMatchForState(response, state));
     }
 
-    public void testOnMatch() throws Exception {
-        IConversationState state = new MapBackedState();
-        RegexEdge instance = new RegexEdge("\\w+","wordKey",null);
-        state.setMostRecentResponse("word");
-        assertEquals(true,instance.isMatchForState(state));
-        assertEquals(null, state.get("wordKey"));
-        instance.onMatch(state);
-        assertEquals("word", state.get("wordKey"));
-    }
-    
 }

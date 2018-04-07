@@ -30,13 +30,9 @@ import com.conversationkit.model.IConversationState;
  * Edge that matches no-like responses.
  * @author pdtyreus
  */
-public class NegativeEdge <R,S extends IConversationState<R>> extends RegexEdge<R,S> {
+public class NegativeEdge <R,S extends IConversationState> extends RegexEdge<R,S> {
 
     private static final String NO = "\\bno\\b|\\bnope\\b|\\bnah\\b|\\bnone\\b|\\bnot really\\b";
-    
-    public NegativeEdge(String stateKey, Object stateValue, IConversationNode<R,S> endNode) {
-        super(NO,stateKey,stateValue,endNode);
-    }
     
     public NegativeEdge(IConversationNode<R,S> endNode) {
         super(NO,endNode);

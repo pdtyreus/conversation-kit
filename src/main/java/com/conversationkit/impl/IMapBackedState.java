@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2017 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,50 +24,13 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.model.IConversationState;
-import java.util.HashMap;
 
 /**
  *
  * @author pdtyreus
  */
-public class MapBackedState extends HashMap<String,Object> implements IMapBackedState {
+public interface IMapBackedState extends IConversationState {
+    public void setCurrentNodeId(int currentNodeId);
 
-    @Override
-    public int getCurrentNodeId() {
-        Integer id = (Integer)this.get("currentNodeId");
-        return id;
-    }
-
-    @Override
-    public void setCurrentNodeId(int currentNodeId) {
-        this.put("currentNodeId", currentNodeId);
-    }
-
-    //@Override
-//    public void set(String propertyName, Object value) {
-//        this.put(propertyName, value);
-//    }
-
-//    @Override
-//    public R getMostRecentResponse() {
-//        return (R)this.get("mostRecentResponse");
-//    }
-//
-//    @Override
-//    public void setMostRecentResponse(R currentResponse) {
-//        if (currentResponse == null) {
-//            this.remove("mostRecentResponse");
-//        } else {
-//            this.put("mostRecentResponse", currentResponse);
-//        }
-//    }
-
-    @Override
-    public Object get(String propertyName) {
-        return super.get(propertyName);
-    }
-    
-    @Override public Object put(String key, Object value) {
-        return super.put(key, value);
-    }
+    public Object put(String key, Object value);
 }

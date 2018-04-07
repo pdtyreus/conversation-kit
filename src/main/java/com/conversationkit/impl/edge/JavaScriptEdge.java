@@ -23,9 +23,9 @@
  */
 package com.conversationkit.impl.edge;
 
-import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -34,30 +34,29 @@ import javax.script.ScriptException;
 
 /**
  * An IConversationEdge implementation that delegates matching logic to external
- * JavaScript code. Similar to a <code>RegexEdge</code>, this type of edge 
- * allows users to store the logic for determining if an edge matches in a 
- * location outside the source code. For instance, the string representation
- * of the JavaScript logic could be stored in a database or file representation
- * of the conversation graph.
- * <p> 
- * The supplied JavaScript code modifies the behavior of the 
- * {@link #isMatchForState(IConversationState)}
- * and {@link #onMatch(IConversationState)} 
- * methods. The string representation of the JavaScript code is wrapped as
- * follows:
+ * JavaScript code. Similar to a <code>RegexEdge</code>, this type of edge
+ * allows users to store the logic for determining if an edge matches in a
+ * location outside the source code. For instance, the string representation of
+ * the JavaScript logic could be stored in a database or file representation of
+ * the conversation graph.
+ * <p>
+ * The supplied JavaScript code modifies the behavior of the
+ * {@link #isMatchForState(IConversationState)} and
+ * {@link #onMatch(IConversationState)} methods. The string representation of
+ * the JavaScript code is wrapped as follows:
  * <pre>
  * {@code
  * function isMatchForState(state) {
  *   ...value of isMatchForState...
  * }
- * 
+ *
  * function onMatch(state) {
  *   ...value of onMatch...
  * }
  * }
  * </pre>
  * <p>
- * So, for example, if 
+ * So, for example, if
  * <code>isMatchForState = "return (state.mostRecentResponse === 'graph');"</code>
  * then the IConversation implementation would evaluate the result of
  * <pre>
@@ -66,14 +65,13 @@ import javax.script.ScriptException;
  *   return (state.mostRecentResponse === 'graph');
  * }
  * }
- * </pre>
- * to determine if the edge matches the current state.
+ * </pre> to determine if the edge matches the current state.
+ *
  * @author pdtyreus
  */
-public class JavaScriptEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
+public class JavaScriptEdge<R, S extends IConversationState> extends ConversationEdge<R, S> {
 
     private final String isMatchForState;
-    private final String onMatch;
 
     private final ScriptEngineManager manager = new ScriptEngineManager();
     private final ScriptEngine engine = manager.getEngineByName("JavaScript");
@@ -82,39 +80,30 @@ public class JavaScriptEdge<R,S extends IConversationState<R>> extends Conversat
 
     /**
      * Creates an edge with JavaScript code for matching and for updating the
-     * state after a match. 
+     * state after a match.
+     *
      * @param isMatchForState String of JavaScript code
      * @param onMatch String of JavaScript code
      * @param endNode destination node
      */
-    public JavaScriptEdge(String isMatchForState, String onMatch, IConversationNode<R,S> endNode) {
+    public JavaScriptEdge(String isMatchForState, IConversationNode<R, S> endNode) {
         super(endNode);
         this.isMatchForState = isMatchForState;
-        this.onMatch = onMatch;
-    }
-
-     /**
-     * Creates an edge with JavaScript code for matching. This edge will not
-     * modify the state after a match since the default <code>onMatch</code>
-     * code is just <code>return state;</code>.
-     * @param isMatchForState String of JavaScript code
-     * @param endNode destination node
-     */
-    public JavaScriptEdge(String isMatchForState, IConversationNode<R,S> endNode) {
-        super(endNode);
-        this.isMatchForState = isMatchForState;
-        this.onMatch = "return state;";
     }
 
     @Override
-    public boolean isMatchForResponse(R state) {
+    public boolean isMatchForState(Optional<R> response, S immutableState) {
         Invocable inv = (Invocable) engine;
-        String template = "function isMatchForState(state) {";
+        R nullableResponse = null;
+        if (response.isPresent()) {
+            nullableResponse = response.get();
+        }
+        String template = "function isMatchForState(response, state) {";
         template += isMatchForState;
         template += "};";
         try {
             engine.eval(template);
-            return (Boolean) inv.invokeFunction("isMatchForState", state);
+            return (Boolean) inv.invokeFunction("isMatchForState", nullableResponse, immutableState);
         } catch (ScriptException e) {
             logger.warning(e.getMessage());
             logger.warning(isMatchForState);
@@ -130,19 +119,8 @@ public class JavaScriptEdge<R,S extends IConversationState<R>> extends Conversat
         }
     }
 
-    public void onMatch(S state){
-        Invocable inv = (Invocable) engine;
-        String template = "function onMatch(state) {";
-        template += onMatch;
-        template += "};";
-        try {
-            engine.eval(template);
-            inv.invokeFunction("onMatch", state);
-        } catch (ScriptException e) {
-            logger.warning(e.getMessage());
-        } catch (NoSuchMethodException e) {
-            logger.severe(e.toString());
-        }
+    @Override
+    public String toString() {
+        return "JavascriptEdge {" + isMatchForState + '}';
     }
-
 }

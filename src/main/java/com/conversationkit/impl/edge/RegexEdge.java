@@ -23,9 +23,9 @@
  */
 package com.conversationkit.impl.edge;
 
-import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,68 +38,23 @@ import java.util.regex.Pattern;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class RegexEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
+public class RegexEdge<R,S extends IConversationState> extends ConversationEdge<R,S> {
 
     protected final Pattern pattern;
-    protected final String stateKey;
-    protected final Object stateValue;
 
     /**
      * Creates a RegEx edge that matches the pattern specified. The value of
-     * flags is passed to Pattern.compile() to generate Pattern. If a <code>stateKey</code> is
-     * provided, the <code>onMatch</code> method sets the value of this key in the
-     * conversation state equal to the first group found in the match or to the
-     * <code>stateValue</code> constructor argument if specified.
+     * flags is passed to Pattern.compile() to generate Pattern. 
      * 
      * @param matchRegex RegEx string pattern 
-     * @param stateKey state key to update
-     * @param stateValue value for state key
      * @param flags value passed to Pattern.compile()
      * @param endNode next node after a match
      */
-    public RegexEdge(String matchRegex, String stateKey, Object stateValue, int flags, IConversationNode<R,S> endNode) {
+    public RegexEdge(String matchRegex, int flags, IConversationNode<R,S> endNode) {
         super(endNode);
-        this.stateKey = stateKey;
         this.pattern = Pattern.compile(matchRegex, flags);
-        this.stateValue = stateValue;
     }
     
-     /**
-     * Creates a RegEx edge that matches the pattern specified. The RegEx is case
-     * insensitive by default. If a <code>stateKey</code> is
-     * provided, the <code>onMatch</code> method sets the value of this key in the
-     * conversation state equal to the first group found in the match or to the
-     * <code>stateValue</code> constructor argument if specified.
-     * 
-     * @param matchRegex RegEx string pattern 
-     * @param stateKey state key to update
-     * @param stateValue value for the state key
-     * @param endNode next node after a match
-     */
-    public RegexEdge(String matchRegex, String stateKey, Object stateValue, IConversationNode<R,S> endNode) {
-        super(endNode);
-        this.stateKey = stateKey;
-        this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
-        this.stateValue = stateValue;
-    }
-
-    /**
-     * Creates a RegEx edge that matches the pattern specified. The RegEx is case
-     * insensitive by default. If a <code>stateKey</code> is
-     * provided, the <code>onMatch</code> method sets the value of this key in the
-     * conversation state equal to the first group found in the match.
-     * 
-     * @param matchRegex RegEx string pattern 
-     * @param stateKey state key to update
-     * @param endNode next node after a match
-     */
-    public RegexEdge(String matchRegex, String stateKey, IConversationNode<R,S> endNode) {
-        super(endNode);
-        this.stateKey = stateKey;
-        this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
-        this.stateValue = null;
-    }
-
      /**
      * Creates a RegEx edge that matches the pattern specified. The RegEx is case
      * insensitive by default. 
@@ -109,22 +64,22 @@ public class RegexEdge<R,S extends IConversationState<R>> extends ConversationEd
      */
     public RegexEdge(String matchRegex, IConversationNode<R,S> endNode) {
         super(endNode);
-        this.stateKey = null;
-        this.stateValue = null;
         this.pattern = Pattern.compile(matchRegex, Pattern.CASE_INSENSITIVE);
     }
 
 
     @Override
-    public boolean isMatchForResponse(R state) {
-        if (state.toString() != null) {
-            Matcher matcher = pattern.matcher(state.toString());
+    public boolean isMatchForState(Optional<R> response, S immutableState) {
+        
+        if (response.isPresent()) {
+             Matcher matcher = pattern.matcher(response.get().toString());
             return matcher.find();
         } else {
             return false;
         }
     }
 
+    @Override
     public String toString() {
         return "RegexEdge {" + pattern.pattern() + '}';
     }

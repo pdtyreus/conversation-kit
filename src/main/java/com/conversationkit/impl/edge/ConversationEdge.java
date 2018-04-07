@@ -32,7 +32,7 @@ import com.conversationkit.model.IConversationState;
  * 
  * @author pdtyreus
  */
-public abstract class ConversationEdge<R,S extends IConversationState<R>> implements IConversationEdge<R,S> {
+public abstract class ConversationEdge<R,S extends IConversationState> implements IConversationEdge<R,S> {
     private final IConversationNode<R,S> endNode;
 
     public ConversationEdge(IConversationNode<R,S> endNode) {

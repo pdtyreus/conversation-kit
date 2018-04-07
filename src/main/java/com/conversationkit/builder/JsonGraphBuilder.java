@@ -29,6 +29,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.conversationkit.impl.DirectedConversationEngine;
 import com.conversationkit.impl.MapBackedNodeIndex;
+import com.conversationkit.impl.MapBackedState;
 import com.conversationkit.impl.edge.AffirmativeEdge;
 import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.impl.edge.JavaScriptEdge;
@@ -42,9 +43,13 @@ import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.conversationkit.impl.node.StringReplacingNode;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
+import com.conversationkit.model.IConversationResponseTransformer;
 import com.conversationkit.model.IConversationState;
+import com.conversationkit.model.IConversationStateTransformer;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
+import com.conversationkit.impl.transformer.JavaScriptResponseTransformer;
+import com.conversationkit.impl.transformer.JavaScriptStateTransformer;
 import com.eclipsesource.json.JsonObject.Member;
 import java.io.IOException;
 import java.io.Reader;
@@ -53,6 +58,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -62,9 +68,12 @@ import java.util.logging.Logger;
  * @author pdtyreus
  * @see <a href="http://jsongraphformat.info/">JSON Graph Format</a>
  */
-public class JsonGraphBuilder<R,S extends IConversationState<R>> {
+public class JsonGraphBuilder<R, S extends MapBackedState> {
 
     private static final Logger logger = Logger.getLogger(JsonGraphBuilder.class.getName());
+    
+    private IConversationResponseTransformer<R> defaultResponseTransformer = null;
+    private IConversationStateTransformer<R,S> defaultStateTransformer = null;
 
     protected enum NodeType {
 
@@ -74,6 +83,46 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
     protected enum EdgeType {
 
         DialogTree, JavaScript, Regex, Statement, Affirmative, Negative
+    }
+
+    protected IConversationResponseTransformer<R> responseTransformerFromJson(Integer id, String type, JsonObject metadata) throws IOException {
+        if (metadata.get("type") == null) {
+            throw new IOException("ResponseTransformer missing type: " + metadata);
+        }
+        String responseTransformerType = metadata.get("type").asString();
+        IConversationResponseTransformer<R> responseTransformer = null;
+        if ("JavaScript".equalsIgnoreCase(responseTransformerType)) {
+            if (metadata.get("expression") == null) {
+                throw new IOException("JavaScriptResponseTransformer missing expression: " + metadata);
+            }
+            responseTransformer = new JavaScriptResponseTransformer(metadata.get("expression").asString());
+        }
+
+        if (responseTransformer == null) {
+            throw new IOException("Unknown ResponseTransformer type: " + responseTransformerType);
+        } else {
+            return responseTransformer;
+        }
+    }
+
+    protected IConversationStateTransformer<R, S> stateTransformerFromJson(Integer id, String type, JsonObject metadata) throws IOException {
+        if (metadata.get("type") == null) {
+            throw new IOException("StateTransformer missing type: " + metadata);
+        }
+        String responseTransformerType = metadata.get("type").asString();
+        IConversationStateTransformer<R, S> stateTransformer = null;
+        if ("JavaScript".equalsIgnoreCase(responseTransformerType)) {
+            if (metadata.get("expression") == null) {
+                throw new IOException("JavaScriptStateTransformer missing expression: " + metadata);
+            }
+            stateTransformer = new JavaScriptStateTransformer(metadata.get("expression").asString());
+        }
+
+        if (stateTransformer == null) {
+            throw new IOException("Unknown StateTransformer type: " + responseTransformerType);
+        } else {
+            return stateTransformer;
+        }
     }
 
     /**
@@ -91,7 +140,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
      * @return a node or null
      * @throws IOException exception parsing JSON
      */
-    protected IConversationNode<R,S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
+    protected IConversationNode<R, S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
 
         NodeType nodeType;
         try {
@@ -100,19 +149,34 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
             return null;
         }
 
+        IConversationResponseTransformer responseTransformer = null;
+        IConversationStateTransformer stateTransformer = null;
+        if (metadata != null) {
+            if (metadata.get("responseTransformer") != null) {
+                responseTransformer = responseTransformerFromJson(id, type, metadata.get("responseTransformer").asObject());
+            } else {
+                responseTransformer = getDefaultResponseTransformer();
+            }
+            if (metadata.get("stateTransformer") != null) {
+                stateTransformer = stateTransformerFromJson(id, type, metadata.get("stateTransformer").asObject());
+            } else {
+                stateTransformer = getDefaultStateTransformer();
+            }
+        }
+
         //make the node into something
-        IConversationNode<R,S> conversationNode = null;
+        IConversationNode<R, S> conversationNode = null;
 
         switch (nodeType) {
             case Hidden:
-                conversationNode = new HiddenNode(id, snippetType);
+                conversationNode = new HiddenNode(id, snippetType, responseTransformer, stateTransformer);
                 break;
             case DialogTree:
-                DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, content);
+                DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, responseTransformer, stateTransformer, content);
                 conversationNode = dtNode;
                 break;
             case StringReplacing:
-                StringReplacingNode srNode = new StringReplacingNode(id, snippetType, content);
+                StringReplacingNode srNode = new StringReplacingNode(id, snippetType, responseTransformer, stateTransformer, content, SnippetContentType.TEXT);
                 for (String suggestion : createSuggestionsFromMetadata(metadata)) {
                     srNode.addSuggestedResponse(suggestion);
                 }
@@ -122,7 +186,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
                 conversationNode = srNode;
                 break;
             case ResponseSuggesting:
-                ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
+                ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, responseTransformer, stateTransformer, content, contentType);
 
                 for (String suggestion : createSuggestionsFromMetadata(metadata)) {
                     rsNode.addSuggestedResponse(suggestion);
@@ -140,7 +204,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
         return conversationNode;
     }
 
-    protected List<ConversationNodeButton> createButtonsFromMetadata(JsonObject metadata) throws IOException{
+    protected List<ConversationNodeButton> createButtonsFromMetadata(JsonObject metadata) throws IOException {
         List<ConversationNodeButton> cnButtons = new ArrayList();
 
         if (metadata.get("buttons") != null) {
@@ -167,7 +231,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
                         }
                     }
                 }
-                
+
                 ConversationNodeButton cnb = new ConversationNodeButton(buttonType, text, value, attributes);
                 cnButtons.add(cnb);
             }
@@ -200,7 +264,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
      * @return an edge or null
      * @throws IOException exception parsing JSON
      */
-    protected IConversationEdge<R,S> edgeFromJson(String type, JsonObject metadata, IConversationNode<R,S> target) throws IOException {
+    protected IConversationEdge<R, S> edgeFromJson(String type, JsonObject metadata, IConversationNode<R, S> target) throws IOException {
 
         EdgeType edgeType;
         try {
@@ -208,29 +272,12 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
         } catch (Exception e) {
             return null;
         }
-        String stateKey = null;
-        if ((metadata != null) && (metadata.get("stateKey") != null)) {
-            stateKey = metadata.get("stateKey").asString();
-        }
-        Object stateValue = null;
-        if ((metadata != null) && metadata.get("stateValue") != null) {
-
-            if (metadata.get("stateValue").isArray()) {
-                stateValue = metadata.get("stateValue").asArray();
-            } else if (metadata.get("stateValue").isBoolean()) {
-                stateValue = metadata.get("stateValue").asBoolean();
-            } else if (metadata.get("stateValue").isNumber()) {
-                stateValue = metadata.get("stateValue").asInt();
-            } else {
-                stateValue = metadata.get("stateValue").asString();
-            }
-        }
         switch (edgeType) {
             case DialogTree:
                 if ((metadata == null) || (metadata.get("answer") == null)) {
                     throw new IOException("DialogTreeEdge missing \"answer\" metadata key: " + metadata);
                 }
-                DialogTreeEdge dte = new DialogTreeEdge(metadata.get("answer").asString(), stateKey, target);
+                DialogTreeEdge dte = new DialogTreeEdge(metadata.get("answer").asString(), target);
                 return dte;
             case JavaScript:
 
@@ -238,34 +285,22 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
                     throw new IOException("JavaScriptEdge missing \"isMatchForState\" metadata key: " + metadata);
                 }
                 String isMatch = metadata.get("isMatchForState").asString();
-                if (metadata.get("onMatch") != null) {
-                    String onMatch = metadata.get("onMatch").asString();
-                    return new JavaScriptEdge(isMatch, onMatch, target);
-                } else {
-                    return new JavaScriptEdge(isMatch, target);
-                }
+
+                return new JavaScriptEdge(isMatch, target);
+
             case Regex:
                 if ((metadata == null) || (metadata.get("pattern") == null)) {
                     throw new IOException("RegexEdge missing \"pattern\" metadata key: " + metadata);
                 }
                 String pattern = metadata.get("pattern").asString();
-                if (stateValue != null) {
-                    return new RegexEdge(pattern, stateKey, stateValue, target);
-                } else {
-                    return new RegexEdge(pattern, stateKey, target);
-                }
+                return new RegexEdge(pattern, target);
+
             case Affirmative:
-                if (stateValue != null) {
-                    return new AffirmativeEdge(stateKey, stateValue, target);
-                } else {
-                    return new AffirmativeEdge(target);
-                }
+                return new AffirmativeEdge(target);
+
             case Negative:
-                if (stateValue != null) {
-                    return new NegativeEdge(stateKey, stateValue, target);
-                } else {
-                    return new NegativeEdge(target);
-                }
+                return new NegativeEdge(target);
+
             case Statement:
                 StatementEdge e = new StatementEdge(target);
                 return e;
@@ -274,13 +309,13 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
         }
     }
 
-    public DirectedConversationEngine<R,S> readJsonGraph(Reader reader) throws IOException {
+    public DirectedConversationEngine<R, S> readJsonGraph(Reader reader) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject().get("graph").asObject();
 
-        MapBackedNodeIndex<R,S> index = new MapBackedNodeIndex();
+        MapBackedNodeIndex<R, S> index = new MapBackedNodeIndex();
 
         int i = 0;
         //run through once to create nodes
@@ -312,7 +347,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
             SnippetType snippetType = SnippetType.STATEMENT;
             if (metadata.get("snippetType") != null) {
                 try {
-                    snippetType=SnippetType.valueOf(metadata.get("snippetType").asString());
+                    snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
                 } catch (Exception e) {
                     throw new IOException("Unknown \"snippetType\" " + metadata.get("snippetType").asString() + " for node " + id);
                 }
@@ -328,7 +363,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
                 }
             }
 
-            IConversationNode<R,S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
+            IConversationNode<R, S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
             if (conversationNode == null) {
                 throw new IOException("Unhandled node " + node);
             }
@@ -357,8 +392,8 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
             Integer sourceId = Integer.parseInt(edge.get("source").asString());
             Integer targetId = Integer.parseInt(edge.get("target").asString());
 
-            IConversationNode<R,S> source = index.getNodeAtIndex(sourceId);
-            IConversationNode<R,S> target = index.getNodeAtIndex(targetId);
+            IConversationNode<R, S> source = index.getNodeAtIndex(sourceId);
+            IConversationNode<R, S> target = index.getNodeAtIndex(targetId);
 
             if (source == null) {
                 throw new IOException("Source node missing for edge " + edge);
@@ -375,7 +410,7 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
                 metadata = metadataValue.asObject();
             }
 
-            IConversationEdge<R,S> conversationEdge = edgeFromJson(type, metadata, target);
+            IConversationEdge<R, S> conversationEdge = edgeFromJson(type, metadata, target);
             if (conversationEdge == null) {
                 throw new IOException("Unhandled edge " + edge);
             }
@@ -386,5 +421,23 @@ public class JsonGraphBuilder<R,S extends IConversationState<R>> {
         logger.info(MessageFormat.format("Created {0} edges", i));
         return new DirectedConversationEngine(index);
 
+    }
+    
+    
+    public IConversationResponseTransformer<R> getDefaultResponseTransformer() {
+        return defaultResponseTransformer;
+    }
+
+    public void setDefaultResponseTransformer(IConversationResponseTransformer<R> defaultResponseTransformer) {
+        this.defaultResponseTransformer = defaultResponseTransformer;
+    }
+    
+    
+    public IConversationStateTransformer<R,S> getDefaultStateTransformer() {
+        return defaultStateTransformer;
+    }
+
+    public void setDefaultStateTransformer(IConversationStateTransformer<R,S> defaultStateTransformer) {
+        this.defaultStateTransformer = defaultStateTransformer;
     }
 }

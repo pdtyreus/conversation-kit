@@ -23,7 +23,9 @@
  */
 package com.conversationkit.impl;
 
+import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.impl.DirectedConversationEngine;
+import com.conversationkit.impl.transformer.BasicStringResponseTransformer;
 import com.conversationkit.model.IConversationSnippet;
 import com.conversationkit.model.UnexpectedResponseException;
 import com.conversationkit.model.UnmatchedResponseException;
@@ -41,21 +43,6 @@ import junit.framework.TestCase;
 public class DialogTreeTest extends TestCase {
 
     private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
-
-    public DialogTreeTest(String testName) {
-        super(testName);
-
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
     
     public void testTemplatedDialogTree() throws IOException {
 
@@ -63,9 +50,10 @@ public class DialogTreeTest extends TestCase {
         
         //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
         
-        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
+        JsonGraphBuilder<String,TestCaseUserState> builder = new JsonGraphBuilder();
+        builder.setDefaultResponseTransformer(new BasicStringResponseTransformer());
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
-        DirectedConversationEngine<TestCaseUserState> tree = builder.readDialogTree(reader);
+        DirectedConversationEngine<String,TestCaseUserState> tree = builder.readJsonGraph(reader);
 
         logger.info("** Testing conversation");
         
@@ -106,9 +94,10 @@ public class DialogTreeTest extends TestCase {
 
         logger.info("** Initializing Basic DialogTree for testing");
 
-        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
+        JsonGraphBuilder<String,TestCaseUserState> builder = new JsonGraphBuilder();
+        builder.setDefaultResponseTransformer(new BasicStringResponseTransformer());
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-        DirectedConversationEngine<TestCaseUserState> tree = builder.readDialogTree(reader);
+        DirectedConversationEngine<String,TestCaseUserState> tree = builder.readJsonGraph(reader);
 
         logger.info("** Testing conversation");
 

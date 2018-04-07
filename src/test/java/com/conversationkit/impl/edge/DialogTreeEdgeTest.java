@@ -26,6 +26,7 @@ package com.conversationkit.impl.edge;
 import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.impl.MapBackedState;
 import com.conversationkit.model.IConversationState;
+import java.util.Optional;
 import static junit.framework.Assert.assertEquals;
 import junit.framework.TestCase;
 
@@ -43,20 +44,10 @@ public class DialogTreeEdgeTest extends TestCase {
         IConversationState state = new MapBackedState();
 
         DialogTreeEdge instance = new DialogTreeEdge("answer", null);
-        state.setMostRecentResponse("word");
-        assertEquals(false, instance.isMatchForState(state));
-        state.setMostRecentResponse("answer");
-        assertEquals(true, instance.isMatchForState(state));
-    }
-
-    public void testOnMatch() throws Exception {
-        IConversationState state = new MapBackedState();
-        DialogTreeEdge instance = new DialogTreeEdge("word", "wordKey", null);
-        state.setMostRecentResponse("word");
-        assertEquals(true, instance.isMatchForState(state));
-        assertEquals(null, state.get("wordKey"));
-        instance.onMatch(state);
-        assertEquals("word", state.get("wordKey"));
+        String response = "word";
+        assertEquals(false, instance.isMatchForState(Optional.of(response),state));
+        response = "answer";
+        assertEquals(true, instance.isMatchForState(Optional.of(response),state));
     }
 
 }

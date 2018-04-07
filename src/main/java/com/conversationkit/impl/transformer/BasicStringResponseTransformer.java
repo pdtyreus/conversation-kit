@@ -21,20 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.edge;
+package com.conversationkit.impl.transformer;
 
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+import com.conversationkit.model.IConversationResponseTransformer;
+import java.util.Optional;
 
 /**
- * Edge that matches yes-like responses.
+ * Simple pass-through transformer implementation that just returns the String
+ * response without changes.
+ * 
  * @author pdtyreus
  */
-public class AffirmativeEdge <R,S extends IConversationState> extends RegexEdge<R,S> {
+public class BasicStringResponseTransformer implements IConversationResponseTransformer<String> {
 
-    private static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
-    
-    public AffirmativeEdge(IConversationNode<R,S> endNode) {
-        super(YES,endNode);
+    @Override
+    public Optional<String> transformResponse(Optional<String> response) {
+        return response;
     }
+    
 }

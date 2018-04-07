@@ -23,39 +23,40 @@
  */
 package com.conversationkit.impl.node;
 
+import com.conversationkit.model.IConversationResponseTransformer;
 import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.IConversationState;
+import com.conversationkit.model.IConversationStateTransformer;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A flexible implementation of <code>IConversationNode</code> that can 
- * specify but not 
- * require suggested answers to questions. However, no checks are made to ensure
- * that the suggested responses actually match an outbound edge.
- * 
+ * A flexible implementation of <code>IConversationNode</code> that can specify
+ * but not require suggested answers to questions. However, no checks are made
+ * to ensure that the suggested responses actually match an outbound edge.
+ *
  * @author pdtyreus
- * @param <S> an implementation of IConversationState to store the state of the 
+ * @param <S> an implementation of IConversationState to store the state of the
  * conversation for the current user
  */
-public class ResponseSuggestingNode<R,S extends IConversationState<R>> extends ConversationNode<R,S> {
+public class ResponseSuggestingNode<R, S extends IConversationState> extends ConversationNode<R, S> {
 
     protected List<String> suggestedResponses;
     protected List<IConversationSnippetButton> buttons;
     protected final String content;
     protected final SnippetContentType contentType;
-    
-    public ResponseSuggestingNode(int id, SnippetType type, String content) {
+
+    public ResponseSuggestingNode(int id, SnippetType type, String content, SnippetContentType contentType) {
         super(id, type);
         this.suggestedResponses = null;
         this.content = content;
-        this.contentType = SnippetContentType.TEXT;
+        this.contentType = contentType;
     }
-    
-    public ResponseSuggestingNode(int id, SnippetType type, String content, SnippetContentType contentType) {
-        super(id, type);
+
+    public ResponseSuggestingNode(int id, SnippetType type, IConversationResponseTransformer<R> responseTransformer, IConversationStateTransformer<R,S> stateTransformer, String content, SnippetContentType contentType) {
+        super(id, type, responseTransformer, stateTransformer);
         this.suggestedResponses = null;
         this.content = content;
         this.contentType = contentType;
@@ -70,10 +71,10 @@ public class ResponseSuggestingNode<R,S extends IConversationState<R>> extends C
     public Iterable<String> getSuggestedResponses(S state) {
         return suggestedResponses;
     }
-    
+
     public void addSuggestedResponse(String response) {
         if (getType() == SnippetType.STATEMENT) {
-            throw new IllegalArgumentException("STATEMENTS cannot have suggested responses ["+getId()+"]");
+            throw new IllegalArgumentException("STATEMENTS cannot have suggested responses [" + getId() + "]");
         }
         if (suggestedResponses == null) {
             suggestedResponses = new ArrayList();
@@ -85,14 +86,14 @@ public class ResponseSuggestingNode<R,S extends IConversationState<R>> extends C
     public Iterable<IConversationSnippetButton> getButtons() {
         return buttons;
     }
-    
+
     public void addButton(ConversationNodeButton button) {
         if (buttons == null) {
             buttons = new ArrayList();
         }
         buttons.add(button);
     }
-    
+
     @Override
     public SnippetContentType getContentType() {
         return contentType;

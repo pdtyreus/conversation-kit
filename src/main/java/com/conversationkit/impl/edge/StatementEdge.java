@@ -25,6 +25,7 @@ package com.conversationkit.impl.edge;
 
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
+import java.util.Optional;
 
 /**
  * A simple <code>IConversationEdge</code> implementation that always 
@@ -36,7 +37,7 @@ import com.conversationkit.model.IConversationState;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class StatementEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
+public class StatementEdge<R,S extends IConversationState> extends ConversationEdge<R,S> {
 
     public StatementEdge(IConversationNode endNode) {
         super(endNode);
@@ -44,11 +45,11 @@ public class StatementEdge<R,S extends IConversationState<R>> extends Conversati
 
     @Override
     public String toString() {
-        return "StatementEdge {"+isMatchForResponse(null)+"}";
+        return "StatementEdge {"+isMatchForState(null,null)+"}";
     }
 
     @Override
-    public boolean isMatchForResponse(R state) {
+    public boolean isMatchForState(Optional<R> response, S immutableState) {
         return true;
     }
 

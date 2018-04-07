@@ -24,19 +24,26 @@
 package com.conversationkit.impl.node;
 
 import com.conversationkit.impl.MapBackedState;
+import com.conversationkit.model.IConversationResponseTransformer;
 import com.conversationkit.model.IConversationState;
+import com.conversationkit.model.IConversationStateTransformer;
+import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
 
 /**
  *
  * @author pdtyreus
  */
-public class StringReplacingNode<R,S extends IConversationState<R>> extends ResponseSuggestingNode<R,S> {
+public class StringReplacingNode<R, S extends IConversationState> extends ResponseSuggestingNode<R, S> {
 
-    public StringReplacingNode(int id, SnippetType type, String content) {
-        super(id, type, content);
+    public StringReplacingNode(int id, SnippetType type, String content, SnippetContentType contentType) {
+        super(id, type, content, contentType);
     }
-
+    
+    public StringReplacingNode(int id, SnippetType type, IConversationResponseTransformer<R> responseTransformer, IConversationStateTransformer<R, S> stateTransformer, String content, SnippetContentType contentType) {
+        super(id, type, responseTransformer, stateTransformer, content, contentType);
+    }
+    
     @Override
     public String renderContent(S state) {
         if (state == null) {
@@ -47,7 +54,7 @@ public class StringReplacingNode<R,S extends IConversationState<R>> extends Resp
             String renderedContent = content;
             MapBackedState map = (MapBackedState) state;
             for (Object okey : map.keySet()) {
-                String key = (String)okey;
+                String key = (String) okey;
                 renderedContent = renderedContent.replace("{{" + key + "}}", state.get(key).toString());
             }
 

@@ -21,20 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.edge;
+package com.conversationkit.model;
 
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+import java.util.Map;
+import java.util.Optional;
 
 /**
- * Edge that matches yes-like responses.
+ * 
  * @author pdtyreus
+ * @param <R>
+ * @param <S> 
  */
-public class AffirmativeEdge <R,S extends IConversationState> extends RegexEdge<R,S> {
-
-    private static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
-    
-    public AffirmativeEdge(IConversationNode<R,S> endNode) {
-        super(YES,endNode);
-    }
+public interface IConversationStateTransformer<R, S extends IConversationState> {
+    public Optional<Map<String,Object>> transformState(Optional<R> response, S currentState);
 }

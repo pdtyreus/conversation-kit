@@ -5,69 +5,101 @@
         "nodes": [
             {
                 "id": "1",
-                "type": "STATEMENT",
-                "label": "Hello I'm a test bot"
+                "type": "DialogTree",
+                "label": "Hello I'm a test bot",
+                "metadata": {
+                    "snippetType": "STATEMENT"
+                }
             },
             {
                 "id": "2",
-                "type": "QUESTION",
-                "label": "How are you feeling today?"
+                "type": "DialogTree",
+                "label": "How are you feeling today?",
+                "metadata": {
+                    "snippetType": "QUESTION"
+                }
             },
             {
                 "id": "3",
-                "type": "STATEMENT",
-                "label": "Glad to hear it! Have a great day."
+                "type": "DialogTree",
+                "label": "Glad to hear it! Have a great day.",
+                "metadata": {
+                    "snippetType": "STATEMENT"
+                }
             },
             {
                 "id": "4",
-                "type": "STATEMENT",
-                "label": "Really sorry to hear that."
+                "type": "DialogTree",
+                "label": "Really sorry to hear that.",
+                "metadata": {
+                    "snippetType": "STATEMENT"
+                }
             },
             {
-                "id":"5",
-                "type":"QUESTION",
-                "label":"Is there anything I can do to help?"
+                "id": "5",
+                "type": "DialogTree",
+                "label": "Is there anything I can do to help?",
+                "metadata": {
+                    "snippetType": "QUESTION"
+                }
             },
             {
-                "id":"6",
-                "type":"STATEMENT",
-                "label":"I'm not sure I appreciate that tone. Goodbye."
+                "id": "6",
+                "type": "DialogTree",
+                "label": "I'm not sure I appreciate that tone. Goodbye.",
+                "metadata": {
+                    "snippetType": "STATEMENT"
+                }
             }
         ],
         "edges": [
             {
                 "source": "1",
                 "target": "2",
+                "type": "Statement",
                 "directed": true
             },
             {
                 "source": "4",
                 "target": "5",
+                "type": "Statement",
                 "directed": true
             },
             {
                 "source": "2",
                 "target": "3",
+                "type": "DialogTree",
                 "directed": true,
-                "label": "great"
+                "metadata": {
+                    "answer": "great"
+                }
             },
             {
                 "source": "2",
                 "target": "4",
+                "type": "DialogTree",
                 "directed": true,
-                "label": "bad"
+                "metadata": {
+                    "answer": "bad"
+                }
             },
             {
                 "source": "5",
                 "target": "3",
+                "type": "DialogTree",
                 "directed": true,
-                "label": "No, I actually feel fine."
+                "metadata": {
+                    "answer": "No, I actually feel fine."
+                }
             },
             {
                 "source": "5",
                 "target": "6",
+                "type": "DialogTree",
                 "directed": true,
-                "label": "Yeah, you could work for a change."
+                "metadata": {
+                    "answer": "Yeah, you could work for a change."
+                }
             }
         ]
     }

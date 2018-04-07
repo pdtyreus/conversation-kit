@@ -5,57 +5,85 @@
         "nodes": [
             {
                 "id": "1",
-                "type": "STATEMENT",
-                "label": "Hello {{name}}, I'm a test bot"
+                "type": "StringReplacing",
+                "label": "Hello {{name}}, I'm a test bot",
+                "metadata":{
+                    "snippetType":"STATEMENT"
+                }
             },
             {
                 "id": "2",
-                "type": "STATEMENT",
-                "label": "You've hit your head. I'm going to ask you some questions."
+                "type": "StringReplacing",
+                "label": "You've hit your head. I'm going to ask you some questions.",
+                "metadata":{
+                    "snippetType":"STATEMENT"
+                }
             },
             {
                 "id": "3",
-                "type": "STATEMENT",
-                "label": "Correct. {{numFingers}} fingers."
+                "type": "StringReplacing",
+                "label": "Correct. {{numFingers}} fingers.",
+                "metadata":{
+                    "snippetType":"STATEMENT"
+                }
             },
             {
                 "id": "4",
-                "type": "STATEMENT",
-                "label": "{{numFingers}} is wrong. I was holding up {{number}}. See a doctor."
+                "type": "StringReplacing",
+                "label": "{{numFingers}} is wrong. I was holding up {{number}}. See a doctor.",
+                "metadata":{
+                    "snippetType":"STATEMENT"
+                }
             },
             {
                 "id":"5",
-                "type":"QUESTION",
-                "label":"How many fingers am I holding up?"
+                "type":"StringReplacing",
+                "label":"How many fingers am I holding up?",
+                "metadata":{
+                    "snippetType":"QUESTION",
+                    "stateTransformer":{
+                        "type":"JavaScript",
+                        "expression":"return {numFingers:response}"
+                    }
+                }
             }
         ],
         "edges": [
             {
                 "source": "1",
                 "target": "2",
-                "directed": true
+                "type": "Statement",
+                "directed": true,
+                "metadata": {
+                    
+                }
             },
             {
                 "source": "2",
                 "target": "5",
-                "directed": true
+                "directed": true,
+                "type": "Statement",
+                "directed": true,
+                "metadata": {
+                    
+                }
             },
             {
                 "source": "5",
                 "target": "3",
+                "type": "DialogTree",
                 "directed": true,
-                "label": "3",
-                "metadata":{
-                    "stateKey":"numFingers"
+                "metadata": {
+                    "answer":"3"
                 }
             },
             {
                 "source": "5",
                 "target": "4",
+                "type": "DialogTree",
                 "directed": true,
-                "label": "4",
-                "metadata":{
-                    "stateKey":"numFingers"
+                "metadata": {
+                    "answer":"4"
                 }
             }
         ]

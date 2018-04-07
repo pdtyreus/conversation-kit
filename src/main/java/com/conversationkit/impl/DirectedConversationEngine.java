@@ -28,32 +28,33 @@ import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
 import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
 import com.conversationkit.model.SnippetType;
 import com.conversationkit.model.UnexpectedResponseException;
 import com.conversationkit.model.UnmatchedResponseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DirectedConversationEngine<R,S extends IConversationState<R>> implements IConversationEngine<R,S> {
+public class DirectedConversationEngine<R, S extends IMapBackedState> implements IConversationEngine<S> {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
-    protected final IConversationNodeIndex<R,S> nodeIndex;
+    protected final IConversationNodeIndex<R, S> nodeIndex;
 
-    public DirectedConversationEngine(IConversationNodeIndex<R,S> nodeIndex) {
+    public DirectedConversationEngine(IConversationNodeIndex<R, S> nodeIndex) {
         this.nodeIndex = nodeIndex;
     }
 
     @Override
     public Iterable<IConversationSnippet> startConversationFromState(S state) {
         List<IConversationSnippet> nodes = new ArrayList();
-        IConversationNode<R,S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        IConversationNode<R, S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
         if (nextNode.getContentType() != SnippetContentType.NOTHING) {
             nodes.add(nextNode);
         }
@@ -61,11 +62,17 @@ public class DirectedConversationEngine<R,S extends IConversationState<R>> imple
         while (matchFound && (nextNode.getType() == SnippetType.STATEMENT)) {
             //if nothing has matched, we are done
             matchFound = false;
-            for (IConversationEdge<R,S> edge : nextNode.getEdges()) {
+            int count = 0;
+            for (IConversationEdge<R, S> edge : nextNode.getEdges()) {
+                count++;
+            }
+            logger.fine(String.format("node %d has %d outbound edge(s)", nextNode.getId(),count));
+            for (IConversationEdge<R, S> edge : nextNode.getEdges()) {
                 //find the first edge that matches and move to that node
                 if (!matchFound) {
                     logger.fine(String.format("evaluating STATEMENT edge %s", edge));
-                    if (edge.isMatchForResponse(state.getMostRecentResponse())) {
+                    Optional<R> response = Optional.empty();
+                    if (edge.isMatchForState(response, state)) {
                         matchFound = true;
                         state = moveToNextNode(state, edge);
                         nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
@@ -80,20 +87,29 @@ public class DirectedConversationEngine<R,S extends IConversationState<R>> imple
     }
 
     @Override
-    public S updateStateWithResponse(S state, R response) throws UnmatchedResponseException, UnexpectedResponseException {
-        IConversationNode<R,S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException {
+        IConversationNode<R, S> currentNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
+        logger.info(String.format("node %d [%s] processing response '%s'", state.getCurrentNodeId(), currentNode.getType(), response));
+            
+        if (currentNode.getType() == SnippetType.QUESTION) {
+            Optional<R> transformedResponse = currentNode.transformResponse(Optional.ofNullable(response));
+            Optional<Map<String, Object>> newState = currentNode.transformState(transformedResponse, state);
 
-        if (currentSnippet.getType() == SnippetType.QUESTION) {
-            //todo transform response
-            state.setMostRecentResponse(response);
-            logger.info(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
+            if (newState.isPresent()) {
+                for (Map.Entry<String, Object> entry : newState.get().entrySet()) {
+                    logger.fine(String.format("updating state key '%s' to '%s'", entry.getKey(), entry.getValue()));
+                    state.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            logger.info(String.format("node %d transformed response '%s' to '%s'", state.getCurrentNodeId(), response, (transformedResponse.isPresent() ? transformedResponse.get() : null)));
             boolean matchFound = false;
 
-            for (IConversationEdge<R,S> edge : currentSnippet.getEdges()) {
+            for (IConversationEdge<R, S> edge : currentNode.getEdges()) {
                 if (!matchFound) {
-                    logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
+                    logger.fine(String.format("inspecting possible edge %s", edge));
 
-                    if (edge.isMatchForResponse(response)) {
+                    if (edge.isMatchForState(transformedResponse, state)) {
                         matchFound = true;
                         moveToNextNode(state, edge);
                     }
@@ -104,22 +120,17 @@ public class DirectedConversationEngine<R,S extends IConversationState<R>> imple
                 throw new UnmatchedResponseException();
             }
         } else {
-            throw new UnexpectedResponseException(String.format("received response '%s' to node %d which is not a QUESTION",response,state.getCurrentNodeId()));
+            throw new UnexpectedResponseException(String.format("received response '%s' to node %d which is not a QUESTION", response, state.getCurrentNodeId()));
         }
 
         return state;
     }
 
-    private S moveToNextNode(S state, IConversationEdge<R,S> edge) {
+    private S moveToNextNode(S state, IConversationEdge<R, S> edge) {
         IConversationNode nextNode = edge.getEndNode();
         state.setCurrentNodeId(nextNode.getId());
-        if (state.getMostRecentResponse() != null) {
-            logger.info(String.format("response '%s' matches edge '%s'", state.getMostRecentResponse(), edge));
-        } else {
-            logger.info(String.format("edge '%s' matches", edge));
-        }
-        logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
-        //edge.onMatch(state);
+        logger.fine(String.format("match %s", edge));
+        logger.fine(String.format("next node is %d '%s' of type %s", nextNode.getId(), nextNode.renderContent(state), nextNode.getType()));
         return state;
     }
 }

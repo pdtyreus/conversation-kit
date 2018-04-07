@@ -23,9 +23,9 @@
  */
 package com.conversationkit.impl.edge;
 
-import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
+import java.util.Optional;
 
 /**
  * A <code>DialogTreeEdge</code> is an implementation of
@@ -44,25 +44,9 @@ import com.conversationkit.model.IConversationState;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class DialogTreeEdge<R,S extends IConversationState<R>> extends ConversationEdge<R,S> {
+public class DialogTreeEdge<R, S extends IConversationState> extends ConversationEdge<R, S> {
 
     private final String answer;
-    private final String stateKey;
-
-    /**
-     * Only an exact match for the answer stored in this node will cause the
-     * conversion to advance to the endNode. The value of the response will be
-     * stored as the stateKey key in the conversation state.
-     *
-     * @param answer string value to match
-     * @param stateKey the value of the key to update in the conversation state
-     * @param endNode next node in the conversation
-     */
-    public DialogTreeEdge(String answer, String stateKey, IConversationNode<R,S> endNode) {
-        super(endNode);
-        this.stateKey = stateKey;
-        this.answer = answer;
-    }
 
     /**
      * Only an exact match for the answer stored in this node will cause the
@@ -71,15 +55,18 @@ public class DialogTreeEdge<R,S extends IConversationState<R>> extends Conversat
      * @param answer string value to match
      * @param endNode next node in the conversation
      */
-    public DialogTreeEdge(String answer, IConversationNode<R,S> endNode) {
+    public DialogTreeEdge(String answer, IConversationNode<R, S> endNode) {
         super(endNode);
-        this.stateKey = null;
         this.answer = answer;
     }
 
     @Override
-    public boolean isMatchForResponse(R state) {
-        return answer.equals(state.toString());
+    public boolean isMatchForState(Optional<R> response, S immutableState) {
+        if (response.isPresent()) {
+            return answer.equals(response.get().toString());
+        } else {
+            return false;
+        }
     }
 
     public String getAnswer() {

@@ -23,36 +23,57 @@
  */
 package com.conversationkit.model;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * A conversation node is a vertex on the directed conversation graph containing
  * a statement or question for the bot to present to the user. Each node has
  * zero or more outbound edges and zero or more inbound edges. The conversation
- * traverses the graph between nodes in by analyzing the state and choosing
- * the first matching edge at each vertex.
+ * traverses the graph between nodes in by analyzing the state and choosing the
+ * first matching edge at each vertex.
+ *
  * @author pdtyreus
- * @param <S> an implementation of IConversationState to store the state of the 
+ * @param <S> an implementation of IConversationState to store the state of the
  * conversation for the current user
  */
-public interface IConversationNode<R,S extends IConversationState<R>> extends IConversationSnippet<S>{
+public interface IConversationNode<R, S extends IConversationState> extends IConversationSnippet<S> {
 
     /**
-     * Returns a list of outbound edges from the current node. One matching 
-     * edge may be chosen to continue the conversation to the next node.
+     * Returns a list of outbound edges from the current node. One matching edge
+     * may be chosen to continue the conversation to the next node.
+     *
      * @return outbound edges
      */
-    public Iterable<IConversationEdge<R,S>> getEdges();
+    public Iterable<IConversationEdge<R, S>> getEdges();
 
     /**
      * Adds an edge to the list of possible outbound edges.
+     *
      * @param edge edge to add
      */
-    public void addEdge(IConversationEdge<R,S> edge);
+    public void addEdge(IConversationEdge<R, S> edge);
 
     /**
      * Returns the unique identifier for this node.
+     *
      * @return the node id
      */
     public int getId();
+
+    /**
+     * Transforms the user's input to enable sophisticated matching by the edges. For example,
+     * a node could try to extract sentiment or meaning from the input text.
+     * @param response
+     * @return 
+     */
+    public Optional<R> transformResponse(Optional<String> response);
+    
+    /**
+     * Modifies the current state. 
+     * @param response
+     * @param currentState
+     * @return 
+     */
+    public Optional<Map<String,Object>> transformState(Optional<R> response, S currentState);
 }

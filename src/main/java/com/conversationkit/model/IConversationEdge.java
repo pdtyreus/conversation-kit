@@ -23,6 +23,8 @@
  */
 package com.conversationkit.model;
 
+import java.util.Optional;
+
 /**
  * A conversation edge is a directed connection between two nodes on the 
  * conversation graph. Each edge has exactly one start node and one end node, 
@@ -34,7 +36,7 @@ package com.conversationkit.model;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversationEdge<R,S extends IConversationState<R>> {
+public interface IConversationEdge<R,S extends IConversationState> {
     /**
      * Returns the next node in the conversation graph along this edge. The 
      * conversation will proceed along this edge if the conversation state 
@@ -44,10 +46,11 @@ public interface IConversationEdge<R,S extends IConversationState<R>> {
     public IConversationNode<R,S> getEndNode();
     /**
      * Returns true if the conversation should proceed along this edge based
-     * on the conversation state provided.
+     * on the conversation state and user's response as transformed by the start node.
      * @param state the user's conversation state
+     * @param response transformed response
      * @return true if the edge matches
      */
-    public boolean isMatchForResponse(R state);
+    public boolean isMatchForState(Optional<R> response, S state);
 
 }

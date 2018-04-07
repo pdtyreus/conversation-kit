@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class MapBackedNodeIndex<R,S extends IConversationState<R>> implements IConversationNodeIndex<R,S> {
+public class MapBackedNodeIndex<R,S extends IConversationState> implements IConversationNodeIndex<R,S> {
 
     private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
     private final Map<Integer, IConversationNode<R,S>> nodeIndex = new HashMap();

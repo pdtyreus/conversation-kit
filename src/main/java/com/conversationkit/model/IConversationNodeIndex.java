@@ -27,6 +27,6 @@ package com.conversationkit.model;
  *
  * @author pdtyreus
  */
-public interface IConversationNodeIndex<R,S extends IConversationState<R>> {
+public interface IConversationNodeIndex<R,S extends IConversationState> {
     public IConversationNode<R,S> getNodeAtIndex(int id);
 }

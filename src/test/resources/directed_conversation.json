@@ -16,7 +16,15 @@
                 "type": "StringReplacing",
                 "label": "What is 3+3",
                 "metadata": {
-                    "snippetType": "QUESTION"
+                    "snippetType": "QUESTION",
+                    "responseTransformer":{
+                        "type":"JavaScript",
+                        "expression":"if (response == 'six'){return '6'}; return response;"
+                    },
+                    "stateTransformer":{
+                        "type":"JavaScript",
+                        "expression":"return {answer: response}"
+                    }
                 }
             },
             {
@@ -60,8 +68,7 @@
                 "label":"Any number",
                 "type":"Regex",
                 "metadata": {
-                    "pattern":"\\d+",
-                    "stateKey":"answer"
+                    "pattern":"\\d+"
                 }
             },
             {
@@ -71,8 +78,7 @@
                 "label":"Anything else",
                 "type":"JavaScript",
                 "metadata": {
-                    "isMatchForState":"return true;",
-                    "onMatch":"if (state.mostRecentResponse == 'six'){state.answer = 6};return state;"
+                    "isMatchForState":"return true;"
                 }
             },
             {
@@ -82,7 +88,7 @@
                 "label": "correct",
                 "type":"JavaScript",
                 "metadata": {
-                    "isMatchForState":"return (state.answer === 6);"
+                    "isMatchForState":"return (parseInt(state.answer) === 6);"
                 }
             },
             {
@@ -92,7 +98,7 @@
                 "label": "incorrect",
                 "type":"JavaScript",
                 "metadata": {
-                    "isMatchForState":"return (state.answer != 6);"
+                    "isMatchForState":"return (parseInt(state.answer) != 6);"
                 }
             },
             {
