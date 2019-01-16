@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 public final class Store<A, S> {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
-    
+
     private S currentState;
 
     private final Reducer<A, S> reducer;
@@ -58,23 +58,24 @@ public final class Store<A, S> {
         List<Middleware<A, S>> allMiddlewares = new ArrayList();
         //native middleware, last middleware in chain
 
+        for (Middleware<A, S> mw : middlewares) {
+            allMiddlewares.add(mw);
+        }
         allMiddlewares.add((store, action, next) -> {
             synchronized (Store.this) {
+                logger.fine(String.format("[REDUX] reducing action: %s", action.toString()));
                 currentState = store.reducer.reduce(action, currentState);
             }
             consumers.values().parallelStream().forEach(e -> e.accept(currentState));
         });
-        for (Middleware<A, S> mw : middlewares) {
-            allMiddlewares.add(mw);
-        }
-        
-        logger.info(String.format("initializing redux store with %d middlewares.",(allMiddlewares.size()-1)));
+
+        logger.info(String.format("initializing redux store with %d middleware(s).", (allMiddlewares.size() - 1)));
 
         for (int i = allMiddlewares.size() - 1; i >= 0; i--) {
             final Middleware<A, S> mw = allMiddlewares.get(i);
+            logger.fine(String.format("chaining middleware (%d)", i));
             //this will be null for the native middleware only, which is last
-            final Middleware<A, S> next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i+1));
-
+            final Middleware<A, S> next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
             this.middleware = (action) -> {
                 mw.dispatch(Store.this, action, next);
             };
@@ -83,10 +84,10 @@ public final class Store<A, S> {
     }
 
     public S dispatch(A action) {
-        logger.fine(String.format("[REDUX] dispatching action: %s",action.toString()));
+        logger.fine(String.format("[REDUX] dispatching action: %s", action.toString()));
 
         this.middleware.dispatch(action);
-        logger.finer(String.format("[REDUX] reduced state: %s",this.getState().toString()));
+        logger.finer(String.format("[REDUX] reduced state: %s", this.getState().toString()));
         return this.getState();
     }
 
