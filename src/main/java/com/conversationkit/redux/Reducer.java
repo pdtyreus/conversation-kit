@@ -24,7 +24,7 @@
 package com.conversationkit.redux;
 
 @FunctionalInterface
-public interface Reducer<A, S> {
+public interface Reducer<A extends Action, S> {
 
     S reduce(A action, S currentState);
 }

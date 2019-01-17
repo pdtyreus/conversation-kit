@@ -33,14 +33,15 @@ import junit.framework.TestCase;
  * @author tyreus
  */
 public class ReduxTest extends TestCase {
-    
-    public void testCreateStore() {
-        Reducer<String,Map> reducer = (String action, Map currentState) -> {
-            System.out.println("reducing "+action);
+
+
+    public void testCreateStore() throws Exception {
+        Reducer<StringAction, Map> reducer = (StringAction action, Map currentState) -> {
+            System.out.println("reducing " + action);
             return currentState;
         };
         Store store = Redux.createStore(reducer, Collections.unmodifiableMap(new HashMap()));
-        store.dispatch("action");
+        store.dispatch(new StringAction("action"));
     }
-    
+
 }

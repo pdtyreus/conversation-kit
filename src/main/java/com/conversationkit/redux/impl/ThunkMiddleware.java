@@ -21,10 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.redux;
+package com.conversationkit.redux.impl;
 
-@FunctionalInterface
-public interface Middleware<A extends Action, S> {
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Middleware;
+import com.conversationkit.redux.Store;
+import java.util.function.Consumer;
 
-    void dispatch(Store<A, S> store, Object action, Middleware<A, S> next);
+/**
+ *
+ * @author tyreus
+ */
+public class ThunkMiddleware<A extends Action, S> implements Middleware<A, S> {
+
+    @Override
+    public void dispatch(Store<A, S> store, Object action, Middleware<A, S> next) {
+        if (action instanceof Consumer) {
+            Consumer<Store> f = (Consumer) action;
+            f.accept(store);
+        } else {
+            next.dispatch(store, action, next);
+        }
+    }
+
 }

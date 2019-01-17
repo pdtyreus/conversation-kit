@@ -28,7 +28,7 @@ package com.conversationkit.redux;
  * @author tyreus
  */
 public class Redux {
-    public static <A,S> Store<A,S> createStore(Reducer<A, S> reducer, S state, Middleware<A, S>... middlewares) {
+    public static <A extends Action,S> Store<A,S> createStore(Reducer<A, S> reducer, S state, Middleware<A, S>... middlewares) {
         return new Store(reducer,state,middlewares);
     }
 }

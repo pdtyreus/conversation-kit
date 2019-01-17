@@ -23,8 +23,10 @@
  */
 package com.conversationkit.redux;
 
-@FunctionalInterface
-public interface Middleware<A extends Action, S> {
-
-    void dispatch(Store<A, S> store, Object action, Middleware<A, S> next);
+/**
+ *
+ * @author pdtyreus
+ */
+public interface Action {
+    public String getType();
 }

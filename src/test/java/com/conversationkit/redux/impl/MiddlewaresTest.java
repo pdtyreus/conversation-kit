@@ -21,22 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.redux;
+package com.conversationkit.redux.impl;
 
+import com.conversationkit.redux.Reducer;
+import com.conversationkit.redux.Redux;
+import com.conversationkit.redux.Store;
+import com.conversationkit.redux.StringAction;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import junit.framework.TestCase;
+import java.util.function.Consumer;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
+import junit.framework.TestCase;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class CounterTest extends TestCase {
+public class MiddlewaresTest extends TestCase {
 
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
@@ -52,47 +52,9 @@ public class CounterTest extends TestCase {
         }
     };
 
-    public void testCounter() {
-
+    public void testCompletableFutureCounter() {
         Integer state = 0;
-
-        final Middleware<StringAction, Integer> systemOutMiddleware = (store, action, next) -> {
-            System.out.println("System.out middleware got " + action + " with state " + store.getState());
-            next.dispatch(store, action, next);
-        };
-
-        Store<StringAction, Integer> store = Redux.createStore(reducer, state, systemOutMiddleware);
-
-        store.dispatch(new StringAction(INCREMENT));
-        assertEquals(1, store.getState().intValue());
-
-        store.dispatch(new StringAction(INCREMENT));
-        assertEquals(2, store.getState().intValue());
-
-        store.dispatch(new StringAction(DECREMENT));
-        assertEquals(1, store.getState().intValue());
-    }
-
-    public void testAsyncCounter() {
-
-        Integer state = 0;
-
-        final Middleware<StringAction, Integer> asyncMiddleware = (store, action, next) -> {
-            if (action instanceof Future) {
-                Future f = (Future) action;
-                try {
-                    Object a = f.get();
-                    System.out.println("async middleware waited and got " + a + " with state " + store.getState());
-                    next.dispatch(store, a, next);
-                } catch (Exception ex) {
-                    fail(ex.getMessage());
-                }
-            } else {
-                next.dispatch(store, action, next);
-            }
-        };
-
-        Store<StringAction, Integer> store = Redux.createStore(reducer, state, asyncMiddleware);
+        Store<StringAction, Integer> store = Redux.createStore(reducer, state, new CompletableFutureMiddleware());
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -118,6 +80,33 @@ public class CounterTest extends TestCase {
         assertEquals(1, store.getState().intValue());
     }
 
-    
-    
+    public void testThunkCounter() {
+        Integer state = 0;
+        Store<StringAction, Integer> store = Redux.createStore(reducer, state, new ThunkMiddleware());
+
+        Consumer<Store> c = s -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+
+            }
+            s.dispatch(new StringAction(INCREMENT));
+        };
+        store.dispatch(c);
+        assertEquals(1, store.getState().intValue());
+
+        store.dispatch(new StringAction(INCREMENT));
+        assertEquals(2, store.getState().intValue());
+
+        store.dispatch((Consumer<Store>)s -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+
+            }
+            s.dispatch(new StringAction(DECREMENT));
+        });
+        assertEquals(1, store.getState().intValue());
+    }
+
 }

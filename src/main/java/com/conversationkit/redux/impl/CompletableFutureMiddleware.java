@@ -21,10 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.redux;
+package com.conversationkit.redux.impl;
 
-@FunctionalInterface
-public interface Middleware<A extends Action, S> {
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Middleware;
+import com.conversationkit.redux.Store;
+import java.util.concurrent.Future;
 
-    void dispatch(Store<A, S> store, Object action, Middleware<A, S> next);
+/**
+ *
+ * @author tyreus
+ */
+public class CompletableFutureMiddleware<A extends Action, S> implements Middleware<A, S> {
+
+    @Override
+    public void dispatch(Store<A, S> store, Object action, Middleware<A, S> next) {
+        if (action instanceof Future) {
+            Future f = (Future) action;
+            try {
+                Object a = f.get();
+                next.dispatch(store, a, next);
+            } catch (Exception ex) {
+                throw new RuntimeException("Middleware received an unhandled exception. Catch exceptions in your lambda expression.", ex);
+            }
+        } else {
+            next.dispatch(store, action, next);
+        }
+    }
+
 }

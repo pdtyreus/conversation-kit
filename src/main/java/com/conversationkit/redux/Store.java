@@ -35,20 +35,20 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public final class Store<A, S> {
+public final class Store<A extends Action, S> {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
 
     private S currentState;
 
     private final Reducer<A, S> reducer;
-    private ActionDispatcher<A> middleware;
+    private ActionDispatcher dispatcher;
     private final Map<UUID, Consumer<S>> consumers = new HashMap<>();
 
     @FunctionalInterface
-    private interface ActionDispatcher<A> {
+    public interface ActionDispatcher {
 
-        public void dispatch(A action);
+        public void dispatch(Object action);
     }
 
     protected Store(Reducer<A, S> reducer, S state, Middleware<A, S>... middlewares) {
@@ -64,7 +64,11 @@ public final class Store<A, S> {
         allMiddlewares.add((store, action, next) -> {
             synchronized (Store.this) {
                 logger.fine(String.format("[REDUX] reducing action: %s", action.toString()));
-                currentState = store.reducer.reduce(action, currentState);
+                if (! (action instanceof Action ) ) {
+                    throw new RuntimeException("The action must be an instance of Action by the time it is received by the reducer. Action is "+action.getClass().getName());
+                }
+                A a = (A)action;
+                currentState = store.reducer.reduce(a, currentState);
             }
             consumers.values().parallelStream().forEach(e -> e.accept(currentState));
         });
@@ -76,17 +80,17 @@ public final class Store<A, S> {
             logger.fine(String.format("chaining middleware (%d)", i));
             //this will be null for the native middleware only, which is last
             final Middleware<A, S> next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
-            this.middleware = (action) -> {
+            this.dispatcher = (action) -> {
                 mw.dispatch(Store.this, action, next);
             };
 
         }
     }
 
-    public S dispatch(A action) {
+    public S dispatch(Object action) {
         logger.fine(String.format("[REDUX] dispatching action: %s", action.toString()));
 
-        this.middleware.dispatch(action);
+        this.dispatcher.dispatch(action);
         logger.finer(String.format("[REDUX] reduced state: %s", this.getState().toString()));
         return this.getState();
     }

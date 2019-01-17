@@ -23,8 +23,25 @@
  */
 package com.conversationkit.redux;
 
-@FunctionalInterface
-public interface Middleware<A extends Action, S> {
+/**
+ *
+ * @author pdtyreus
+ */
+public class StringAction implements Action {
+    private final String type;
 
-    void dispatch(Store<A, S> store, Object action, Middleware<A, S> next);
+    public StringAction(String type) {
+        this.type = type;
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
+    public String toString() {
+        return "StringAction{" + "type=" + type + '}';
+    }
+    
 }
