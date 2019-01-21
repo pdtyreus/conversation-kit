@@ -23,8 +23,10 @@
  */
 package com.conversationkit.redux;
 
-@FunctionalInterface
-public interface Middleware<A extends Action, S> {
+import java.util.Map;
 
-    void dispatch(Store<A, S> store, Object action, Middleware<A, S> next);
+@FunctionalInterface
+public interface Middleware<A extends Action> {
+
+    void dispatch(Store<A> store, Object action, Middleware<A> next);
 }

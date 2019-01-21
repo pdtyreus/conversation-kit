@@ -23,8 +23,10 @@
  */
 package com.conversationkit.redux;
 
-@FunctionalInterface
-public interface Reducer<A extends Action, S> {
+import java.util.Map;
 
-    S reduce(A action, S currentState);
+@FunctionalInterface
+public interface Reducer<A extends Action> {
+
+    Map<String,Object> reduce(A action, Map<String,Object> currentState);
 }

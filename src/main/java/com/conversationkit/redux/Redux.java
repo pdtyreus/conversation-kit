@@ -23,12 +23,43 @@
  */
 package com.conversationkit.redux;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author tyreus
  */
 public class Redux {
-    public static <A extends Action,S> Store<A,S> createStore(Reducer<A, S> reducer, S state, Middleware<A, S>... middlewares) {
-        return new Store(reducer,state,middlewares);
+
+    public static <A extends Action> Store<A> createStore(Reducer<A> reducer, Map<String,Object> state, Middleware<A>... middlewares) {
+        return new Store(reducer, state, middlewares);
+    }
+
+    public static <A extends Action> Reducer<A> combineReducers(Map<String, Reducer<A>> reducers) {
+        return new Reducer<A>() {
+
+            @Override
+            public Map<String,Object> reduce(A action, Map<String,Object> currentState) {
+                boolean isDirty = false;
+                Map<String,Object> nextState = new HashMap();
+                for (String key : currentState.keySet()) {
+                    if (reducers.containsKey(key)) {
+                        Map<String,Object> nestedState = (Map<String,Object>)currentState.get(key);
+                        Map<String,Object> nextNestedState = reducers.get(key).reduce(action, currentState);
+                        if (!nextNestedState.equals(nestedState)) {
+                            isDirty = true;
+                        }
+                        nextState.put(key, nextNestedState);
+                    }
+                }
+                if (isDirty) {
+                    return nextState;
+                } else {
+                    return currentState;
+                }
+            }
+
+        };
     }
 }

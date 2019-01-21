@@ -27,6 +27,9 @@ import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
 import com.conversationkit.redux.StringAction;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import static junit.framework.Assert.assertEquals;
@@ -41,20 +44,27 @@ public class MiddlewaresTest extends TestCase {
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
 
-    final Reducer<StringAction, Integer> reducer = (StringAction action, Integer currentState) -> {
+    final Reducer<StringAction> reducer = (StringAction action, Map<String, Object> currentState) -> {
+        Integer counter = (Integer) currentState.get("counter");
+        HashMap nextState = new HashMap();
         switch (action.getType()) {
             case INCREMENT:
-                return new Integer(++currentState);
+                ++counter;
+                nextState.put("counter", counter);
+                return nextState;
             case DECREMENT:
-                return new Integer(--currentState);
+                --counter;
+                nextState.put("counter", counter);
+                return nextState;
             default:
                 return currentState;
         }
     };
 
     public void testCompletableFutureCounter() {
-        Integer state = 0;
-        Store<StringAction, Integer> store = Redux.createStore(reducer, state, new CompletableFutureMiddleware());
+        HashMap<String, Object> state = new HashMap();
+        state.put("counter", 0);
+        Store<StringAction> store = Redux.createStore(reducer, state, new CompletableFutureMiddleware());
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -64,10 +74,10 @@ public class MiddlewaresTest extends TestCase {
             }
             return new StringAction(INCREMENT);
         }));
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
 
         store.dispatch(new StringAction(INCREMENT));
-        assertEquals(2, store.getState().intValue());
+        assertEquals(2, store.getState().get("counter"));
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -77,12 +87,13 @@ public class MiddlewaresTest extends TestCase {
             }
             return new StringAction(DECREMENT);
         }));
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
     }
 
     public void testThunkCounter() {
-        Integer state = 0;
-        Store<StringAction, Integer> store = Redux.createStore(reducer, state, new ThunkMiddleware());
+        HashMap<String, Object> state = new HashMap();
+        state.put("counter", 0);
+        Store<StringAction> store = Redux.createStore(reducer, state, new ThunkMiddleware());
 
         Consumer<Store> c = s -> {
             try {
@@ -93,12 +104,12 @@ public class MiddlewaresTest extends TestCase {
             s.dispatch(new StringAction(INCREMENT));
         };
         store.dispatch(c);
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
 
         store.dispatch(new StringAction(INCREMENT));
-        assertEquals(2, store.getState().intValue());
+        assertEquals(2, store.getState().get("counter"));
 
-        store.dispatch((Consumer<Store>)s -> {
+        store.dispatch((Consumer<Store>) s -> {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
@@ -106,7 +117,7 @@ public class MiddlewaresTest extends TestCase {
             }
             s.dispatch(new StringAction(DECREMENT));
         });
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
     }
 
 }

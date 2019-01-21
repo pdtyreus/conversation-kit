@@ -36,7 +36,7 @@ public class ReduxTest extends TestCase {
 
 
     public void testCreateStore() throws Exception {
-        Reducer<StringAction, Map> reducer = (StringAction action, Map currentState) -> {
+        Reducer<StringAction> reducer = (StringAction action, Map<String,Object> currentState) -> {
             System.out.println("reducing " + action);
             return currentState;
         };

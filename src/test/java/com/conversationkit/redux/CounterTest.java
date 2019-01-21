@@ -23,6 +23,8 @@
  */
 package com.conversationkit.redux;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -41,12 +43,18 @@ public class CounterTest extends TestCase {
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
 
-    final Reducer<StringAction, Integer> reducer = (StringAction action, Integer currentState) -> {
+    final Reducer<StringAction> reducer = (StringAction action, Map<String,Object> currentState) -> {
+        Integer counter = (Integer)currentState.get("counter");
+        Map<String,Object> nextState = new HashMap();
         switch (action.getType()) {
             case INCREMENT:
-                return new Integer(++currentState);
+                ++counter;
+                nextState.put("counter", counter);
+                return nextState;
             case DECREMENT:
-                return new Integer(--currentState);
+                --counter;
+                nextState.put("counter", counter);
+                return nextState;
             default:
                 return currentState;
         }
@@ -54,30 +62,33 @@ public class CounterTest extends TestCase {
 
     public void testCounter() {
 
-        Integer state = 0;
+        HashMap<String,Object> state = new HashMap();
+        state.put("counter", 0);
 
-        final Middleware<StringAction, Integer> systemOutMiddleware = (store, action, next) -> {
+        final Middleware<StringAction> systemOutMiddleware = (store, action, next) -> {
             System.out.println("System.out middleware got " + action + " with state " + store.getState());
             next.dispatch(store, action, next);
         };
 
-        Store<StringAction, Integer> store = Redux.createStore(reducer, state, systemOutMiddleware);
+        Store<StringAction> store = Redux.createStore(reducer, state, systemOutMiddleware);
 
         store.dispatch(new StringAction(INCREMENT));
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
 
         store.dispatch(new StringAction(INCREMENT));
-        assertEquals(2, store.getState().intValue());
+        assertEquals(2, store.getState().get("counter"));
 
         store.dispatch(new StringAction(DECREMENT));
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
     }
 
     public void testAsyncCounter() {
 
-        Integer state = 0;
+        
+        HashMap<String,Object> state = new HashMap();
+        state.put("counter", 0);
 
-        final Middleware<StringAction, Integer> asyncMiddleware = (store, action, next) -> {
+        final Middleware<StringAction> asyncMiddleware = (store, action, next) -> {
             if (action instanceof Future) {
                 Future f = (Future) action;
                 try {
@@ -92,7 +103,7 @@ public class CounterTest extends TestCase {
             }
         };
 
-        Store<StringAction, Integer> store = Redux.createStore(reducer, state, asyncMiddleware);
+        Store<StringAction> store = Redux.createStore(reducer, state, asyncMiddleware);
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -102,10 +113,10 @@ public class CounterTest extends TestCase {
             }
             return new StringAction(INCREMENT);
         }));
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
 
         store.dispatch(new StringAction(INCREMENT));
-        assertEquals(2, store.getState().intValue());
+        assertEquals(2, store.getState().get("counter"));
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -115,7 +126,7 @@ public class CounterTest extends TestCase {
             }
             return new StringAction(DECREMENT);
         }));
-        assertEquals(1, store.getState().intValue());
+        assertEquals(1, store.getState().get("counter"));
     }
 
     

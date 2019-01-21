@@ -35,15 +35,15 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public final class Store<A extends Action, S> {
+public final class Store<A extends Action> {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
 
-    private S currentState;
+    private Map<String,Object> currentState;
 
-    private final Reducer<A, S> reducer;
+    private final Reducer<A> reducer;
     private ActionDispatcher dispatcher;
-    private final Map<UUID, Consumer<S>> consumers = new HashMap<>();
+    private final Map<UUID, Consumer> consumers = new HashMap<>();
 
     @FunctionalInterface
     public interface ActionDispatcher {
@@ -51,14 +51,14 @@ public final class Store<A extends Action, S> {
         public void dispatch(Object action);
     }
 
-    protected Store(Reducer<A, S> reducer, S state, Middleware<A, S>... middlewares) {
+    protected Store(Reducer<A> reducer, Map<String,Object> state, Middleware<A>... middlewares) {
         this.reducer = reducer;
         this.currentState = state;
 
-        List<Middleware<A, S>> allMiddlewares = new ArrayList();
+        List<Middleware<A>> allMiddlewares = new ArrayList();
         //native middleware, last middleware in chain
 
-        for (Middleware<A, S> mw : middlewares) {
+        for (Middleware<A> mw : middlewares) {
             allMiddlewares.add(mw);
         }
         allMiddlewares.add((store, action, next) -> {
@@ -76,10 +76,10 @@ public final class Store<A extends Action, S> {
         logger.info(String.format("initializing redux store with %d middleware(s).", (allMiddlewares.size() - 1)));
 
         for (int i = allMiddlewares.size() - 1; i >= 0; i--) {
-            final Middleware<A, S> mw = allMiddlewares.get(i);
+            final Middleware<A> mw = allMiddlewares.get(i);
             logger.fine(String.format("chaining middleware (%d)", i));
             //this will be null for the native middleware only, which is last
-            final Middleware<A, S> next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
+            final Middleware<A> next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
             this.dispatcher = (action) -> {
                 mw.dispatch(Store.this, action, next);
             };
@@ -87,7 +87,7 @@ public final class Store<A extends Action, S> {
         }
     }
 
-    public S dispatch(Object action) {
+    public Map<String,Object> dispatch(Object action) {
         logger.fine(String.format("[REDUX] dispatching action: %s", action.toString()));
 
         this.dispatcher.dispatch(action);
@@ -95,11 +95,11 @@ public final class Store<A extends Action, S> {
         return this.getState();
     }
 
-    public S getState() {
+    public Map<String,Object> getState() {
         return this.currentState;
     }
 
-    public UUID subscribe(Consumer<S> subscriber) {
+    public UUID subscribe(Consumer subscriber) {
         UUID uuid = UUID.randomUUID();
         this.consumers.put(uuid, subscriber);
 

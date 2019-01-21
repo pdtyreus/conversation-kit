@@ -26,16 +26,17 @@ package com.conversationkit.redux.impl;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Middleware;
 import com.conversationkit.redux.Store;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
  *
  * @author tyreus
  */
-public class ThunkMiddleware<A extends Action, S> implements Middleware<A, S> {
+public class ThunkMiddleware<A extends Action> implements Middleware<A> {
 
     @Override
-    public void dispatch(Store<A, S> store, Object action, Middleware<A, S> next) {
+    public void dispatch(Store<A> store, Object action, Middleware<A> next) {
         if (action instanceof Consumer) {
             Consumer<Store> f = (Consumer) action;
             f.accept(store);

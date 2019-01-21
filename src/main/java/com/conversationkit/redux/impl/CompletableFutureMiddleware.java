@@ -26,16 +26,17 @@ package com.conversationkit.redux.impl;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Middleware;
 import com.conversationkit.redux.Store;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
-public class CompletableFutureMiddleware<A extends Action, S> implements Middleware<A, S> {
+public class CompletableFutureMiddleware<A extends Action> implements Middleware<A> {
 
     @Override
-    public void dispatch(Store<A, S> store, Object action, Middleware<A, S> next) {
+    public void dispatch(Store<A> store, Object action, Middleware<A> next) {
         if (action instanceof Future) {
             Future f = (Future) action;
             try {
