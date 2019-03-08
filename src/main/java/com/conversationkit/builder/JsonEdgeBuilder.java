@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.edge;
+package com.conversationkit.builder;
 
+import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+import com.eclipsesource.json.JsonObject;
+import java.io.IOException;
 
 /**
- * Edge that matches no-like responses.
+ *
  * @author pdtyreus
  */
-public class NegativeEdge <S extends IConversationState> extends RegexEdge<S> {
-
-    private static final String NO = "\\bno\\b|\\bnope\\b|\\bnah\\b|\\bnone\\b|\\bnot really\\b";
-    
-    public NegativeEdge(String stateKey, Object stateValue, IConversationNode<S> endNode) {
-        super(NO,stateKey,stateValue,endNode);
-    }
-    
-    public NegativeEdge(IConversationNode<S> endNode) {
-        super(NO,endNode);
-    }
+@FunctionalInterface
+public interface JsonEdgeBuilder {
+    public IConversationEdge edgeFromJson(String intentId, JsonObject metadata, IConversationNode target) throws IOException;
 }

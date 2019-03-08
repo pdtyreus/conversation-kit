@@ -37,51 +37,44 @@ import java.util.List;
  * that the suggested responses actually match an outbound edge.
  * 
  * @author pdtyreus
- * @param <S> an implementation of IConversationState to store the state of the 
- * conversation for the current user
  */
-public class ResponseSuggestingNode<S extends IConversationState> extends ConversationNode<S> {
+public class ResponseSuggestingNode extends ConversationNode {
 
     protected List<String> suggestedResponses;
     protected List<IConversationSnippetButton> buttons;
     protected final String content;
     protected final SnippetContentType contentType;
     
-    public ResponseSuggestingNode(int id, SnippetType type, String content) {
-        super(id, type);
+    public ResponseSuggestingNode(int id, String content) {
+        super(id);
         this.suggestedResponses = null;
         this.content = content;
         this.contentType = SnippetContentType.TEXT;
     }
     
-    public ResponseSuggestingNode(int id, SnippetType type, String content, SnippetContentType contentType) {
-        super(id, type);
+    public ResponseSuggestingNode(int id, String content, SnippetContentType contentType) {
+        super(id);
         this.suggestedResponses = null;
         this.content = content;
         this.contentType = contentType;
     }
 
-    @Override
-    public String renderContent(S state) {
+    public String getValue() {
         return content;
     }
 
-    @Override
-    public Iterable<String> getSuggestedResponses(S state) {
+    public Iterable<String> getSuggestedResponses() {
         return suggestedResponses;
     }
     
     public void addSuggestedResponse(String response) {
-        if (getType() == SnippetType.STATEMENT) {
-            throw new IllegalArgumentException("STATEMENTS cannot have suggested responses ["+getId()+"]");
-        }
+
         if (suggestedResponses == null) {
             suggestedResponses = new ArrayList();
         }
         suggestedResponses.add(response);
     }
 
-    @Override
     public Iterable<IConversationSnippetButton> getButtons() {
         return buttons;
     }
@@ -93,7 +86,6 @@ public class ResponseSuggestingNode<S extends IConversationState> extends Conver
         buttons.add(button);
     }
     
-    @Override
     public SnippetContentType getContentType() {
         return contentType;
     }

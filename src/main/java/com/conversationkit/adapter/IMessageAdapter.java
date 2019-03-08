@@ -31,5 +31,5 @@ import com.conversationkit.model.IConversationState;
  * @author pdtyreus
  */
 public interface IMessageAdapter {
-    public String snippetToJson(IConversationSnippet snippet, IConversationState state, Object... arguments);
+    public String responseToJson(String response, Object... arguments);
 }

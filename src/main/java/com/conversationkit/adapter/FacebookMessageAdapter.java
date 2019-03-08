@@ -29,6 +29,7 @@ import com.eclipsesource.json.JsonValue;
 import com.conversationkit.model.IConversationSnippet;
 import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.IConversationState;
+import com.conversationkit.model.SnippetContentType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,20 +63,30 @@ public class FacebookMessageAdapter implements IMessageAdapter {
     }
 
     @Override
-    public String snippetToJson(IConversationSnippet snippet, IConversationState state, Object... arguments) {
-        if (arguments.length == 0) {
-            throw new IllegalArgumentException("The user's phone number or facebookId should be sent as the first argument.");
+    public String responseToJson(String response, Object... arguments) {
+        if (arguments.length < 2) {
+            throw new IllegalArgumentException("The user's phone number or facebookId should be sent as the first argument and the response type as the second.");
         }
 
         JsonObject json = Json.object()
                 .add("recipient", Json.object()
                         .add("id", (String) arguments[0])).asObject();
+        
+        Iterable<String> suggestedResponses = null;
+        SnippetContentType contentType = (SnippetContentType)arguments[1];
+        if (arguments.length > 2) {
+            suggestedResponses = (Iterable<String>)arguments[2];
+        }
+        Iterable<IConversationSnippetButton> buttons = null;
+        if (arguments.length > 3) {
+            buttons = (Iterable<IConversationSnippetButton>) arguments[3];
+        }
 
         JsonValue quickReplies = null;
-        if (snippet.getSuggestedResponses(state) != null) {
+        if (suggestedResponses != null) {
             List<String> quickReplyList = new ArrayList();
-            for (Object suggestedResponse : snippet.getSuggestedResponses(state)) {
-                quickReplyList.add((String) suggestedResponse);
+            for (String suggestedResponse : suggestedResponses) {
+                quickReplyList.add( suggestedResponse);
             }
             if (!quickReplyList.isEmpty()) {
                 quickReplies = Json.array();
@@ -90,16 +101,16 @@ public class FacebookMessageAdapter implements IMessageAdapter {
 
         String type = null;
         JsonObject message = Json.object();
-        switch (snippet.getContentType()) {
+        switch (contentType) {
             case TEXT:
-                message.add("text", snippet.renderContent(state));
+                message.add("text", response);
                 if (quickReplies != null) {
                     message.add("quick_replies", quickReplies);
                 }
                 json.add("message", message);
                 return json.toString();
             case LOCATION_REQUEST:
-                message.add("text", snippet.renderContent(state));
+                message.add("text", response);
                 JsonValue quickRepliesWithLocation = Json.array();
 
                 quickRepliesWithLocation.asArray().add(Json.object()
@@ -116,17 +127,16 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                 return json.toString();
             case BUTTONS:
 
-                JsonValue buttons = Json.array();
-                if (snippet.getButtons() != null) {
-                    for (Object obj : snippet.getButtons()) {
-                        IConversationSnippetButton iButton = (IConversationSnippetButton) obj;
-                        buttons.asArray().add(createButton(iButton));
+                JsonValue buttonsJson = Json.array();
+                if (buttons != null) {
+                    for (IConversationSnippetButton iButton : buttons) {
+                        buttonsJson.asArray().add(createButton(iButton));
                     }
                 }
                 JsonObject payload = Json.object();
-                payload.add("buttons", buttons);
+                payload.add("buttons", buttonsJson);
                 payload.add("template_type", "button");
-                payload.add("text", snippet.renderContent(state));
+                payload.add("text", response);
                 JsonObject attachment = Json.object();
                 attachment.add("payload", payload);
                 attachment.add("type", "template");
@@ -136,19 +146,19 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                 return json.toString();
             case AUDIO:
                 type = "audio";
-                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", response)));
                 break;
             case VIDEO:
                 type = "video";
-                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", response)));
                 break;
             case FILE:
                 type = "file";
-                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", response)));
                 break;
             case IMAGE:
                 type = "image";
-                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", snippet.renderContent(state))));
+                message.add("attachment", Json.object().add("type", type).add("payload", Json.object().add("url", response)));
                 break;
 
         }

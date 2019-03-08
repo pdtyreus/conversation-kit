@@ -28,6 +28,8 @@ import com.conversationkit.redux.Middleware;
 import com.conversationkit.redux.Store;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -35,9 +37,12 @@ import java.util.concurrent.Future;
  */
 public class CompletableFutureMiddleware<A extends Action> implements Middleware<A> {
 
+    private static final Logger logger = Logger.getLogger(CompletableFutureMiddleware.class.getName());
+    
     @Override
     public void dispatch(Store<A> store, Object action, Middleware<A> next) {
         if (action instanceof Future) {
+            logger.log(Level.FINE, "middleware handling future action {0}", action.toString());
             Future f = (Future) action;
             try {
                 Object a = f.get();
@@ -46,6 +51,7 @@ public class CompletableFutureMiddleware<A extends Action> implements Middleware
                 throw new RuntimeException("Middleware received an unhandled exception. Catch exceptions in your lambda expression.", ex);
             }
         } else {
+            logger.log(Level.FINE, "middleware ignoring action {0}", action.toString());
             next.dispatch(store, action, next);
         }
     }

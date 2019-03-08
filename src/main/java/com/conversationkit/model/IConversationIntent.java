@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.node;
-
-import com.conversationkit.impl.MapBackedState;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetType;
+package com.conversationkit.model;
 
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public class StringReplacingNode<S extends IConversationState> extends ResponseSuggestingNode<S> {
-
-    public StringReplacingNode(int id, SnippetType type, String content) {
-        super(id, type, content);
-    }
-
-    @Override
-    public String renderContent(S state) {
-        if (state == null) {
-            return content;
-        }
-
-        if (state instanceof MapBackedState) {
-            String renderedContent = content;
-            MapBackedState map = (MapBackedState) state;
-            for (String key : map.keySet()) {
-                renderedContent = renderedContent.replace("{{" + key + "}}", state.get(key).toString());
-            }
-
-            return renderedContent;
-        } else {
-            return content;
-        }
-    }
+public interface IConversationIntent {
+    
 }

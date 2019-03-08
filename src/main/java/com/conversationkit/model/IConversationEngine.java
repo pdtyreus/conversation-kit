@@ -48,15 +48,4 @@ public interface IConversationEngine<S extends IConversationState> {
      */
     public Iterable<IConversationSnippet> startConversationFromState(S state);
     
-    /**
-     * Updates the conversation with a response from the user and advances the 
-     * currentNodeId if a matching edge is found.
-     * 
-     * @param state the current IConversationState
-     * @param response the user's response
-     * @return the updated state
-     * @throws UnmatchedResponseException if no outbound edges from the current node match the response
-     * @throws UnexpectedResponseException if the conversation is in a state where it is not expecting a response (e.g. the current node is not a QUESTION)
-     */
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException;
 }

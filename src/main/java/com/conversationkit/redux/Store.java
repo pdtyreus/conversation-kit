@@ -35,23 +35,24 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public final class Store<A extends Action> {
+public final class Store<A extends Action> implements Dispatcher {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
 
-    private Map<String,Object> currentState;
+    private Map<String, Object> currentState;
 
     private final Reducer<A> reducer;
     private ActionDispatcher dispatcher;
-    private final Map<UUID, Consumer> consumers = new HashMap<>();
+    private final Map<UUID, Consumer<Map<String, Object>>> consumers = new HashMap<>();
 
     @FunctionalInterface
     public interface ActionDispatcher {
 
         public void dispatch(Object action);
+
     }
 
-    protected Store(Reducer<A> reducer, Map<String,Object> state, Middleware<A>... middlewares) {
+    protected Store(Reducer<A> reducer, Map<String, Object> state, Middleware<A>... middlewares) {
         this.reducer = reducer;
         this.currentState = state;
 
@@ -62,15 +63,22 @@ public final class Store<A extends Action> {
             allMiddlewares.add(mw);
         }
         allMiddlewares.add((store, action, next) -> {
+            Map<String, Object> nextState;
             synchronized (Store.this) {
                 logger.fine(String.format("[REDUX] reducing action: %s", action.toString()));
-                if (! (action instanceof Action ) ) {
-                    throw new RuntimeException("The action must be an instance of Action by the time it is received by the reducer. Action is "+action.getClass().getName());
+                if (!(action instanceof Action)) {
+                    throw new RuntimeException("The action must be an instance of Action by the time it is received by the reducer. Action is " + action.getClass().getName());
                 }
-                A a = (A)action;
-                currentState = store.reducer.reduce(a, currentState);
+                A a = (A) action;
+                nextState = store.reducer.reduce(a, currentState);
             }
-            consumers.values().parallelStream().forEach(e -> e.accept(currentState));
+            if (!nextState.equals(currentState)) {
+                logger.fine(String.format("[REDUX] state has changed after %s", action.toString()));
+                currentState = nextState;
+                consumers.values().parallelStream().forEach(e -> e.accept(currentState));
+            } else {
+                logger.fine(String.format("[REDUX] state has not changed after %s", action.toString()));
+            }
         });
 
         logger.info(String.format("initializing redux store with %d middleware(s).", (allMiddlewares.size() - 1)));
@@ -87,7 +95,7 @@ public final class Store<A extends Action> {
         }
     }
 
-    public Map<String,Object> dispatch(Object action) {
+    public Map<String, Object> dispatch(Object action) {
         logger.fine(String.format("[REDUX] dispatching action: %s", action.toString()));
 
         this.dispatcher.dispatch(action);
@@ -95,11 +103,11 @@ public final class Store<A extends Action> {
         return this.getState();
     }
 
-    public Map<String,Object> getState() {
+    public Map<String, Object> getState() {
         return this.currentState;
     }
 
-    public UUID subscribe(Consumer subscriber) {
+    public UUID subscribe(Consumer<Map<String, Object>> subscriber) {
         UUID uuid = UUID.randomUUID();
         this.consumers.put(uuid, subscriber);
 

@@ -40,19 +40,16 @@ import java.util.List;
  * the interface while others like Slack do not.
  * 
  * @author pdtyreus
- * @param <S> an implementation of to store the current state of the conversation
- * for the current user
  */
-public interface IConversationSnippet<S extends IConversationState> {
+public interface IConversationSnippet {
     
     /**
      * Returns the text to be displayed to the user. The state can be used to
      * modify the content at runtime to, for example, integrate data from
      * previous responses.
-     * @param state the user's conversation state
      * @return the text to be displayed to the user.
      */
-    public String renderContent(S state);
+    public String getValue();
     /**
      * The snippet type influences the control flow of the IConversation
      * implementation.
@@ -66,10 +63,9 @@ public interface IConversationSnippet<S extends IConversationState> {
     public SnippetContentType getContentType();
     /**
      * Returns the suggested responses if supported by the chat bot client.
-     * @param state the user's conversation state
      * @return the suggested responses
      */
-    public Iterable<String> getSuggestedResponses(S state);
+    public Iterable<String> getSuggestedResponses();
     
     /**
      * Returns the buttons to render if supported by the chat bot client.

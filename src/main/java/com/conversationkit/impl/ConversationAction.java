@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,43 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.node;
+package com.conversationkit.impl;
 
-import com.conversationkit.model.IConversationSnippetButton;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
+import com.conversationkit.impl.action.ActionType;
+import com.conversationkit.redux.Action;
+import java.util.Optional;
 
 /**
- * An implementation of <code>IConversationNode</code> that serves simply
- * as a pass-though node that renders no content.
- * 
+ *
  * @author pdtyreus
  */
-public class HiddenNode <S extends IConversationState> extends ConversationNode<S> {
+public class ConversationAction<S> implements Action {
 
-    public HiddenNode(int id, SnippetType type) {
-        super(id, type);
+    private final ActionType type;
+    private final Optional<S> payload;
+
+    public ConversationAction(ActionType type, S payload) {
+        this.type = type;
+        this.payload = Optional.ofNullable(payload);
+    }
+    
+    public ConversationAction(ActionType type) {
+        this.type = type;
+        this.payload = Optional.empty();
     }
 
     @Override
-    public String renderContent(S state) {
-        return null;
+    public String getType() {
+        return type.name();
     }
-
-    @Override
-    public SnippetContentType getContentType() {
-        return SnippetContentType.NOTHING;
+    
+    public Optional<S> getPayload() {
+        return this.payload;
     }
-
-    @Override
-    public Iterable<String> getSuggestedResponses(S state) {
-        return null;
+    
+    public ActionType getActionType() {
+        return this.type;
     }
-
-    @Override
-    public Iterable<IConversationSnippetButton> getButtons() {
-        return null;
-    }
-
 }

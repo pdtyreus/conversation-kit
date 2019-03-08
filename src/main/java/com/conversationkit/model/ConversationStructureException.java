@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,39 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.edge;
-
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+package com.conversationkit.model;
 
 /**
- * A simple <code>IConversationEdge</code> implementation that always 
- * matches. This 
- * implementation would be best used for connecting multiple 
- * {@link com.conversationkit.model.SnippetType}<code>.STATEMENT</code>
- * nodes.
- * 
- * @author pdtyreus
- * @param <S> an implementation of IConversationState
+ *
+ * @author tyreus
  */
-public class StatementEdge<S extends IConversationState> extends ConversationEdge<S> {
+public class ConversationStructureException extends RuntimeException {
 
-    public StatementEdge(IConversationNode endNode) {
-        super(endNode);
+    /**
+     * Creates a new instance of <code>ConversationStructureException</code>
+     * without detail message.
+     */
+    public ConversationStructureException() {
     }
 
-    @Override
-    public String toString() {
-        return "StatementEdge {"+isMatchForState(null)+"}";
+    /**
+     * Constructs an instance of <code>ConversationStructureException</code>
+     * with the specified detail message.
+     *
+     * @param msg the detail message.
+     */
+    public ConversationStructureException(String msg) {
+        super(msg);
     }
-
-    @Override
-    public boolean isMatchForState(S state) {
-        return true;
-    }
-
-    @Override
-    public void onMatch(S state) {
-    }
-
 }

@@ -32,23 +32,21 @@ import java.util.List;
  * traverses the graph between nodes in by analyzing the state and choosing
  * the first matching edge at each vertex.
  * @author pdtyreus
- * @param <S> an implementation of IConversationState to store the state of the 
- * conversation for the current user
  */
-public interface IConversationNode<S extends IConversationState> extends IConversationSnippet<S>{
+public interface IConversationNode {
 
     /**
      * Returns a list of outbound edges from the current node. One matching 
      * edge may be chosen to continue the conversation to the next node.
      * @return outbound edges
      */
-    public Iterable<IConversationEdge<S>> getEdges();
+    public Iterable<IConversationEdge> getEdges();
 
     /**
      * Adds an edge to the list of possible outbound edges.
      * @param edge edge to add
      */
-    public void addEdge(IConversationEdge<S> edge);
+    public void addEdge(IConversationEdge edge);
 
     /**
      * Returns the unique identifier for this node.

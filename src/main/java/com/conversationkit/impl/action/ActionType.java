@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,43 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.node;
-
-import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetType;
-import java.util.ArrayList;
-import java.util.List;
+package com.conversationkit.impl.action;
 
 /**
- * Convenience base class for creating nodes.
- * 
+ *
  * @author pdtyreus
  */
-public class ConversationNode implements IConversationNode {
+public enum ActionType {
 
-    protected final List<IConversationEdge> edges;
-    private final int id;
+    MESSAGE_RECEIVED,
+    INTENT_UNDERSTANDING_SUCCEEDED, INTENT_UNDERSTANDING_FAILED,
+    INTENT_FULFILLMENT_SUCCEEDED, INTENT_FULFILLMENT_FAILED,
 
-    public ConversationNode(int id) {
-        this.id = id;
-        this.edges = new ArrayList();
     }
-
-    @Override
-    public Iterable<IConversationEdge> getEdges() {
-        return edges;
-    }
-
-    @Override
-    public void addEdge(IConversationEdge edge) {
-        edges.add(edge);
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-}

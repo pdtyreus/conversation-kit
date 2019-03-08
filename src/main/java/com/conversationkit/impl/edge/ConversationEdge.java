@@ -24,6 +24,7 @@
 package com.conversationkit.impl.edge;
 
 import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
 
@@ -32,20 +33,28 @@ import com.conversationkit.model.IConversationState;
  * 
  * @author pdtyreus
  */
-public abstract class ConversationEdge<S extends IConversationState> implements IConversationEdge<S> {
-    private final IConversationNode<S> endNode;
+public class ConversationEdge implements IConversationEdge {
+    private final IConversationNode endNode;
+    private final String intentId;
 
-    public ConversationEdge(IConversationNode<S> endNode) {
+    public ConversationEdge(IConversationNode endNode, String intentId) {
         this.endNode = endNode;
+        this.intentId = intentId;
     }
 
     @Override
-    public IConversationNode<S> getEndNode() {
+    public IConversationNode getEndNode() {
         return endNode;
     }
 
     @Override
-    public void onMatch(S state) {
+    public String getIntentId() {
+        return intentId;
     }
 
+    @Override
+    public String toString() {
+        return "ConversationEdge {" + getIntentId() + '}';
+    }
+    
 }

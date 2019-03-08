@@ -23,6 +23,7 @@
  */
 package com.conversationkit.impl;
 
+import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationSnippet;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetType;
@@ -34,14 +35,18 @@ import java.util.Formatter;
  */
 public class OutputUtil {
     
-    public static void formatSnippet(Formatter formatter, IConversationSnippet node, IConversationState state) {
-        formatter.format("  > %-100s <\n", node.renderContent(state));
-        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses(state) != null)) {
-            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses(state)) + " ]");
-        }
-    }
+//    public static void formatSnippet(Formatter formatter, String text) {
+//        formatter.format("  > %-100s <\n", node.getValue());
+//        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses(state) != null)) {
+//            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses(state)) + " ]");
+//        }
+//    }
 
-    public static void formatResponse(Formatter formatter, String response) {
-        formatter.format("  > %100s <\n", response);
+    public static void formatInput(Formatter formatter, String message) {
+        formatter.format("  > %100s <\n", message);
+    }
+    
+    public static void formatOutput(Formatter formatter, String message) {
+        formatter.format("  > %-100s <\n", message);
     }
 }

@@ -23,102 +23,175 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.model.IConversationEngine;
+import com.conversationkit.impl.action.ActionType;
+import com.conversationkit.impl.action.IntentFulfillmentSucceededAction;
+import com.conversationkit.impl.action.MessageReceivedAction;
+import com.conversationkit.model.ConversationStructureException;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
-import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
-import com.conversationkit.model.UnexpectedResponseException;
-import com.conversationkit.model.UnmatchedResponseException;
-import java.util.ArrayList;
-import java.util.List;
+import com.conversationkit.nlp.IntentDetector;
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Dispatcher;
+import com.conversationkit.redux.Store;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DirectedConversationEngine<S extends IConversationState> implements IConversationEngine<S> {
+public class DirectedConversationEngine {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
-    protected final IConversationNodeIndex<S> nodeIndex;
+    protected final IConversationNodeIndex nodeIndex;
+    protected final IntentDetector<String> intentDetector;
+    protected final Map<String, CompletableFuture<Action>> intentHandlers = new HashMap();
+    protected final Map<String, Integer> fallbackIntentMap = new HashMap();
+    protected final ExecutorService executorService;
 
-    public DirectedConversationEngine(IConversationNodeIndex<S> nodeIndex) {
+    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex) {
         this.nodeIndex = nodeIndex;
+        this.intentDetector = intentDetector;
+        this.executorService = Executors.newFixedThreadPool(10);
     }
 
-    @Override
-    public Iterable<IConversationSnippet> startConversationFromState(S state) {
-        List<IConversationSnippet> nodes = new ArrayList();
-        IConversationNode<S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-        if (nextNode.getContentType() != SnippetContentType.NOTHING) {
-            nodes.add(nextNode);
+    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, ExecutorService executorService) {
+        this.nodeIndex = nodeIndex;
+        this.intentDetector = intentDetector;
+        this.executorService = executorService;
+    }
+
+    public void registerIntentFulfillment(String intentId, CompletableFuture<Action> action) {
+        this.intentHandlers.put(intentId, action);
+    }
+
+    public void registerFallback(String intentId, Integer targetNodeId) {
+        this.fallbackIntentMap.put(intentId, targetNodeId);
+    }
+
+    private CompletableFuture<IConversationNode> handleIntent(final Dispatcher store, final IConversationNode nextNode, Optional<CompletableFuture<Action>> action) {
+
+        //IntentFulfillmentSucceededAction success = new IntentFulfillmentSucceededAction(nextNode);
+        if (action.isPresent()) {
+            return action.get().thenApply((Action a) -> {
+                store.dispatch(a);
+                return nextNode;
+            });
+        } else {
+            return CompletableFuture.completedFuture(nextNode);
         }
-        boolean matchFound = true;
-        while (matchFound && (nextNode.getType() == SnippetType.STATEMENT)) {
-            //if nothing has matched, we are done
-            matchFound = false;
-            for (IConversationEdge<S> edge : nextNode.getEdges()) {
-                //find the first edge that matches and move to that node
-                if (!matchFound) {
-                    logger.fine(String.format("evaluating STATEMENT edge %s", edge));
-                    if (edge.isMatchForState(state)) {
-                        matchFound = true;
-                        state = moveToNextNode(state, edge);
-                        nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-                        if (nextNode.getContentType() != SnippetContentType.NOTHING) {
-                            nodes.add(nextNode);
-                        }
-                    }
+    }
+
+    private CompletableFuture<IConversationNode> handleIncomingIntent(Dispatcher dispatch, Map<String, Object> state, String intentId) {
+        Integer currentNodeId = ConversationReducer.selectCurrentNodeId(state);
+        Optional<IConversationNode> currentNode = Optional.empty();
+        if (currentNodeId != null) {
+            currentNode = Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId));
+        }
+        Optional<IConversationNode> nextNode = Optional.empty();
+        Optional<CompletableFuture<Action>> handler = Optional.ofNullable(intentHandlers.get(intentId));
+        if (handler.isPresent()) {
+            logger.info(String.format("Found custom handler for intent %s", intentId));
+        }
+        //store.dispatch(new ConversationAction(ActionType.INTENT_FULFILLMENT_REQUESTED));
+
+        if (currentNode.isPresent()) {
+
+            Iterable<IConversationEdge> edges = currentNode.get().getEdges();
+            for (IConversationEdge edge : edges) {
+                //see if one of the possible edges matches
+                if (intentId.equals(edge.getIntentId())) {
+                    nextNode = Optional.ofNullable(edge.getEndNode());
                 }
             }
-        }
-        return nodes;
-    }
 
-    @Override
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException {
-        IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-
-        if (currentSnippet.getType() == SnippetType.QUESTION) {
-            state.setMostRecentResponse(response);
-            logger.info(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
-            boolean matchFound = false;
-
-            for (IConversationEdge<S> edge : currentSnippet.getEdges()) {
-                if (!matchFound) {
-                    logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
-
-                    if (edge.isMatchForState(state)) {
-                        matchFound = true;
-                        moveToNextNode(state, edge);
-                    }
+            if (nextNode.isPresent()) {
+                logger.info(String.format("Found matching next node %d for start node %d and intent %s", nextNode.get().getId(), currentNode.get().getId(), intentId));
+            } else {
+                Integer fallbackNextNodeId = fallbackIntentMap.get(intentId);
+                if (fallbackNextNodeId == null) {
+                    logger.info(String.format("No fallbacks mapped for intent %s", intentId));
+                } else {
+                    logger.info(String.format("Using fallback node %d mapped for start node %d and intent %s", fallbackNextNodeId, currentNode.get().getId(), intentId));
+                    nextNode = Optional.ofNullable(nodeIndex.getNodeAtIndex(fallbackNextNodeId));
                 }
             }
 
-            if (!matchFound) {
-                throw new UnmatchedResponseException();
+            if (!nextNode.isPresent()) {
+                throw new ConversationStructureException("Node " + currentNode.get().getId() + " has no matching end node for intent " + intentId);
             }
-        } else {
-            throw new UnexpectedResponseException(String.format("received response '%s' to node %d which is not a QUESTION",response,state.getCurrentNodeId()));
-        }
+            return handleIntent(dispatch, nextNode.get(), handler);
 
-        return state;
+        } else {
+            Integer fallbackNextNodeId = fallbackIntentMap.get(intentId);
+            if (fallbackNextNodeId == null) {
+                logger.info(String.format("No fallbacks mapped for intent %s", intentId));
+            } else {
+                logger.info(String.format("Using fallback node %d mapped for intent %s", fallbackNextNodeId, intentId));
+                nextNode = Optional.ofNullable(nodeIndex.getNodeAtIndex(fallbackNextNodeId));
+            }
+
+            if (!nextNode.isPresent()) {
+                throw new ConversationStructureException("No current node and no matching fallback for intent " + intentId);
+            }
+            return handleIntent(dispatch, nextNode.get(), handler);
+        }
     }
 
-    private S moveToNextNode(S state, IConversationEdge<S> edge) {
-        IConversationNode nextNode = edge.getEndNode();
-        state.setCurrentNodeId(nextNode.getId());
-        if (state.getMostRecentResponse() != null) {
-            logger.info(String.format("response '%s' matches edge '%s'", state.getMostRecentResponse(), edge));
-        } else {
-            logger.info(String.format("edge '%s' matches", edge));
-        }
-        logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
-        edge.onMatch(state);
-        return state;
+    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(Dispatcher store, Map<String, Object> state, String message) {
+
+        //MessageHandlingResult result = new MessageHandlingResult();
+        store.dispatch(new MessageReceivedAction(message));
+        return intentDetector.detectIntent(message)
+                .thenCompose((intent) -> {
+                    if (intent.isPresent()) {
+                        return handleIncomingIntent(store, state, intent.get())
+                        .thenApply((n) -> {
+                            store.dispatch(new IntentFulfillmentSucceededAction(n));
+                            MessageHandlingResult result = new MessageHandlingResult();
+                            result.ok = true;
+                            return result;
+                        }).exceptionally((t) -> {
+                            //intent handling exception
+                            MessageHandlingResult result = new MessageHandlingResult();
+                            result.ok = false;
+                            return result;
+                        });
+                    } else {
+                        MessageHandlingResult result = new MessageHandlingResult();
+                        result.ok = false;
+                        result.errorCode = ErrorCode.INTENT_PROCESSING_FAILED;
+                        return CompletableFuture.completedFuture(result);
+                    }
+
+                }).exceptionally((e) -> {
+                    //intent processing exception
+                    MessageHandlingResult result = new MessageHandlingResult();
+                    result.ok = false;
+                    result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
+                    result.errorMessage = e.getMessage();
+                    return result;
+
+                });
+
     }
+
+    public static class MessageHandlingResult {
+
+        public boolean ok;
+        public ErrorCode errorCode;
+        public String errorMessage;
+    }
+
+    public static enum ErrorCode {
+
+        INTENT_UNDERSTANDING_FAILED, INTENT_PROCESSING_FAILED
+    }
+
 }

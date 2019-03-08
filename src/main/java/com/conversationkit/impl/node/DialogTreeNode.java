@@ -25,6 +25,7 @@ package com.conversationkit.impl.node;
 
 import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationSnippetButton;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
@@ -58,7 +59,7 @@ import java.util.List;
  * @param <S> an implementation of IConversationState to store the state of the
  * conversation for the current user
  */
-public class DialogTreeNode<S extends IConversationState> extends ConversationNode<S> {
+public class DialogTreeNode extends ConversationNode {
 
     protected final String content;
 
@@ -69,37 +70,30 @@ public class DialogTreeNode<S extends IConversationState> extends ConversationNo
      * @param type whether the node should be a QUESTION or STATEMENT
      * @param content the text prompt displayed to the user
      */
-    public DialogTreeNode(int id, SnippetType type, String content) {
-        super(id, type);
+    public DialogTreeNode(int id, String content) {
+        super(id);
         this.content = content;
     }
 
-    @Override
-    public String renderContent(S state) {
+    public String getValue() {
         return content;
     }
 
-    @Override
-    public Iterable<String> getSuggestedResponses(S state) {
-        if (getType() == SnippetType.STATEMENT) {
-            return null;
-        }
+    public Iterable<String> getSuggestedResponses() {
         List<String> allowed = new ArrayList();
         for (IConversationEdge edge : edges) {
             if (edge instanceof DialogTreeEdge) {
                 DialogTreeEdge dtEdge = (DialogTreeEdge) edge;
-                allowed.add(dtEdge.getAnswer());
+                allowed.add(dtEdge.getIntentId().toString());
             }
         }
         return allowed;
     }
 
-    @Override
     public SnippetContentType getContentType() {
         return SnippetContentType.TEXT;
     }
     
-    @Override
     public Iterable<IConversationSnippetButton> getButtons() {
         return null;
     }

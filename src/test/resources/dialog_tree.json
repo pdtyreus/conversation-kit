@@ -38,36 +38,42 @@
             {
                 "source": "1",
                 "target": "2",
-                "directed": true
+                "directed": true,
+                "relation": "true"
             },
             {
                 "source": "4",
                 "target": "5",
-                "directed": true
+                "directed": true,
+                "relation": "true"
             },
             {
                 "source": "2",
                 "target": "3",
                 "directed": true,
-                "label": "great"
+                "label": "great",
+                "relation": "great"
             },
             {
                 "source": "2",
                 "target": "4",
                 "directed": true,
-                "label": "bad"
+                "label": "bad",
+                "relation": "bad"
             },
             {
                 "source": "5",
                 "target": "3",
                 "directed": true,
-                "label": "No, I actually feel fine."
+                "label": "No, I actually feel fine.",
+                "relation": "no"
             },
             {
                 "source": "5",
                 "target": "6",
                 "directed": true,
-                "label": "Yeah, you could work for a change."
+                "label": "Yeah, you could work for a change.",
+                "relation":"yes"
             }
         ]
     }

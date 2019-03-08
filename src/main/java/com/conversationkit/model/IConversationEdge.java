@@ -34,28 +34,15 @@ package com.conversationkit.model;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversationEdge<S extends IConversationState> {
+public interface IConversationEdge {
     /**
      * Returns the next node in the conversation graph along this edge. The 
      * conversation will proceed along this edge if the conversation state 
      * matches the criteria stored in the edge.
      * @return the node at the end of this edge
      */
-    public IConversationNode<S> getEndNode();
-    /**
-     * Returns true if the conversation should proceed along this edge based
-     * on the conversation state provided.
-     * @param state the user's conversation state
-     * @return true if the edge matches
-     */
-    public boolean isMatchForState(S state);
-    /**
-     * This function executes when the edge is chosen but before the 
-     * conversation proceeds to the next node. It should be used to update
-     * the conversation state with any information necessary based on the
-     * user's response. Generally a response will only be present in the state
-     * if the previous node was a question.
-     * @param state the user's conversation state
-     */
-    public void onMatch(S state);
+    public IConversationNode getEndNode();
+    
+    //public IConversationIntent getIntent();
+    public String getIntentId();
 }

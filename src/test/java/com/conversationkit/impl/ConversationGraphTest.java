@@ -23,18 +23,19 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.DirectedConversationEngine;
 import com.conversationkit.builder.JsonGraphBuilder;
-import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.IConversationSnippetButton;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
-import com.conversationkit.model.UnexpectedResponseException;
-import com.conversationkit.model.UnmatchedResponseException;
+import com.conversationkit.model.IConversationNode;
+import com.conversationkit.model.IConversationNodeIndex;
+import com.conversationkit.nlp.RegexIntentDetector;
+import com.conversationkit.redux.Redux;
+import com.conversationkit.redux.Store;
+import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Formatter;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -52,104 +53,41 @@ public class ConversationGraphTest extends TestCase {
 
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
 
-        //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
-        JsonGraphBuilder<TestCaseUserState> builder = new JsonGraphBuilder();
-        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
-        DirectedConversationEngine<TestCaseUserState> tree = builder.readJsonGraph(reader);
+//        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
+//        IConversationNodeIndex index = JsonGraphBuilder.readJsonGraph(reader);
+//        RegexIntentDetector intentDetector = new RegexIntentDetector(new HashMap());
+//        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index);
+//        //HashMap state = new HashMap();
+//        Store store = Redux.createStore(new ConversationReducer(), new HashMap(), new CompletableFutureMiddleware());
 
         logger.info("** Testing conversation");
 
-        TestCaseUserState state = new TestCaseUserState();
-        state.setCurrentNodeId(1);
+//        try {
+//            StringBuilder convo = new StringBuilder();
+//            Formatter formatter = new Formatter(convo);
+//
+//            String message = "hello";
+//            OutputUtil.formatInput(formatter, message);
+//            engine.handleIncomingMessage(store, store.getState(), message).get();
+//
+//            convo.append("\n");
+//            IConversationNode node = index.getNodeAtIndex(ConversationReducer.selectCurrentNodeId(store.getState()));
+//            OutputUtil.formatOutput(formatter, node.getValue());
+//
+//            message = "4";
+//            OutputUtil.formatInput(formatter, message);
+//            engine.handleIncomingMessage(store, store.getState(), message).get();
+//            convo.append("\n");
+//            node = index.getNodeAtIndex(ConversationReducer.selectCurrentNodeId(store.getState()));
+//            OutputUtil.formatOutput(formatter, node.getValue());
+//
+//            assertEquals(5, ConversationReducer.selectCurrentNodeId(store.getState()).intValue());
+//            message = "yup";
+//            OutputUtil.formatInput(formatter, message);
+//            logger.info(convo.toString());
+//        } catch (ExecutionException | InterruptedException e) {
+//            fail(e.getMessage());
+//        }
 
-        Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
-        StringBuilder convo = new StringBuilder();
-        Formatter formatter = new Formatter(convo);
-
-        convo.append("\n");
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        String response = "4";
-        OutputUtil.formatResponse(formatter, response);
-        try {
-            tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
-            fail(e.toString());
-        }
-        nodes = tree.startConversationFromState(state);
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        assertEquals(5, state.getCurrentNodeId());
-        response = "yup";
-        OutputUtil.formatResponse(formatter, response);
-
-        try {
-            tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException e) {
-            OutputUtil.formatSnippet(formatter, new IConversationSnippet<TestCaseUserState>(){
-
-                public String renderContent(TestCaseUserState state) {
-                    return "I'm sorry, I didn't understand your response '"+state.getMostRecentResponse()+"'.";
-                }
-
-                public SnippetType getType() {
-                    return SnippetType.STATEMENT;
-                }
-
-                public Iterable<String> getSuggestedResponses(TestCaseUserState state) {
-                    return null;
-                }
-
-                public SnippetContentType getContentType() {
-                    return SnippetContentType.TEXT;
-                }
-
-                @Override
-                public Iterable<IConversationSnippetButton> getButtons() {
-                    return null;
-                }
-                
-            }, state);
-        } catch (UnexpectedResponseException e) {
-            fail(e.toString());
-        }
-        nodes = tree.startConversationFromState(state);
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-        
-        response = "yes";
-        OutputUtil.formatResponse(formatter, response);
-
-        try {
-            tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
-            fail(e.toString());
-        }
-        nodes = tree.startConversationFromState(state);
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        response = "six";
-        OutputUtil.formatResponse(formatter, response);
-
-        try {
-            tree.updateStateWithResponse(state, response);
-        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
-            fail(e.toString());
-        }
-        nodes = tree.startConversationFromState(state);
-        for (IConversationSnippet node : nodes) {
-            OutputUtil.formatSnippet(formatter, node, state);
-        }
-
-        assertEquals(6, state.get("answer"));
-
-        logger.info(convo.toString());
     }
 }

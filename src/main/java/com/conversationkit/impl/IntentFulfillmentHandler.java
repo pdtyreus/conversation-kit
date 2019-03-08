@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.edge;
+package com.conversationkit.impl;
 
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Store;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Edge that matches yes-like responses.
+ *
  * @author pdtyreus
  */
-public class AffirmativeEdge <S extends IConversationState> extends RegexEdge<S> {
 
-    private static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
+@FunctionalInterface
+public interface IntentFulfillmentHandler {
     
-    public AffirmativeEdge(String stateKey, Object stateValue, IConversationNode<S> endNode) {
-        super(YES,stateKey,stateValue,endNode);
-    }
+    public CompletableFuture fulfillIntent(Store store);
     
-    public AffirmativeEdge(IConversationNode<S> endNode) {
-        super(YES,endNode);
-    }
 }

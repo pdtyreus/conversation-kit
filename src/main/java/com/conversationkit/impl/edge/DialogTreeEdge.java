@@ -24,6 +24,7 @@
 package com.conversationkit.impl.edge;
 
 import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
 
@@ -44,57 +45,23 @@ import com.conversationkit.model.IConversationState;
  * @author pdtyreus
  * @param <S> an implementation of IConversationState
  */
-public class DialogTreeEdge<S extends IConversationState> extends ConversationEdge<S> {
+public class DialogTreeEdge extends ConversationEdge {
 
-    private final String answer;
-    private final String stateKey;
 
     /**
      * Only an exact match for the answer stored in this node will cause the
      * conversion to advance to the endNode. The value of the response will be
      * stored as the stateKey key in the conversation state.
      *
-     * @param answer string value to match
-     * @param stateKey the value of the key to update in the conversation state
+     * @param intent string value to match
      * @param endNode next node in the conversation
      */
-    public DialogTreeEdge(String answer, String stateKey, IConversationNode<S> endNode) {
-        super(endNode);
-        this.stateKey = stateKey;
-        this.answer = answer;
-    }
-
-    /**
-     * Only an exact match for the answer stored in this node will cause the
-     * conversion to advance to the endNode.
-     *
-     * @param answer string value to match
-     * @param endNode next node in the conversation
-     */
-    public DialogTreeEdge(String answer, IConversationNode<S> endNode) {
-        super(endNode);
-        this.stateKey = null;
-        this.answer = answer;
-    }
-
-    @Override
-    public boolean isMatchForState(S state) {
-        return answer.equals(state.getMostRecentResponse());
-    }
-
-    @Override
-    public void onMatch(S state) {
-        if (this.stateKey != null) {
-            state.set(this.stateKey, state.getMostRecentResponse());
-        }
-    }
-
-    public String getAnswer() {
-        return answer;
+    public DialogTreeEdge(String intent, IConversationNode endNode) {
+        super(endNode,intent);
     }
 
     @Override
     public String toString() {
-        return "DialogTreeEdge {" + answer + '}';
+        return "DialogTreeEdge {" + getIntentId() + '}';
     }
 }
