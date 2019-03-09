@@ -26,15 +26,16 @@ package com.conversationkit.redux;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
  *
  * @author tyreus
  */
-public class ReduxTest extends TestCase {
+public class ReduxTest {
 
 
+    @Test
     public void testCreateStore() throws Exception {
         Reducer<StringAction> reducer = (StringAction action, Map<String,Object> currentState) -> {
             System.out.println("reducing " + action);

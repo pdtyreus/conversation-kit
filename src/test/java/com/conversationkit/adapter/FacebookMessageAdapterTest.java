@@ -28,25 +28,23 @@ import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonValue;
 import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
  * @author pdtyreus
  */
-public class FacebookMessageAdapterTest extends TestCase {
+public class FacebookMessageAdapterTest {
     
     private FacebookMessageAdapter instance = new FacebookMessageAdapter();
     private static final Logger logger = Logger.getLogger(FacebookMessageAdapterTest.class.getName());
-    
-    public FacebookMessageAdapterTest(String testName) {
-        super(testName);
-    }
 
+
+    @Test
     public void testSnippetToJson() {
         final String text =  "Facebook Messenger";
         

@@ -27,19 +27,19 @@ import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
 import com.conversationkit.redux.StringAction;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import static junit.framework.Assert.assertEquals;
-import junit.framework.TestCase;
+
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  *
  * @author pdtyreus
  */
-public class MiddlewaresTest extends TestCase {
+public class MiddlewaresTest  {
 
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
@@ -61,6 +61,7 @@ public class MiddlewaresTest extends TestCase {
         }
     };
 
+    @Test
     public void testCompletableFutureCounter() {
         HashMap<String, Object> state = new HashMap();
         state.put("counter", 0);
@@ -90,6 +91,7 @@ public class MiddlewaresTest extends TestCase {
         assertEquals(1, store.getState().get("counter"));
     }
 
+    @Test
     public void testThunkCounter() {
         HashMap<String, Object> state = new HashMap();
         state.put("counter", 0);

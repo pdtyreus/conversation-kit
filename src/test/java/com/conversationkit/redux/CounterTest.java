@@ -31,14 +31,15 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
 
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 /**
  *
  * @author tyreus
  */
-public class CounterTest extends TestCase {
+public class CounterTest {
 
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
@@ -60,6 +61,7 @@ public class CounterTest extends TestCase {
         }
     };
 
+    @Test
     public void testCounter() {
 
         HashMap<String,Object> state = new HashMap();
@@ -82,6 +84,7 @@ public class CounterTest extends TestCase {
         assertEquals(1, store.getState().get("counter"));
     }
 
+    @Test
     public void testAsyncCounter() {
 
         

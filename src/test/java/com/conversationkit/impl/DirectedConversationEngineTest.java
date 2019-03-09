@@ -27,40 +27,22 @@ import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
 import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.conversationkit.nlp.RegexIntentDetector;
-import com.conversationkit.redux.Action;
-import com.conversationkit.redux.Dispatcher;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
 import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
  * @author tyreus
  */
-public class DirectedConversationEngineTest extends TestCase {
+public class DirectedConversationEngineTest  {
     
-    public DirectedConversationEngineTest(String testName) {
-        super(testName);
-    }
-    
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-    
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    /**
-     * Test of handleIncomingMessage method, of class DirectedConversationEngine.
-     */
-    public void testHandleIncomingMessage() {
+    @Test
+    public void testHandleMessageLeft() {
         
         ConversationNode top = new ResponseSuggestingNode(1,"top");
         ConversationNode left = new ResponseSuggestingNode(2,"left");

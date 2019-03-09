@@ -40,15 +40,17 @@ import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import junit.framework.TestCase;
-
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 /**
  *
  * @author pdtyreus
  */
-public class ConversationGraphTest extends TestCase {
+public class ConversationGraphTest {
 
     private static final Logger logger = Logger.getLogger(ConversationGraphTest.class.getName());
 
+    @Test
     public void testDirectedConversation() throws IOException {
 
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");

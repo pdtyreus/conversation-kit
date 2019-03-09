@@ -34,10 +34,12 @@ import com.conversationkit.model.IConversationNode;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.logging.Logger;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public class JsonDialogTreeBuilder {
 

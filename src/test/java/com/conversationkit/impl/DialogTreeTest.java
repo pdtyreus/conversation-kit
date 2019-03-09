@@ -33,30 +33,18 @@ import java.io.Reader;
 import java.util.Formatter;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
  * @author tyreus
  */
-public class DialogTreeTest extends TestCase {
+public class DialogTreeTest {
 
     private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
 
-    public DialogTreeTest(String testName) {
-        super(testName);
-
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-    
+    @Test
     public void testTemplatedDialogTree() throws IOException {
 
         logger.info("** Initializing Templated DialogTree for testing");
