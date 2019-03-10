@@ -35,13 +35,13 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public final class Store<A extends Action> implements Dispatcher {
+public final class Store implements Dispatcher {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
 
     private Map<String, Object> currentState;
 
-    private final Reducer<A> reducer;
+    private final Reducer reducer;
     private ActionDispatcher dispatcher;
     private final Map<UUID, Consumer<Map<String, Object>>> consumers = new HashMap<>();
 
@@ -52,14 +52,14 @@ public final class Store<A extends Action> implements Dispatcher {
 
     }
 
-    protected Store(Reducer<A> reducer, Map<String, Object> state, Middleware<A>... middlewares) {
+    protected Store(Reducer reducer, Map<String, Object> state, Middleware... middlewares) {
         this.reducer = reducer;
         this.currentState = state;
 
-        List<Middleware<A>> allMiddlewares = new ArrayList();
+        List<Middleware> allMiddlewares = new ArrayList();
         //native middleware, last middleware in chain
 
-        for (Middleware<A> mw : middlewares) {
+        for (Middleware mw : middlewares) {
             allMiddlewares.add(mw);
         }
         allMiddlewares.add((store, action, next) -> {
@@ -69,7 +69,7 @@ public final class Store<A extends Action> implements Dispatcher {
                 if (!(action instanceof Action)) {
                     throw new RuntimeException("The action must be an instance of Action by the time it is received by the reducer. Action is " + action.getClass().getName());
                 }
-                A a = (A) action;
+                Action a = (Action) action;
                 nextState = store.reducer.reduce(a, currentState);
             }
             if (!nextState.equals(currentState)) {
@@ -84,10 +84,10 @@ public final class Store<A extends Action> implements Dispatcher {
         logger.info(String.format("initializing redux store with %d middleware(s).", (allMiddlewares.size() - 1)));
 
         for (int i = allMiddlewares.size() - 1; i >= 0; i--) {
-            final Middleware<A> mw = allMiddlewares.get(i);
+            final Middleware mw = allMiddlewares.get(i);
             logger.fine(String.format("chaining middleware (%d)", i));
             //this will be null for the native middleware only, which is last
-            final Middleware<A> next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
+            final Middleware next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
             this.dispatcher = (action) -> {
                 mw.dispatch(Store.this, action, next);
             };
@@ -99,7 +99,7 @@ public final class Store<A extends Action> implements Dispatcher {
         logger.fine(String.format("[REDUX] dispatching action: %s", action.toString()));
 
         this.dispatcher.dispatch(action);
-        logger.finer(String.format("[REDUX] reduced state: %s", this.getState().toString()));
+        logger.finer(String.format("[REDUX] reduced state: %s", getState().toString()));
         return this.getState();
     }
 

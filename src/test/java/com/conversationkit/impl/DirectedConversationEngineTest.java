@@ -23,58 +23,166 @@
  */
 package com.conversationkit.impl;
 
+import com.conversationkit.impl.DirectedConversationEngine.ErrorCode;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
 import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.conversationkit.nlp.RegexIntentDetector;
-import com.conversationkit.redux.Redux;
-import com.conversationkit.redux.Store;
-import com.conversationkit.redux.impl.CompletableFutureMiddleware;
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Reducer;
+import java.rmi.ServerException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+import org.junit.BeforeClass;
 
 /**
  *
  * @author tyreus
  */
-public class DirectedConversationEngineTest  {
-    
-    @Test
-    public void testHandleMessageLeft() {
-        
-        ConversationNode top = new ResponseSuggestingNode(1,"top");
-        ConversationNode left = new ResponseSuggestingNode(2,"left");
-        ConversationNode right = new ResponseSuggestingNode(3,"right");
-        ConversationEdge leftEdge = new ConversationEdge(left,"leftIntent");
-        ConversationEdge rightEdge = new ConversationEdge(right,"rightIntent");
+public class DirectedConversationEngineTest {
+
+    public static MapBackedNodeIndex index;
+    public static HashMap<String, Object> initialState;
+
+    @BeforeClass
+    public static void createIndex() {
+        ConversationNode top = new ResponseSuggestingNode(1, "top");
+        ConversationNode left = new ResponseSuggestingNode(2, "left");
+        ConversationNode right = new ResponseSuggestingNode(3, "right");
+        ConversationEdge leftEdge = new ConversationEdge(left, "leftIntent");
+        ConversationEdge rightEdge = new ConversationEdge(right, "rightIntent");
         top.addEdge(leftEdge);
         top.addEdge(rightEdge);
-        
-        MapBackedNodeIndex index = new MapBackedNodeIndex();
+
+        index = new MapBackedNodeIndex();
         index.addNodeToIndex(1, top);
         index.addNodeToIndex(2, left);
         index.addNodeToIndex(3, right);
-        
-        Map<String,String> intentMap = new HashMap();
+    }
+
+    @BeforeClass
+    public static void initializeState() {
+        HashMap initialConversationState = new HashMap();
+        initialConversationState.put("nodeId", 1);
+
+        HashMap initialCustomState = new HashMap();
+        initialCustomState.put("right", false);
+
+        initialState = new HashMap();
+        initialState.put(DirectedConversationEngine.CONVERSATION_STATE_KEY, initialConversationState);
+        initialState.put("custom", initialCustomState);
+
+    }
+
+    @Test
+    public void testHandleMessageLeft() {
+
+        Map<String, String> intentMap = new HashMap();
         intentMap.put("leftIntent", "left");
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
-        
-        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector,index);
-        
-        HashMap initialState = new HashMap();
-        initialState.put("nodeId", 1);
-        
-        Store store = Redux.createStore(new ConversationReducer(), initialState, new CompletableFutureMiddleware());
-        
-        assertEquals(1, ConversationReducer.selectCurrentNodeId(store.getState()).intValue());
-        
-        engine.handleIncomingMessage(store, store.getState(), "left");
-        
-        assertEquals(2, ConversationReducer.selectCurrentNodeId(store.getState()).intValue());
-        
+
+        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState);
+
+        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+
+        CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("left");
+
+        DirectedConversationEngine.MessageHandlingResult r = result.join();
+
+        assertEquals(true, r.ok);
+
+        assertEquals(2, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+
     }
-    
+
+    @Test
+    public void testHandleMessageMiss() {
+
+        Map<String, String> intentMap = new HashMap();
+        intentMap.put("leftIntent", "left");
+        intentMap.put("rightIntent", "right");
+        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
+
+        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState);
+
+        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+
+        CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("up");
+
+        DirectedConversationEngine.MessageHandlingResult r = result.join();
+
+        assertEquals(false, r.ok);
+
+        assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
+
+        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+
+    }
+
+    @Test
+    public void testHandleIntentAction() {
+
+        Map<String, String> intentMap = new HashMap();
+        intentMap.put("leftIntent", "left");
+        intentMap.put("rightIntent", "right");
+        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
+
+        Reducer rightReducer = new Reducer() {
+
+            @Override
+            public Map reduce(Action action, Map currentState) {
+                if (action.getType().equals("right_handled")) {
+                    Map<String, Object> nextState = new HashMap(currentState);
+                    nextState.put("right", true);
+                    return nextState;
+                } else {
+                    return currentState;
+                }
+            }
+
+        };
+        Map<String, Reducer> reducerMap = new HashMap();
+        reducerMap.put("custom", rightReducer);
+
+        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState, reducerMap);
+
+        engine.registerIntentFulfillment("rightIntent", () -> {
+
+            System.out.println("rightIntent action work");
+
+            return new Action() {
+
+                @Override
+                public String getType() {
+                    return "right_handled";
+                }
+
+                @Override
+                public String toString() {
+                    return "rightIntent Action";
+                }
+
+            };
+        });
+
+        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(false, (engine.selectState("custom")).get("right"));
+
+        CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("right");
+        try {
+            DirectedConversationEngine.MessageHandlingResult r = result.join();
+            assertEquals(true, r.ok);
+        } catch (CompletionException ex) {
+            fail(ex.getMessage());
+        }
+
+        assertEquals(3, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(true, (engine.selectState("custom")).get("right"));
+    }
+
 }

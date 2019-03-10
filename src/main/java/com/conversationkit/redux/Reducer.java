@@ -26,7 +26,7 @@ package com.conversationkit.redux;
 import java.util.Map;
 
 @FunctionalInterface
-public interface Reducer<A extends Action> {
+public interface Reducer {
 
-    Map<String,Object> reduce(A action, Map<String,Object> currentState);
+    Map<String,Object> reduce(Action action, Map<String,Object> currentState);
 }

@@ -33,41 +33,52 @@ import com.conversationkit.model.IConversationNodeIndex;
 import com.conversationkit.nlp.IntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Dispatcher;
+import com.conversationkit.redux.Reducer;
+import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
+import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DirectedConversationEngine {
+public class DirectedConversationEngine implements Dispatcher {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
     protected final IConversationNodeIndex nodeIndex;
     protected final IntentDetector<String> intentDetector;
-    protected final Map<String, CompletableFuture<Action>> intentHandlers = new HashMap();
+    protected final Map<String, Supplier<Action>> intentHandlers = new HashMap();
     protected final Map<String, Integer> fallbackIntentMap = new HashMap();
-    protected final ExecutorService executorService;
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    protected final Store store;
 
-    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex) {
-        this.nodeIndex = nodeIndex;
-        this.intentDetector = intentDetector;
-        this.executorService = Executors.newFixedThreadPool(10);
+    public final static String CONVERSATION_STATE_KEY = "conversation-kit";
+
+    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState) {
+        this(intentDetector,nodeIndex,initialState,new HashMap());
     }
 
-    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, ExecutorService executorService) {
+    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Map<String, Reducer> reducers) {
         this.nodeIndex = nodeIndex;
         this.intentDetector = intentDetector;
+        reducers.put(CONVERSATION_STATE_KEY, new ConversationReducer());
+        Reducer reducer = Redux.combineReducers(reducers);
+        store = Redux.createStore(reducer, initialState);
+    }
+
+    public void setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
-
-    public void registerIntentFulfillment(String intentId, CompletableFuture<Action> action) {
+    
+    public void registerIntentFulfillment(String intentId, Supplier<Action> action) {
         this.intentHandlers.put(intentId, action);
     }
 
@@ -75,31 +86,34 @@ public class DirectedConversationEngine {
         this.fallbackIntentMap.put(intentId, targetNodeId);
     }
 
-    private CompletableFuture<IConversationNode> handleIntent(final Dispatcher store, final IConversationNode nextNode, Optional<CompletableFuture<Action>> action) {
+    public Map<String, Object> selectState(String key) {
+        return (Map<String, Object>) store.getState().get(key);
+    }
 
-        //IntentFulfillmentSucceededAction success = new IntentFulfillmentSucceededAction(nextNode);
-        if (action.isPresent()) {
-            return action.get().thenApply((Action a) -> {
-                store.dispatch(a);
-                return nextNode;
-            });
+    private CompletableFuture<IConversationNode> handleIntent(final IConversationNode nextNode, Optional<Supplier<Action>> optionalFuture) {
+
+        if (optionalFuture.isPresent()) {
+            return CompletableFuture.supplyAsync(optionalFuture.get(),executorService)
+                    .thenApply((Action a) -> {
+                        store.dispatch(a);
+                        return nextNode;
+                    });
         } else {
             return CompletableFuture.completedFuture(nextNode);
         }
     }
 
-    private CompletableFuture<IConversationNode> handleIncomingIntent(Dispatcher dispatch, Map<String, Object> state, String intentId) {
-        Integer currentNodeId = ConversationReducer.selectCurrentNodeId(state);
+    private CompletableFuture<IConversationNode> handleIncomingIntent(String intentId) {
+        Integer currentNodeId = ConversationReducer.selectCurrentNodeId(selectState(CONVERSATION_STATE_KEY));
         Optional<IConversationNode> currentNode = Optional.empty();
         if (currentNodeId != null) {
             currentNode = Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId));
         }
         Optional<IConversationNode> nextNode = Optional.empty();
-        Optional<CompletableFuture<Action>> handler = Optional.ofNullable(intentHandlers.get(intentId));
+        Optional<Supplier<Action>> handler = Optional.ofNullable(intentHandlers.get(intentId));
         if (handler.isPresent()) {
             logger.info(String.format("Found custom handler for intent %s", intentId));
         }
-        //store.dispatch(new ConversationAction(ActionType.INTENT_FULFILLMENT_REQUESTED));
 
         if (currentNode.isPresent()) {
 
@@ -126,7 +140,7 @@ public class DirectedConversationEngine {
             if (!nextNode.isPresent()) {
                 throw new ConversationStructureException("Node " + currentNode.get().getId() + " has no matching end node for intent " + intentId);
             }
-            return handleIntent(dispatch, nextNode.get(), handler);
+            return handleIntent(nextNode.get(), handler);
 
         } else {
             Integer fallbackNextNodeId = fallbackIntentMap.get(intentId);
@@ -140,18 +154,17 @@ public class DirectedConversationEngine {
             if (!nextNode.isPresent()) {
                 throw new ConversationStructureException("No current node and no matching fallback for intent " + intentId);
             }
-            return handleIntent(dispatch, nextNode.get(), handler);
+            return handleIntent(nextNode.get(), handler);
         }
     }
 
-    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(Dispatcher store, Map<String, Object> state, String message) {
+    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message) {
 
-        //MessageHandlingResult result = new MessageHandlingResult();
         store.dispatch(new MessageReceivedAction(message));
         return intentDetector.detectIntent(message)
                 .thenCompose((intent) -> {
                     if (intent.isPresent()) {
-                        return handleIncomingIntent(store, state, intent.get())
+                        return handleIncomingIntent(intent.get())
                         .thenApply((n) -> {
                             store.dispatch(new IntentFulfillmentSucceededAction(n));
                             MessageHandlingResult result = new MessageHandlingResult();
@@ -161,12 +174,13 @@ public class DirectedConversationEngine {
                             //intent handling exception
                             MessageHandlingResult result = new MessageHandlingResult();
                             result.ok = false;
+                            result.errorCode = ErrorCode.INTENT_PROCESSING_FAILED;
                             return result;
                         });
                     } else {
                         MessageHandlingResult result = new MessageHandlingResult();
                         result.ok = false;
-                        result.errorCode = ErrorCode.INTENT_PROCESSING_FAILED;
+                        result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
                         return CompletableFuture.completedFuture(result);
                     }
 
@@ -180,6 +194,11 @@ public class DirectedConversationEngine {
 
                 });
 
+    }
+
+    @Override
+    public Map<String, Object> dispatch(Object action) {
+        return store.dispatch(action);
     }
 
     public static class MessageHandlingResult {

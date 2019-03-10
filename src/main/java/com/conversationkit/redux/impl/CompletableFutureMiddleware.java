@@ -35,12 +35,12 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class CompletableFutureMiddleware<A extends Action> implements Middleware<A> {
+public class CompletableFutureMiddleware implements Middleware {
 
     private static final Logger logger = Logger.getLogger(CompletableFutureMiddleware.class.getName());
     
     @Override
-    public void dispatch(Store<A> store, Object action, Middleware<A> next) {
+    public void dispatch(Store store, Object action, Middleware next) {
         if (action instanceof Future) {
             logger.log(Level.FINE, "middleware handling future action {0}", action.toString());
             Future f = (Future) action;

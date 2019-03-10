@@ -23,6 +23,7 @@
  */
 package com.conversationkit.redux.impl;
 
+import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
@@ -44,7 +45,7 @@ public class MiddlewaresTest  {
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
 
-    final Reducer<StringAction> reducer = (StringAction action, Map<String, Object> currentState) -> {
+    final Reducer reducer = (Action action, Map<String, Object> currentState) -> {
         Integer counter = (Integer) currentState.get("counter");
         HashMap nextState = new HashMap();
         switch (action.getType()) {
@@ -65,7 +66,7 @@ public class MiddlewaresTest  {
     public void testCompletableFutureCounter() {
         HashMap<String, Object> state = new HashMap();
         state.put("counter", 0);
-        Store<StringAction> store = Redux.createStore(reducer, state, new CompletableFutureMiddleware());
+        Store store = Redux.createStore(reducer, state, new CompletableFutureMiddleware());
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -95,7 +96,7 @@ public class MiddlewaresTest  {
     public void testThunkCounter() {
         HashMap<String, Object> state = new HashMap();
         state.put("counter", 0);
-        Store<StringAction> store = Redux.createStore(reducer, state, new ThunkMiddleware());
+        Store store = Redux.createStore(reducer, state, new ThunkMiddleware());
 
         Consumer<Store> c = s -> {
             try {

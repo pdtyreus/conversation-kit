@@ -33,10 +33,10 @@ import java.util.function.Consumer;
  *
  * @author tyreus
  */
-public class ThunkMiddleware<A extends Action> implements Middleware<A> {
+public class ThunkMiddleware implements Middleware {
 
     @Override
-    public void dispatch(Store<A> store, Object action, Middleware<A> next) {
+    public void dispatch(Store store, Object action, Middleware next) {
         if (action instanceof Consumer) {
             Consumer<Store> f = (Consumer) action;
             f.accept(store);

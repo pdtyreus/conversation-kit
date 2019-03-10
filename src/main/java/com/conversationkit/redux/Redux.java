@@ -25,6 +25,8 @@ package com.conversationkit.redux;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -32,34 +34,34 @@ import java.util.Map;
  */
 public class Redux {
 
-    public static <A extends Action> Store<A> createStore(Reducer<A> reducer, Map<String,Object> state, Middleware<A>... middlewares) {
+    private static final Logger logger = Logger.getLogger(Store.class.getName());
+    
+    public static Store createStore(Reducer reducer, Map<String,Object> state, Middleware... middlewares) {
         return new Store(reducer, state, middlewares);
     }
 
-    public static <A extends Action> Reducer<A> combineReducers(Map<String, Reducer<A>> reducers) {
-        return new Reducer<A>() {
-
-            @Override
-            public Map<String,Object> reduce(A action, Map<String,Object> currentState) {
-                boolean isDirty = false;
-                Map<String,Object> nextState = new HashMap();
-                for (String key : currentState.keySet()) {
-                    if (reducers.containsKey(key)) {
-                        Map<String,Object> nestedState = (Map<String,Object>)currentState.get(key);
-                        Map<String,Object> nextNestedState = reducers.get(key).reduce(action, currentState);
-                        if (!nextNestedState.equals(nestedState)) {
-                            isDirty = true;
-                        }
-                        nextState.put(key, nextNestedState);
+    public static Reducer combineReducers(Map<String, Reducer> reducers) {
+        return (Action action, Map<String,Object> currentState) -> {
+            boolean isDirty = false;
+            Map<String,Object> nextState = new HashMap();
+            for (String key : currentState.keySet()) {
+                Map<String,Object> nestedState = (Map<String,Object>)currentState.get(key);
+                if (reducers.containsKey(key)) {
+                    logger.log(Level.FINE, "[REDUX] delegating to reducer {0}", key);
+                    Map<String,Object> nextNestedState = reducers.get(key).reduce(action, nestedState);
+                    if (!nextNestedState.equals(nestedState)) {
+                        isDirty = true;
                     }
-                }
-                if (isDirty) {
-                    return nextState;
+                    nextState.put(key, nextNestedState);
                 } else {
-                    return currentState;
+                    nextState.put(key, nestedState);
                 }
             }
-
+            if (isDirty) {
+                return nextState;
+            } else {
+                return currentState;
+            }
         };
     }
 }

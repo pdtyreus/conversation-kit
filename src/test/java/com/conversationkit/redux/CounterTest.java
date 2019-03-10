@@ -44,7 +44,7 @@ public class CounterTest {
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
 
-    final Reducer<StringAction> reducer = (StringAction action, Map<String,Object> currentState) -> {
+    final Reducer reducer = (Action action, Map<String,Object> currentState) -> {
         Integer counter = (Integer)currentState.get("counter");
         Map<String,Object> nextState = new HashMap();
         switch (action.getType()) {
@@ -67,12 +67,12 @@ public class CounterTest {
         HashMap<String,Object> state = new HashMap();
         state.put("counter", 0);
 
-        final Middleware<StringAction> systemOutMiddleware = (store, action, next) -> {
+        final Middleware systemOutMiddleware = (store, action, next) -> {
             System.out.println("System.out middleware got " + action + " with state " + store.getState());
             next.dispatch(store, action, next);
         };
 
-        Store<StringAction> store = Redux.createStore(reducer, state, systemOutMiddleware);
+        Store store = Redux.createStore(reducer, state, systemOutMiddleware);
 
         store.dispatch(new StringAction(INCREMENT));
         assertEquals(1, store.getState().get("counter"));
@@ -91,7 +91,7 @@ public class CounterTest {
         HashMap<String,Object> state = new HashMap();
         state.put("counter", 0);
 
-        final Middleware<StringAction> asyncMiddleware = (store, action, next) -> {
+        final Middleware asyncMiddleware = (store, action, next) -> {
             if (action instanceof Future) {
                 Future f = (Future) action;
                 try {
@@ -106,7 +106,7 @@ public class CounterTest {
             }
         };
 
-        Store<StringAction> store = Redux.createStore(reducer, state, asyncMiddleware);
+        Store store = Redux.createStore(reducer, state, asyncMiddleware);
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
