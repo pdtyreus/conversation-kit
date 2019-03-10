@@ -73,4 +73,8 @@ public class ConversationReducer implements Reducer {
     public static Integer selectCurrentNodeId(Map<String, Object> currentState) {
         return (Integer) currentState.get("nodeId");
     }
+    
+    public static Integer selectMisunderstoodCount(Map<String, Object> currentState) {
+        return (Integer) currentState.get("misunderstoodCount");
+    }
 }

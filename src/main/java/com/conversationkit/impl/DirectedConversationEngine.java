@@ -178,6 +178,7 @@ public class DirectedConversationEngine implements Dispatcher {
                             return result;
                         });
                     } else {
+                        store.dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_FAILED));
                         MessageHandlingResult result = new MessageHandlingResult();
                         result.ok = false;
                         result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;

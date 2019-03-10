@@ -117,10 +117,20 @@ public class DirectedConversationEngineTest {
         DirectedConversationEngine.MessageHandlingResult r = result.join();
 
         assertEquals(false, r.ok);
-
         assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
 
         assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(1, ConversationReducer.selectMisunderstoodCount(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+
+        result = engine.handleIncomingMessage("down");
+
+        r = result.join();
+
+        assertEquals(false, r.ok);
+        assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
+
+        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(2, ConversationReducer.selectMisunderstoodCount(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
 
     }
 
