@@ -24,15 +24,19 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.impl.DirectedConversationEngine.ErrorCode;
+import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
+import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import java.rmi.ServerException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.Test;
@@ -50,9 +54,30 @@ public class DirectedConversationEngineTest {
 
     @BeforeClass
     public static void createIndex() {
-        ConversationNode top = new ResponseSuggestingNode(1, "top");
-        ConversationNode left = new ResponseSuggestingNode(2, "left");
-        ConversationNode right = new ResponseSuggestingNode(3, "right");
+        ConversationNode top = new DialogTreeNode(1, Arrays.asList("top"), (intent, store) -> {
+            System.out.println("rightIntent action work");
+
+            if ("rightIntent".equals(intent)) {
+                store.dispatch(new Action() {
+
+                    @Override
+                    public String getType() {
+                        return "right_handled";
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "rightIntent Action";
+                    }
+
+                });
+            }
+
+            return new MappedIntentToEdgeAction(intent);
+
+        });
+        ConversationNode left = new DialogTreeNode(2, Arrays.asList("left"));
+        ConversationNode right = new DialogTreeNode(3, Arrays.asList("right"));
         ConversationEdge leftEdge = new ConversationEdge(left, "leftIntent");
         ConversationEdge rightEdge = new ConversationEdge(right, "rightIntent");
         top.addEdge(leftEdge);
@@ -160,25 +185,6 @@ public class DirectedConversationEngineTest {
         reducerMap.put("custom", rightReducer);
 
         DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState, reducerMap);
-
-        engine.registerIntentFulfillment("rightIntent", () -> {
-
-            System.out.println("rightIntent action work");
-
-            return new Action() {
-
-                @Override
-                public String getType() {
-                    return "right_handled";
-                }
-
-                @Override
-                public String toString() {
-                    return "rightIntent Action";
-                }
-
-            };
-        });
 
         assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
         assertEquals(false, (engine.selectState("custom")).get("right"));

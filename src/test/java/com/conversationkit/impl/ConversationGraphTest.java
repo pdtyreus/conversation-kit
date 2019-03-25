@@ -55,8 +55,8 @@ public class ConversationGraphTest {
 
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
 
-//        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
-//        IConversationNodeIndex index = JsonGraphBuilder.readJsonGraph(reader);
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
+        IConversationNodeIndex index = JsonGraphBuilder.readJsonGraph(reader);
 //        RegexIntentDetector intentDetector = new RegexIntentDetector(new HashMap());
 //        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index);
 //        //HashMap state = new HashMap();

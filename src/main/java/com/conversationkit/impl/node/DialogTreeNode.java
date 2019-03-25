@@ -23,15 +23,15 @@
  */
 package com.conversationkit.impl.node;
 
+import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.model.IConversationIntent;
-import com.conversationkit.model.IConversationSnippetButton;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
+import com.conversationkit.redux.Store;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * A <code>DialogTreeNode</code> is a restricted implementation of 
@@ -47,36 +47,34 @@ import java.util.List;
  * choices until the conversation ends. The responses to the user are scripted
  * based on the choices made. Each DialogTreeNode represents either a question
  * or statement presented to the user by the bot.
- * <p>
- * A <code>DialogTreeNode</code> can either be a statement or question. 
- * A statement will not
- * stop the conversation, continuing along the outbound edge to the next node if
- * available. A question will stop the conversation and wait for a a response
- * from the user. The suggested responses for a question are taken from the
- * content of the outbound edges.
  *
  * @author pdtyreus
- * @param <S> an implementation of IConversationState to store the state of the
- * conversation for the current user
  */
 public class DialogTreeNode extends ConversationNode {
 
-    protected final String content;
+    protected final List<String> messages;
+    private final Optional<BiFunction<String,Store,MappedIntentToEdgeAction>> intentMapFunction;
 
     /**
      * Creates a node with the specified text.
      *
      * @param id the unique ID of the node from the underlying data store
-     * @param type whether the node should be a QUESTION or STATEMENT
-     * @param content the text prompt displayed to the user
+     * @param messages the text prompt displayed to the user
      */
-    public DialogTreeNode(int id, String content) {
+    public DialogTreeNode(int id, List<String> messages) {
         super(id);
-        this.content = content;
+        this.messages = messages;
+        this.intentMapFunction = Optional.empty();
+    }
+    
+    public DialogTreeNode(int id, List<String> messages, BiFunction<String,Store,MappedIntentToEdgeAction> intentMapFunction) {
+        super(id);
+        this.messages = messages;
+        this.intentMapFunction = Optional.ofNullable(intentMapFunction);
     }
 
-    public String getValue() {
-        return content;
+    public List<String> getMessages() {
+        return messages;
     }
 
     public Iterable<String> getSuggestedResponses() {
@@ -84,18 +82,21 @@ public class DialogTreeNode extends ConversationNode {
         for (IConversationEdge edge : edges) {
             if (edge instanceof DialogTreeEdge) {
                 DialogTreeEdge dtEdge = (DialogTreeEdge) edge;
-                allowed.add(dtEdge.getIntentId().toString());
+                allowed.add(dtEdge.getId());
             }
         }
         return allowed;
     }
 
-    public SnippetContentType getContentType() {
-        return SnippetContentType.TEXT;
+    @Override
+    public MappedIntentToEdgeAction mapIntentToEdge(String intent, Store store) {
+        if (intentMapFunction.isPresent()) {
+            return this.intentMapFunction.get().apply(intent, store);
+        } else {
+            return super.mapIntentToEdge(intent, store);
+        }
     }
-    
-    public Iterable<IConversationSnippetButton> getButtons() {
-        return null;
-    }
+
+
 
 }

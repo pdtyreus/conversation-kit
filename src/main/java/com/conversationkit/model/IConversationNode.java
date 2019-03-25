@@ -23,7 +23,11 @@
  */
 package com.conversationkit.model;
 
-import java.util.List;
+import com.conversationkit.impl.action.MappedIntentToEdgeAction;
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Store;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * A conversation node is a vertex on the directed conversation graph containing
@@ -53,4 +57,6 @@ public interface IConversationNode {
      * @return the node id
      */
     public int getId();
+    
+    public MappedIntentToEdgeAction mapIntentToEdge(String intent, Store store);
 }

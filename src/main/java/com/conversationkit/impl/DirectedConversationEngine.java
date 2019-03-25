@@ -24,7 +24,8 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.impl.action.ActionType;
-import com.conversationkit.impl.action.IntentFulfillmentSucceededAction;
+import com.conversationkit.impl.action.NodeProcessingSucceededAction;
+import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.impl.action.MessageReceivedAction;
 import com.conversationkit.model.ConversationStructureException;
 import com.conversationkit.model.IConversationEdge;
@@ -55,7 +56,7 @@ public class DirectedConversationEngine implements Dispatcher {
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
     protected final IConversationNodeIndex nodeIndex;
     protected final IntentDetector<String> intentDetector;
-    protected final Map<String, Supplier<Action>> intentHandlers = new HashMap();
+    //protected final Map<String, Supplier<Action>> intentHandlers = new HashMap();
     protected final Map<String, Integer> fallbackIntentMap = new HashMap();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     protected final Store store;
@@ -63,7 +64,7 @@ public class DirectedConversationEngine implements Dispatcher {
     public final static String CONVERSATION_STATE_KEY = "conversation-kit";
 
     public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState) {
-        this(intentDetector,nodeIndex,initialState,new HashMap());
+        this(intentDetector, nodeIndex, initialState, new HashMap());
     }
 
     public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Map<String, Reducer> reducers) {
@@ -77,11 +78,10 @@ public class DirectedConversationEngine implements Dispatcher {
     public void setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
-    
-    public void registerIntentFulfillment(String intentId, Supplier<Action> action) {
-        this.intentHandlers.put(intentId, action);
-    }
 
+//    public void registerIntentFulfillment(String intentId, Supplier<Action> action) {
+//        this.intentHandlers.put(intentId, action);
+//    }
     public void registerFallback(String intentId, Integer targetNodeId) {
         this.fallbackIntentMap.put(intentId, targetNodeId);
     }
@@ -90,37 +90,37 @@ public class DirectedConversationEngine implements Dispatcher {
         return (Map<String, Object>) store.getState().get(key);
     }
 
-    private CompletableFuture<IConversationNode> handleIntent(final IConversationNode nextNode, Optional<Supplier<Action>> optionalFuture) {
+    private CompletableFuture<MappedIntentToEdgeAction> handleIntent(String intentId, Optional<IConversationNode> currentNode) {
 
-        if (optionalFuture.isPresent()) {
-            return CompletableFuture.supplyAsync(optionalFuture.get(),executorService)
-                    .thenApply((Action a) -> {
-                        store.dispatch(a);
-                        return nextNode;
-                    });
+        if (currentNode.isPresent()) {
+            return CompletableFuture.supplyAsync(() -> {
+                return currentNode.get().mapIntentToEdge(intentId, store);
+            }, executorService);
         } else {
-            return CompletableFuture.completedFuture(nextNode);
+            //just return the intent name as the edge name
+            return CompletableFuture.completedFuture(new MappedIntentToEdgeAction(intentId));
         }
     }
 
-    private CompletableFuture<IConversationNode> handleIncomingIntent(String intentId) {
+    private IConversationNode findNextNode() {
         Integer currentNodeId = ConversationReducer.selectCurrentNodeId(selectState(CONVERSATION_STATE_KEY));
+        //TODO - fall back to intent or edge??
+        String intentId = ConversationReducer.selectIntentId(selectState(CONVERSATION_STATE_KEY));
+        String edgeId = ConversationReducer.selectEdgeId(selectState(CONVERSATION_STATE_KEY));
+        if (edgeId == null) {
+            throw new RuntimeException("No edge ID set.");
+        }
         Optional<IConversationNode> currentNode = Optional.empty();
         if (currentNodeId != null) {
             currentNode = Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId));
         }
         Optional<IConversationNode> nextNode = Optional.empty();
-        Optional<Supplier<Action>> handler = Optional.ofNullable(intentHandlers.get(intentId));
-        if (handler.isPresent()) {
-            logger.info(String.format("Found custom handler for intent %s", intentId));
-        }
-
         if (currentNode.isPresent()) {
 
             Iterable<IConversationEdge> edges = currentNode.get().getEdges();
             for (IConversationEdge edge : edges) {
                 //see if one of the possible edges matches
-                if (intentId.equals(edge.getIntentId())) {
+                if (edgeId.equals(edge.getId())) {
                     nextNode = Optional.ofNullable(edge.getEndNode());
                 }
             }
@@ -140,7 +140,7 @@ public class DirectedConversationEngine implements Dispatcher {
             if (!nextNode.isPresent()) {
                 throw new ConversationStructureException("Node " + currentNode.get().getId() + " has no matching end node for intent " + intentId);
             }
-            return handleIntent(nextNode.get(), handler);
+            return nextNode.get();
 
         } else {
             Integer fallbackNextNodeId = fallbackIntentMap.get(intentId);
@@ -154,19 +154,31 @@ public class DirectedConversationEngine implements Dispatcher {
             if (!nextNode.isPresent()) {
                 throw new ConversationStructureException("No current node and no matching fallback for intent " + intentId);
             }
-            return handleIntent(nextNode.get(), handler);
+            return nextNode.get();
         }
     }
 
     public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message) {
 
+        Integer currentNodeId = ConversationReducer.selectCurrentNodeId(selectState(CONVERSATION_STATE_KEY));
+        final Optional<IConversationNode> currentNode = 
+                (currentNodeId != null) ? 
+                Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId)) : 
+                Optional.empty();
+
         store.dispatch(new MessageReceivedAction(message));
         return intentDetector.detectIntent(message)
                 .thenCompose((intent) -> {
                     if (intent.isPresent()) {
-                        return handleIncomingIntent(intent.get())
-                        .thenApply((n) -> {
-                            store.dispatch(new IntentFulfillmentSucceededAction(n));
+                        String intentId = intent.get();
+                        store.dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED,intentId));
+                        return handleIntent(intentId, currentNode)
+                        .thenApply((a) -> {
+                            if (a != null) {
+                                store.dispatch(a);
+                            }
+                            IConversationNode v = findNextNode();
+                            store.dispatch(new NodeProcessingSucceededAction(v));
                             MessageHandlingResult result = new MessageHandlingResult();
                             result.ok = true;
                             return result;

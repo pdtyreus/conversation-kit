@@ -31,6 +31,7 @@ import java.util.Map;
  *
  * @author pdtyreus
  */
+@Deprecated
 public class ConversationNodeButton implements IConversationSnippetButton {
     private final String type;
     private final String text;

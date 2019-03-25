@@ -23,7 +23,8 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.action.IntentFulfillmentSucceededAction;
+import com.conversationkit.impl.action.NodeProcessingSucceededAction;
+import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ public class ConversationReducer implements Reducer {
             switch (conversationAction.getActionType()) {
                 case MESSAGE_RECEIVED:
                     nextState.remove("intentId");
+                    nextState.remove("edgeId");
                     return nextState;
                 case INTENT_UNDERSTANDING_SUCCEEDED:
                     nextState.remove("misunderstoodCount");
@@ -58,8 +60,15 @@ public class ConversationReducer implements Reducer {
                     misunderstoodCount++;
                     nextState.put("misunderstoodCount", misunderstoodCount);
                     return nextState;
-                case INTENT_FULFILLMENT_SUCCEEDED:
-                    nextState.put("nodeId", ((IntentFulfillmentSucceededAction) action).getPayload().get().getId());
+                case NODE_PROCESSING_SUCCEEDED:
+                    NodeProcessingSucceededAction npsa = (NodeProcessingSucceededAction)action;
+                    nextState.put("nodeId", npsa.getPayload().get().getId());
+                    return nextState;
+                case MAPPED_INTENT_TO_EDGE:
+                    MappedIntentToEdgeAction mi2ea = (MappedIntentToEdgeAction) action;
+                    if (mi2ea.getPayload().isPresent()) {
+                        nextState.put("edgeId", mi2ea.getPayload().get());
+                    }
                     return nextState;
                 default:
                     return currentState;
@@ -72,6 +81,14 @@ public class ConversationReducer implements Reducer {
 
     public static Integer selectCurrentNodeId(Map<String, Object> currentState) {
         return (Integer) currentState.get("nodeId");
+    }
+    
+    public static String selectIntentId(Map<String, Object> currentState) {
+        return (String) currentState.get("intentId");
+    }
+    
+    public static String selectEdgeId(Map<String, Object> currentState) {
+        return (String) currentState.get("edgeId");
     }
     
     public static Integer selectMisunderstoodCount(Map<String, Object> currentState) {

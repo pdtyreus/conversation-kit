@@ -36,5 +36,5 @@ import java.io.IOException;
 
 @FunctionalInterface
 public interface JsonNodeBuilder {
-    public IConversationNode nodeFromJson(Integer id, String type, String content, JsonObject metadata) throws IOException;
+    public IConversationNode nodeFromJson(Integer id, String type, JsonObject metadata) throws IOException;
 }

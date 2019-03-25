@@ -30,12 +30,10 @@ import com.eclipsesource.json.JsonValue;
 import com.conversationkit.impl.MapBackedNodeIndex;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNodeButton;
-import com.conversationkit.impl.node.ResponseSuggestingNode;
+import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
 import com.eclipsesource.json.JsonObject.Member;
 import java.io.IOException;
 import java.io.Reader;
@@ -106,29 +104,23 @@ public class JsonGraphBuilder {
     }
 
     public static IConversationNodeIndex readJsonGraph(Reader reader) throws IOException {
-        final JsonNodeBuilder nodeBuilder = (Integer id, String type, String content, JsonObject metadata) -> {
+        final JsonNodeBuilder nodeBuilder = (Integer id, String type, JsonObject metadata) -> {
 
-//            SnippetType snippetType = SnippetType.STATEMENT;
-//            if (metadata.get("snippetType") != null) {
-//                try {
-//                    snippetType = SnippetType.valueOf(metadata.get("snippetType").asString());
-//                } catch (Exception e) {
-//                    throw new IOException("Unknown \"snippetType\" " + metadata.get("snippetType").asString() + " for node " + id);
-//                }
-//            } else {
-//                throw new IOException("Missing \"snippetType\" for node " + id);
-//            }
-//            SnippetContentType contentType = SnippetContentType.TEXT;
-//            if (metadata.get("contentType") != null) {
-//                try {
-//                    contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
-//                } catch (Exception e) {
-//                    throw new IOException("Unknown \"contentType\" " + metadata.get("contentType").asString() + " for node " + id);
-//                }
-//            }
+            List<String> messages = new ArrayList();
+            if (metadata.get("message") != null) {
+                if (metadata.get("message").isArray()) {
+                    for (JsonValue node : metadata.get("message").asArray()) {
+                        messages.add(node.asString());
+                    }
+                } else {
+                    messages.add(metadata.get("message").asString());
+                }
+            } else {
+                throw new IOException("No \"message\" metadata for node " + id);
+            }
 
             //make the node into something
-            IConversationNode conversationNode = new ResponseSuggestingNode(id, content);
+            IConversationNode conversationNode = new DialogTreeNode(id, messages);
 
             return conversationNode;
         };
@@ -176,7 +168,7 @@ public class JsonGraphBuilder {
                 metadata = metadataValue.asObject();
             }
 
-            IConversationNode conversationNode = nodeBuilder.nodeFromJson(id, type, content, metadata);
+            IConversationNode conversationNode = nodeBuilder.nodeFromJson(id, type, metadata);
             if (conversationNode == null) {
                 throw new IOException("Unhandled node " + node);
             }

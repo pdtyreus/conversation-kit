@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,52 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.node;
+package com.conversationkit.impl.action;
 
-import com.conversationkit.impl.action.MappedIntentToEdgeAction;
-import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.impl.ConversationAction;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetType;
-import com.conversationkit.redux.Store;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
- * Convenience base class for creating nodes.
- * 
+ *
  * @author pdtyreus
  */
-public abstract class ConversationNode implements IConversationNode {
-
-    protected final List<IConversationEdge> edges;
-    private final int id;
-
-    public ConversationNode(int id) {
-        this.id = id;
-        this.edges = new ArrayList();
+public class NodeProcessingSucceededAction extends ConversationAction<IConversationNode> {
+    public NodeProcessingSucceededAction(IConversationNode nextNode) {
+        super(ActionType.NODE_PROCESSING_SUCCEEDED,nextNode);
     }
-
-    @Override
-    public Iterable<IConversationEdge> getEdges() {
-        return edges;
-    }
-
-    @Override
-    public void addEdge(IConversationEdge edge) {
-        edges.add(edge);
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public MappedIntentToEdgeAction mapIntentToEdge(String intent, Store store) {
-        return new MappedIntentToEdgeAction(intent);
-    }
-
-    
 }

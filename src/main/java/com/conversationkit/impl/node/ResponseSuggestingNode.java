@@ -38,26 +38,27 @@ import java.util.List;
  * 
  * @author pdtyreus
  */
+@Deprecated
 public class ResponseSuggestingNode extends ConversationNode {
 
     protected List<String> suggestedResponses;
     protected List<IConversationSnippetButton> buttons;
     protected final String content;
-    protected final SnippetContentType contentType;
+    //protected final SnippetContentType contentType;
     
     public ResponseSuggestingNode(int id, String content) {
         super(id);
         this.suggestedResponses = null;
         this.content = content;
-        this.contentType = SnippetContentType.TEXT;
+        //this.contentType = SnippetContentType.TEXT;
     }
-    
-    public ResponseSuggestingNode(int id, String content, SnippetContentType contentType) {
-        super(id);
-        this.suggestedResponses = null;
-        this.content = content;
-        this.contentType = contentType;
-    }
+//    
+//    public ResponseSuggestingNode(int id, String content, SnippetContentType contentType) {
+//        super(id);
+//        this.suggestedResponses = null;
+//        this.content = content;
+//        this.contentType = contentType;
+//    }
 
     public String getValue() {
         return content;
@@ -86,7 +87,7 @@ public class ResponseSuggestingNode extends ConversationNode {
         buttons.add(button);
     }
     
-    public SnippetContentType getContentType() {
-        return contentType;
-    }
+//    public SnippetContentType getContentType() {
+//        return contentType;
+//    }
 }

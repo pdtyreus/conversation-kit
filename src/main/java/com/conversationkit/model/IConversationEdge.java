@@ -43,6 +43,5 @@ public interface IConversationEdge {
      */
     public IConversationNode getEndNode();
     
-    //public IConversationIntent getIntent();
-    public String getIntentId();
+    public String getId();
 }

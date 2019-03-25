@@ -35,11 +35,11 @@ import com.conversationkit.model.IConversationState;
  */
 public class ConversationEdge implements IConversationEdge {
     private final IConversationNode endNode;
-    private final String intentId;
+    private final String id;
 
-    public ConversationEdge(IConversationNode endNode, String intentId) {
+    public ConversationEdge(IConversationNode endNode, String id) {
         this.endNode = endNode;
-        this.intentId = intentId;
+        this.id = id;
     }
 
     @Override
@@ -48,13 +48,13 @@ public class ConversationEdge implements IConversationEdge {
     }
 
     @Override
-    public String getIntentId() {
-        return intentId;
+    public String getId() {
+        return id;
     }
 
     @Override
     public String toString() {
-        return "ConversationEdge {" + getIntentId() + '}';
+        return "ConversationEdge {" + getId() + '}';
     }
     
 }

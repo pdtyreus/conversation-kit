@@ -24,14 +24,16 @@
 package com.conversationkit.impl.action;
 
 import com.conversationkit.impl.ConversationAction;
-import com.conversationkit.model.IConversationNode;
+import java.util.Optional;
 
 /**
  *
  * @author pdtyreus
  */
-public class IntentFulfillmentSucceededAction extends ConversationAction<IConversationNode> {
-    public IntentFulfillmentSucceededAction(IConversationNode nextNode) {
-        super(ActionType.INTENT_FULFILLMENT_SUCCEEDED,nextNode);
+public class MappedIntentToEdgeAction extends ConversationAction<String> {
+
+    public MappedIntentToEdgeAction(String payload) {
+        super(ActionType.MAPPED_INTENT_TO_EDGE, payload);
     }
+    
 }
