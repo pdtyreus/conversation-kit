@@ -38,7 +38,7 @@ import java.util.Optional;
 public class ConversationReducer implements Reducer {
 
     @Override
-    public Map<String, Object> reduce(Action action, Map<String, Object> currentState) {
+    public Map reduce(Action action, Map currentState) {
         Map<String, Object> nextState = new HashMap(currentState);
         if (action instanceof ConversationAction) {
             ConversationAction conversationAction = (ConversationAction) action;

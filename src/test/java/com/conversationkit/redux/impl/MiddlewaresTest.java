@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -44,8 +45,13 @@ public class MiddlewaresTest  {
 
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
+    final Function<Map,Map> constructor = (Map map)->{
+            Map s = new HashMap(); 
+            s.putAll(map); 
+            return s;
+        };
 
-    final Reducer reducer = (Action action, Map<String, Object> currentState) -> {
+    final Reducer reducer = (Action action, Map currentState) -> {
         Integer counter = (Integer) currentState.get("counter");
         HashMap nextState = new HashMap();
         switch (action.getType()) {
@@ -66,7 +72,7 @@ public class MiddlewaresTest  {
     public void testCompletableFutureCounter() {
         HashMap<String, Object> state = new HashMap();
         state.put("counter", 0);
-        Store store = Redux.createStore(reducer, state, new CompletableFutureMiddleware());
+        Store<Map> store = Redux.createStore(reducer, state, constructor, new CompletableFutureMiddleware());
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {
@@ -96,7 +102,7 @@ public class MiddlewaresTest  {
     public void testThunkCounter() {
         HashMap<String, Object> state = new HashMap();
         state.put("counter", 0);
-        Store store = Redux.createStore(reducer, state, new ThunkMiddleware());
+        Store<Map> store = Redux.createStore(reducer, state, constructor, new ThunkMiddleware());
 
         Consumer<Store> c = s -> {
             try {

@@ -28,15 +28,12 @@ import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
 import com.conversationkit.impl.node.DialogTreeNode;
-import com.conversationkit.impl.node.ResponseSuggestingNode;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
-import java.rmi.ServerException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.Test;
@@ -51,6 +48,18 @@ public class DirectedConversationEngineTest {
 
     public static MapBackedNodeIndex index;
     public static HashMap<String, Object> initialState;
+
+    public static class TestState extends MapBackedConversationState {
+
+        public TestState(Map source) {
+            super(source, DirectedConversationEngine.CONVERSATION_STATE_KEY);
+        }
+
+        public boolean isRight() {
+            Map custom = (Map) source.get("custom");
+            return (Boolean) custom.get("right");
+        }
+    }
 
     @BeforeClass
     public static void createIndex() {
@@ -111,9 +120,11 @@ public class DirectedConversationEngineTest {
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
-        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState);
+        DirectedConversationEngine<TestState> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
+            return new TestState(map);
+        });
 
-        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
         CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("left");
 
@@ -121,7 +132,7 @@ public class DirectedConversationEngineTest {
 
         assertEquals(true, r.ok);
 
-        assertEquals(2, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(2, engine.getState().getCurrentNodeId().intValue());
 
     }
 
@@ -133,9 +144,11 @@ public class DirectedConversationEngineTest {
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
-        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState);
+        DirectedConversationEngine<TestState> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
+            return new TestState(map);
+        });
 
-        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
         CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("up");
 
@@ -144,8 +157,8 @@ public class DirectedConversationEngineTest {
         assertEquals(false, r.ok);
         assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
 
-        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
-        assertEquals(1, ConversationReducer.selectMisunderstoodCount(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(1, engine.getState().getCurrentNodeId().intValue());
+        assertEquals(1, engine.getState().getMisunderstoodCount().intValue());
 
         result = engine.handleIncomingMessage("down");
 
@@ -154,8 +167,8 @@ public class DirectedConversationEngineTest {
         assertEquals(false, r.ok);
         assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
 
-        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
-        assertEquals(2, ConversationReducer.selectMisunderstoodCount(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
+        assertEquals(1, engine.getState().getCurrentNodeId().intValue());
+        assertEquals(2, engine.getState().getMisunderstoodCount().intValue());
 
     }
 
@@ -184,10 +197,12 @@ public class DirectedConversationEngineTest {
         Map<String, Reducer> reducerMap = new HashMap();
         reducerMap.put("custom", rightReducer);
 
-        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index, initialState, reducerMap);
+        DirectedConversationEngine<TestState> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
+            return new TestState(map);
+        });
 
-        assertEquals(1, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
-        assertEquals(false, (engine.selectState("custom")).get("right"));
+        assertEquals(1, engine.getState().getCurrentNodeId().intValue());
+        assertEquals(false, engine.getState().isRight());
 
         CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("right");
         try {
@@ -197,8 +212,8 @@ public class DirectedConversationEngineTest {
             fail(ex.getMessage());
         }
 
-        assertEquals(3, ConversationReducer.selectCurrentNodeId(engine.selectState(DirectedConversationEngine.CONVERSATION_STATE_KEY)).intValue());
-        assertEquals(true, (engine.selectState("custom")).get("right"));
+        assertEquals(3, engine.getState().getCurrentNodeId().intValue());
+        assertEquals(false, engine.getState().isRight());
     }
 
 }

@@ -26,11 +26,7 @@ package com.conversationkit.redux;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import junit.framework.TestCase;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -44,7 +40,7 @@ public class CounterTest {
     static final String INCREMENT = "INCREMENT";
     static final String DECREMENT = "DECREMENT";
 
-    final Reducer reducer = (Action action, Map<String,Object> currentState) -> {
+    final Reducer reducer = (Action action, Map currentState) -> {
         Integer counter = (Integer)currentState.get("counter");
         Map<String,Object> nextState = new HashMap();
         switch (action.getType()) {
@@ -72,7 +68,11 @@ public class CounterTest {
             next.dispatch(store, action, next);
         };
 
-        Store store = Redux.createStore(reducer, state, systemOutMiddleware);
+        Store<Map> store = Redux.createStore(reducer, state, (Map map)->{
+            Map s = new HashMap(); 
+            s.putAll(map); 
+            return s;
+        },systemOutMiddleware);
 
         store.dispatch(new StringAction(INCREMENT));
         assertEquals(1, store.getState().get("counter"));
@@ -106,7 +106,11 @@ public class CounterTest {
             }
         };
 
-        Store store = Redux.createStore(reducer, state, asyncMiddleware);
+        Store<Map> store = Redux.createStore(reducer, state, (Map map)->{
+            Map s = new HashMap(); 
+            s.putAll(map); 
+            return s;
+        },asyncMiddleware);
 
         store.dispatch(CompletableFuture.supplyAsync(() -> {
             try {

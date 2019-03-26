@@ -24,25 +24,29 @@
 package com.conversationkit.redux;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public final class Store implements Dispatcher {
+public final class Store<S> implements Dispatcher {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
 
-    private Map<String, Object> currentState;
+    private Map currentState;
 
     private final Reducer reducer;
     private ActionDispatcher dispatcher;
+    private final Function<Map,S> constructor;
     private final Map<UUID, Consumer<Map<String, Object>>> consumers = new HashMap<>();
 
     @FunctionalInterface
@@ -52,9 +56,10 @@ public final class Store implements Dispatcher {
 
     }
 
-    protected Store(Reducer reducer, Map<String, Object> state, Middleware... middlewares) {
+    protected Store(Reducer reducer, Map initialState, Function<Map,S> constructor, Middleware... middlewares) {
         this.reducer = reducer;
-        this.currentState = state;
+        this.currentState = initialState;
+        this.constructor = constructor;
 
         List<Middleware> allMiddlewares = new ArrayList();
         //native middleware, last middleware in chain
@@ -63,7 +68,7 @@ public final class Store implements Dispatcher {
             allMiddlewares.add(mw);
         }
         allMiddlewares.add((store, action, next) -> {
-            Map<String, Object> nextState;
+            Map nextState;
             synchronized (Store.this) {
                 logger.fine(String.format("[REDUX] reducing action: %s", action.toString()));
                 if (!(action instanceof Action)) {
@@ -95,16 +100,17 @@ public final class Store implements Dispatcher {
         }
     }
 
-    public Map<String, Object> dispatch(Object action) {
+    @Override
+    public S dispatch(Object action) {
         logger.fine(String.format("[REDUX] dispatching action: %s", action.toString()));
 
-        this.dispatcher.dispatch(action);
+        dispatcher.dispatch(action);
         logger.finer(String.format("[REDUX] reduced state: %s", getState().toString()));
-        return this.getState();
+        return getState();
     }
 
-    public Map<String, Object> getState() {
-        return this.currentState;
+    public S getState() {
+        return constructor.apply(currentState);
     }
 
     public UUID subscribe(Consumer<Map<String, Object>> subscriber) {

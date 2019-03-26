@@ -37,11 +37,11 @@ public class ReduxTest {
 
     @Test
     public void testCreateStore() throws Exception {
-        Reducer reducer = (Action action, Map<String,Object> currentState) -> {
+        Reducer reducer = (Action action, Map currentState) -> {
             System.out.println("reducing " + action);
             return currentState;
         };
-        Store store = Redux.createStore(reducer, Collections.unmodifiableMap(new HashMap()));
+        Store store = Redux.createStore(reducer, Collections.unmodifiableMap(new HashMap()), (map)->{return map;});
         store.dispatch(new StringAction("action"));
     }
 

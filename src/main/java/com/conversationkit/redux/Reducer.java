@@ -28,5 +28,5 @@ import java.util.Map;
 @FunctionalInterface
 public interface Reducer {
 
-    Map<String,Object> reduce(Action action, Map<String,Object> currentState);
+    Map reduce(Action action, Map currentState);
 }

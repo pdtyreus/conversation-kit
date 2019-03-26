@@ -31,48 +31,47 @@ import com.conversationkit.model.ConversationStructureException;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
+import com.conversationkit.model.IConversationState;
 import com.conversationkit.nlp.IntentDetector;
-import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Dispatcher;
 import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
-import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
  *
  * @author pdtyreus
  */
-public class DirectedConversationEngine implements Dispatcher {
+public class DirectedConversationEngine<S extends IConversationState> implements Dispatcher {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
     protected final IConversationNodeIndex nodeIndex;
     protected final IntentDetector<String> intentDetector;
-    //protected final Map<String, Supplier<Action>> intentHandlers = new HashMap();
     protected final Map<String, Integer> fallbackIntentMap = new HashMap();
+    //private final Function<Map,S> stateConstructor;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    protected final Store store;
+    protected final Store<S> store;
 
     public final static String CONVERSATION_STATE_KEY = "conversation-kit";
 
-    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState) {
-        this(intentDetector, nodeIndex, initialState, new HashMap());
+    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Function<Map, S> stateConstructor) {
+        this(intentDetector, nodeIndex, initialState, stateConstructor, new HashMap());
     }
 
-    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Map<String, Reducer> reducers) {
+    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Function<Map, S> stateConstructor, Map<String, Reducer> reducers) {
         this.nodeIndex = nodeIndex;
         this.intentDetector = intentDetector;
         reducers.put(CONVERSATION_STATE_KEY, new ConversationReducer());
         Reducer reducer = Redux.combineReducers(reducers);
-        store = Redux.createStore(reducer, initialState);
+        store = Redux.createStore(reducer, initialState, stateConstructor);
     }
 
     public void setExecutorService(ExecutorService executorService) {
@@ -86,10 +85,10 @@ public class DirectedConversationEngine implements Dispatcher {
         this.fallbackIntentMap.put(intentId, targetNodeId);
     }
 
-    public Map<String, Object> selectState(String key) {
-        return (Map<String, Object>) store.getState().get(key);
+    public S getState() {
+        return store.getState();
     }
-
+    
     private CompletableFuture<MappedIntentToEdgeAction> handleIntent(String intentId, Optional<IConversationNode> currentNode) {
 
         if (currentNode.isPresent()) {
@@ -103,10 +102,11 @@ public class DirectedConversationEngine implements Dispatcher {
     }
 
     private IConversationNode findNextNode() {
-        Integer currentNodeId = ConversationReducer.selectCurrentNodeId(selectState(CONVERSATION_STATE_KEY));
+
+        Integer currentNodeId = store.getState().getCurrentNodeId();
         //TODO - fall back to intent or edge??
-        String intentId = ConversationReducer.selectIntentId(selectState(CONVERSATION_STATE_KEY));
-        String edgeId = ConversationReducer.selectEdgeId(selectState(CONVERSATION_STATE_KEY));
+        String intentId = store.getState().getIntentId();
+        String edgeId = store.getState().getEdgeId();
         if (edgeId == null) {
             throw new RuntimeException("No edge ID set.");
         }
@@ -160,18 +160,18 @@ public class DirectedConversationEngine implements Dispatcher {
 
     public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message) {
 
-        Integer currentNodeId = ConversationReducer.selectCurrentNodeId(selectState(CONVERSATION_STATE_KEY));
-        final Optional<IConversationNode> currentNode = 
-                (currentNodeId != null) ? 
-                Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId)) : 
-                Optional.empty();
+        Integer currentNodeId = store.getState().getCurrentNodeId();
+        final Optional<IConversationNode> currentNode
+                = (currentNodeId != null)
+                        ? Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId))
+                        : Optional.empty();
 
         store.dispatch(new MessageReceivedAction(message));
         return intentDetector.detectIntent(message)
                 .thenCompose((intent) -> {
                     if (intent.isPresent()) {
                         String intentId = intent.get();
-                        store.dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED,intentId));
+                        store.dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, intentId));
                         return handleIntent(intentId, currentNode)
                         .thenApply((a) -> {
                             if (a != null) {
@@ -210,7 +210,7 @@ public class DirectedConversationEngine implements Dispatcher {
     }
 
     @Override
-    public Map<String, Object> dispatch(Object action) {
+    public S dispatch(Object action) {
         return store.dispatch(action);
     }
 

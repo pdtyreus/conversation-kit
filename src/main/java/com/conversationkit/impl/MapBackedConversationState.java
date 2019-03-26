@@ -21,16 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.redux;
+package com.conversationkit.impl;
 
+import com.conversationkit.model.IConversationState;
 import java.util.Map;
 
 /**
  *
  * @author pdtyreus
  */
-public interface Dispatcher <S>{
+public class MapBackedConversationState implements IConversationState {
 
-    public S dispatch(Object action);
-    
+    protected final Map source;
+    private final String conversationKey;
+
+    public MapBackedConversationState(Map source) {
+        this.source = source;
+        conversationKey = null;
+    }
+
+    public MapBackedConversationState(Map source, String conversationKey) {
+        this.source = source;
+        this.conversationKey = conversationKey;
+    }
+
+    private Map getConversationMap() {
+        if (conversationKey == null) {
+            return source;
+        } else {
+            return (Map) source.get(conversationKey);
+        }
+    }
+
+    @Override
+    public Integer getCurrentNodeId() {
+        return (Integer) getConversationMap().get("nodeId");
+    }
+
+    @Override
+    public String getIntentId() {
+        return (String) getConversationMap().get("intentId");
+    }
+
+    @Override
+    public String getEdgeId() {
+        return (String) getConversationMap().get("edgeId");
+    }
+
+    @Override
+    public Integer getMisunderstoodCount() {
+        return (Integer) getConversationMap().get("misunderstoodCount");
+    }
+
 }

@@ -25,6 +25,7 @@ package com.conversationkit.redux;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,21 +33,21 @@ import java.util.logging.Logger;
  *
  * @author tyreus
  */
-public class Redux {
+public class Redux<S> {
 
     private static final Logger logger = Logger.getLogger(Store.class.getName());
     
-    public static Store createStore(Reducer reducer, Map<String,Object> state, Middleware... middlewares) {
-        return new Store(reducer, state, middlewares);
+    public static <S> Store<S> createStore(Reducer reducer, Map state, Function<Map,S> constructor, Middleware<S>... middlewares) {
+        return new Store<>(reducer, state, constructor, middlewares);
     }
 
     public static Reducer combineReducers(Map<String, Reducer> reducers) {
-        return (Action action, Map<String,Object> currentState) -> {
+        return (Action action, Map currentState) -> {
             boolean isDirty = false;
-            Map<String,Object> nextState = new HashMap();
-            for (String key : currentState.keySet()) {
+            Map nextState = new HashMap();
+            for (Object key : currentState.keySet()) {
                 Map<String,Object> nestedState = (Map<String,Object>)currentState.get(key);
-                if (reducers.containsKey(key)) {
+                if (reducers.containsKey((String)key)) {
                     logger.log(Level.FINE, "[REDUX] delegating to reducer {0}", key);
                     Map<String,Object> nextNestedState = reducers.get(key).reduce(action, nestedState);
                     if (!nextNestedState.equals(nestedState)) {
