@@ -27,6 +27,7 @@ package com.conversationkit.redux;
  *
  * @author pdtyreus
  */
+@FunctionalInterface
 public interface Action {
     public String getType();
 }

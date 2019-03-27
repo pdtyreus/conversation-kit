@@ -21,19 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.action;
+package com.conversationkit.impl;
 
-import com.conversationkit.impl.ConversationAction;
+import com.conversationkit.redux.Action;
 import java.util.Optional;
 
 /**
  *
  * @author pdtyreus
  */
-public class MappedIntentToEdgeAction extends ConversationAction<String> {
-
-    public MappedIntentToEdgeAction(String payload) {
-        super(ActionType.MAPPED_INTENT_TO_EDGE, payload);
-    }
+public interface PayloadAction<S> extends Action {
+    public Optional<S> getPayload();
     
+    public static <S> PayloadAction build(String actionType, Optional<S> payload) {
+        return new PayloadAction<S>() {
+
+            @Override
+            public Optional<S> getPayload() {
+                return payload;
+            }
+
+            @Override
+            public String getType() {
+                return actionType;
+            }
+            
+        };
+    }
 }

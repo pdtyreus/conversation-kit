@@ -23,6 +23,7 @@
  */
 package com.conversationkit.nlp;
 
+import com.conversationkit.model.IConversationIntent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -35,36 +36,55 @@ import java.util.regex.Pattern;
  *
  * @author pdtyreus
  */
-public class RegexIntentDetector implements IntentDetector<String>{
+public class RegexIntentDetector implements IntentDetector<IConversationIntent> {
 
     public static final String YES = "\\bk\\b|\\bok\\b|\\byes\\b|\\byep\\b|\\byeah\\b|\\bsome\\b|\\a little\\b|\\ba bit\\b";
     public static final String NO = "\\bno\\b|\\bnope\\b|\\bnah\\b|\\bnone\\b|\\bnot really\\b";
-    
-    private final Map<String,Pattern> intentRegexMap;
+
+    private final Map<String, Pattern> intentRegexMap;
     private static final Logger logger = Logger.getLogger(RegexIntentDetector.class.getName());
 
-    public RegexIntentDetector(Map<String,String> intentRegexMap) {
+    public RegexIntentDetector(Map<String, String> intentRegexMap) {
         this.intentRegexMap = new HashMap();
-        for (Map.Entry<String,String> entry : intentRegexMap.entrySet()) {
+        for (Map.Entry<String, String> entry : intentRegexMap.entrySet()) {
             this.intentRegexMap.put(entry.getKey(), Pattern.compile(entry.getValue(), Pattern.CASE_INSENSITIVE));
         }
     }
-    
-    
-    
+
     @Override
-    public CompletableFuture<Optional<String>> detectIntent(String text) {
-        
-        for (Map.Entry<String,Pattern> entry : intentRegexMap.entrySet()){
+    public CompletableFuture<Optional<IConversationIntent>> detectIntent(String text) {
+
+        for (Map.Entry<String, Pattern> entry : intentRegexMap.entrySet()) {
             Matcher matcher = entry.getValue().matcher(text);
-            if (matcher.find()) {
-                logger.info(String.format("Matched intent %s with regex %s",entry.getKey(),entry.getValue()));
-                return CompletableFuture.completedFuture(Optional.of(entry.getKey()));
+            if (matcher.matches()) {
+                logger.info(String.format("Matched intent %s with regex %s", entry.getKey(), entry.getValue()));
+
+                Map<String, Object> slots = new HashMap();
+                int i = 0;
+                while (matcher.find()) {
+                    slots.put(i + "", matcher.group());
+                }
+
+                IConversationIntent intent = new IConversationIntent() {
+
+                    @Override
+                    public String getIntentId() {
+                        return entry.getKey();
+                    }
+
+                    @Override
+                    public Map<String, Object> getSlots() {
+                        return slots;
+                    }
+
+                };
+
+                return CompletableFuture.completedFuture(Optional.of(intent));
             }
-            
+
         }
-        logger.info(String.format("No matching intent for %s",text));
+        logger.info(String.format("No matching intent for %s", text));
         return CompletableFuture.completedFuture(Optional.empty());
     }
-    
+
 }

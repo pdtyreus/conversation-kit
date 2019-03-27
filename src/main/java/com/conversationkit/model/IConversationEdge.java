@@ -23,6 +23,8 @@
  */
 package com.conversationkit.model;
 
+import com.conversationkit.redux.Store;
+
 /**
  * A conversation edge is a directed connection between two nodes on the 
  * conversation graph. Each edge has exactly one start node and one end node, 
@@ -34,7 +36,7 @@ package com.conversationkit.model;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversationEdge {
+public interface IConversationEdge<I extends IConversationIntent> {
     /**
      * Returns the next node in the conversation graph along this edge. The 
      * conversation will proceed along this edge if the conversation state 
@@ -43,5 +45,7 @@ public interface IConversationEdge {
      */
     public IConversationNode getEndNode();
     
-    public String getId();
+    public String getIntentId();
+    
+    public boolean validate(I intent, Store store);
 }

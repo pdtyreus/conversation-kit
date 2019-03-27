@@ -23,15 +23,10 @@
  */
 package com.conversationkit.impl.node;
 
-import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.redux.Store;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 /**
  * A <code>DialogTreeNode</code> is a restricted implementation of 
@@ -53,7 +48,6 @@ import java.util.function.Consumer;
 public class DialogTreeNode extends ConversationNode {
 
     protected final List<String> messages;
-    private final Optional<BiFunction<String,Store,MappedIntentToEdgeAction>> intentMapFunction;
 
     /**
      * Creates a node with the specified text.
@@ -64,13 +58,6 @@ public class DialogTreeNode extends ConversationNode {
     public DialogTreeNode(int id, List<String> messages) {
         super(id);
         this.messages = messages;
-        this.intentMapFunction = Optional.empty();
-    }
-    
-    public DialogTreeNode(int id, List<String> messages, BiFunction<String,Store,MappedIntentToEdgeAction> intentMapFunction) {
-        super(id);
-        this.messages = messages;
-        this.intentMapFunction = Optional.ofNullable(intentMapFunction);
     }
 
     public List<String> getMessages() {
@@ -82,21 +69,10 @@ public class DialogTreeNode extends ConversationNode {
         for (IConversationEdge edge : edges) {
             if (edge instanceof DialogTreeEdge) {
                 DialogTreeEdge dtEdge = (DialogTreeEdge) edge;
-                allowed.add(dtEdge.getId());
+                allowed.add(dtEdge.getIntentId());
             }
         }
         return allowed;
     }
-
-    @Override
-    public MappedIntentToEdgeAction mapIntentToEdge(String intent, Store store) {
-        if (intentMapFunction.isPresent()) {
-            return this.intentMapFunction.get().apply(intent, store);
-        } else {
-            return super.mapIntentToEdge(intent, store);
-        }
-    }
-
-
 
 }

@@ -62,6 +62,6 @@ public class DialogTreeEdge extends ConversationEdge {
 
     @Override
     public String toString() {
-        return "DialogTreeEdge {" + getId() + '}';
+        return "DialogTreeEdge {" + getIntentId() + '}';
     }
 }

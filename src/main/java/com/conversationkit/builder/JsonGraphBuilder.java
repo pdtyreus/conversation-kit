@@ -45,8 +45,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * I/O class for loading a node index from a JSON file. Extend this
- * class to handle custom node and edge types.
+ * I/O class for loading a node index from a JSON file. Extend this class to
+ * handle custom node and edge types.
  *
  * @author pdtyreus
  * @see <a href="http://jsongraphformat.info/">JSON Graph Format</a>
@@ -54,6 +54,33 @@ import java.util.logging.Logger;
 public class JsonGraphBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonGraphBuilder.class.getName());
+
+    public static final JsonNodeBuilder DEFAULT_NODE_BUILDER = (Integer id, String type, JsonObject metadata) -> {
+
+        List<String> messages = new ArrayList();
+        if (metadata.get("message") != null) {
+            if (metadata.get("message").isArray()) {
+                for (JsonValue node : metadata.get("message").asArray()) {
+                    messages.add(node.asString());
+                }
+            } else {
+                messages.add(metadata.get("message").asString());
+            }
+        } else {
+            throw new IOException("No \"message\" metadata for node " + id);
+        }
+
+        //make the node into something
+        IConversationNode conversationNode = new DialogTreeNode(id, messages);
+
+        return conversationNode;
+    };
+
+    public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, JsonObject metadata, IConversationNode target) -> {
+        ConversationEdge edge = new ConversationEdge(target, edgeId);
+
+        return edge;
+    };
 
     protected List<ConversationNodeButton> createButtonsFromMetadata(JsonObject metadata) throws IOException {
         List<ConversationNodeButton> cnButtons = new ArrayList();
@@ -104,33 +131,8 @@ public class JsonGraphBuilder {
     }
 
     public static IConversationNodeIndex readJsonGraph(Reader reader) throws IOException {
-        final JsonNodeBuilder nodeBuilder = (Integer id, String type, JsonObject metadata) -> {
 
-            List<String> messages = new ArrayList();
-            if (metadata.get("message") != null) {
-                if (metadata.get("message").isArray()) {
-                    for (JsonValue node : metadata.get("message").asArray()) {
-                        messages.add(node.asString());
-                    }
-                } else {
-                    messages.add(metadata.get("message").asString());
-                }
-            } else {
-                throw new IOException("No \"message\" metadata for node " + id);
-            }
-
-            //make the node into something
-            IConversationNode conversationNode = new DialogTreeNode(id, messages);
-
-            return conversationNode;
-        };
-        final JsonEdgeBuilder edgeBuilder = (String intentId, JsonObject metadata, IConversationNode target) -> {
-            ConversationEdge edge = new ConversationEdge(target, intentId);
-
-            return edge;
-        };
-
-        return readJsonGraph(reader, nodeBuilder, edgeBuilder);
+        return readJsonGraph(reader, DEFAULT_NODE_BUILDER, DEFAULT_EDGE_BUILDER);
     }
 
     public static IConversationNodeIndex readJsonGraph(Reader reader, JsonNodeBuilder nodeBuilder, JsonEdgeBuilder edgeBuilder) throws IOException {

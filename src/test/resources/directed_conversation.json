@@ -16,7 +16,7 @@
                 "type": "ConversationNode",
                 "label": "4",
                 "metadata": {
-                    "message": ["You answered {{answer}}","That is the correct answer. 3+3={{answer}}"]
+                    "message": ["You answered {{answer}}.","That is the correct answer. 3+3={{answer}}."]
                 }
             },
             {
@@ -24,7 +24,7 @@
                 "type":"ConversationNode",
                 "label":"5",
                 "metadata":{
-                    "message":["You answered {{answer}}","\"{{answer}}\" is not correct. Would you like to try again?"]
+                    "message":["You answered {{answer}}.","\"{{answer}}\" is not correct. Would you like to try again?"]
                 }
             }
         ],
@@ -33,49 +33,26 @@
                 "source": "1",
                 "target": "4",
                 "directed": true,
-                "label":"Any number",
-                "type":"Regex",
+                "label":"Correct Answer",
+                "relation":"NUMBER_ANSWER",
                 "metadata": {
-                    "pattern":"\\3|three"
                 }
             },
             {
-                "source": "2",
-                "target": "3",
-                "directed": true,
-                "label":"Anything else",
-                "type":"JavaScript",
-                "metadata": {
-                    "isMatchForState":"return true;",
-                    "onMatch":"if (state.mostRecentResponse == 'six'){state.answer = 6};return state;"
-                }
-            },
-            {
-                "source": "3",
-                "target": "4",
-                "directed": true,
-                "label": "correct",
-                "type":"JavaScript",
-                "metadata": {
-                    "isMatchForState":"return (state.answer === 6);"
-                }
-            },
-            {
-                "source": "3",
+                "source": "1",
                 "target": "5",
                 "directed": true,
-                "label": "incorrect",
-                "type":"JavaScript",
+                "label":"Wrong Answer",
+                "relation":"NUMBER_ANSWER",
                 "metadata": {
-                    "isMatchForState":"return (state.answer != 6);"
                 }
             },
             {
                 "source": "5",
-                "target": "2",
+                "target": "1",
                 "directed": true,
-                "label":"yes",
-                "type":"Affirmative",
+                "label":"Yes",
+                 "relation":"YES",
                 "metadata": {
                 }
             }

@@ -23,25 +23,35 @@
  */
 package com.conversationkit.impl;
 
+import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
+import com.conversationkit.impl.edge.ConversationEdge;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
+import com.conversationkit.model.IConversationState;
 import com.conversationkit.nlp.RegexIntentDetector;
+import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
 import com.conversationkit.redux.impl.CompletableFutureMiddleware;
+import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import junit.framework.TestCase;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+
 /**
  *
  * @author pdtyreus
@@ -50,17 +60,70 @@ public class ConversationGraphTest {
 
     private static final Logger logger = Logger.getLogger(ConversationGraphTest.class.getName());
 
+    public static class TestState extends MapBackedConversationState {
+
+        public TestState(Map source) {
+            super(source, DirectedConversationEngine.CONVERSATION_STATE_KEY);
+        }
+
+    }
+
     @Test
     public void testDirectedConversation() throws IOException {
 
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
 
+        BiFunction<IConversationIntent, Store, Boolean> answerInvalidator = (intent, store) -> {
+
+            final String answer = (String) intent.getSlots().get("0");
+            PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of(answer));
+
+            if ("6".equals(answer) || "six".equalsIgnoreCase(answer)) {
+                store.dispatch(action);
+                return true;
+            }
+
+            return false;
+        };
+
+        BiFunction<IConversationIntent, Store, Boolean> answerValidator = (intent, store) -> {
+
+            final String answer = (String) intent.getSlots().get("0");
+            PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of("6"));
+
+            store.dispatch(action);
+
+            return true;
+        };
+
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
-        IConversationNodeIndex index = JsonGraphBuilder.readJsonGraph(reader);
-//        RegexIntentDetector intentDetector = new RegexIntentDetector(new HashMap());
-//        DirectedConversationEngine engine = new DirectedConversationEngine(intentDetector, index);
-//        //HashMap state = new HashMap();
-//        Store store = Redux.createStore(new ConversationReducer(), new HashMap(), new CompletableFutureMiddleware());
+
+        JsonEdgeBuilder edgeBuilder = (String intentId, JsonObject metadata, IConversationNode target) -> {
+            if (target.getId() == 4) {
+                return new ConversationEdge(target, intentId, answerInvalidator);
+            } else if (target.getId() == 5) {
+                return new ConversationEdge(target, intentId, answerValidator);
+            } else {
+                return new ConversationEdge(target, intentId);
+            }
+        };
+
+        IConversationNodeIndex index = JsonGraphBuilder.readJsonGraph(reader, JsonGraphBuilder.DEFAULT_NODE_BUILDER, edgeBuilder);
+        RegexIntentDetector intentDetector = new RegexIntentDetector(new HashMap());
+
+        HashMap initialConversationState = new HashMap();
+        initialConversationState.put("nodeId", 1);
+
+        HashMap initialCustomState = new HashMap();
+        //initialCustomState.put("right", false);
+
+        Map initialState = new HashMap();
+        initialState.put(DirectedConversationEngine.CONVERSATION_STATE_KEY, initialConversationState);
+        initialState.put("math", initialCustomState);
+
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
+            return new TestState(map);
+        });
 
         logger.info("** Testing conversation");
 
@@ -90,6 +153,5 @@ public class ConversationGraphTest {
 //        } catch (ExecutionException | InterruptedException e) {
 //            fail(e.getMessage());
 //        }
-
     }
 }

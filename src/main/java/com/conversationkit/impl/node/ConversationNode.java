@@ -23,7 +23,6 @@
  */
 package com.conversationkit.impl.node;
 
-import com.conversationkit.impl.action.MappedIntentToEdgeAction;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
@@ -61,11 +60,6 @@ public abstract class ConversationNode implements IConversationNode {
     @Override
     public int getId() {
         return id;
-    }
-
-    @Override
-    public MappedIntentToEdgeAction mapIntentToEdge(String intent, Store store) {
-        return new MappedIntentToEdgeAction(intent);
     }
 
     

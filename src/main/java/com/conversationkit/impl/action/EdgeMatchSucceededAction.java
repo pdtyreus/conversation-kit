@@ -30,8 +30,8 @@ import com.conversationkit.model.IConversationNode;
  *
  * @author pdtyreus
  */
-public class NodeProcessingSucceededAction extends ConversationAction<IConversationNode> {
-    public NodeProcessingSucceededAction(IConversationNode nextNode) {
-        super(ActionType.NODE_PROCESSING_SUCCEEDED,nextNode);
+public class EdgeMatchSucceededAction extends ConversationAction<IConversationNode> {
+    public EdgeMatchSucceededAction(IConversationNode nextNode) {
+        super(ActionType.EDGE_MATCH_SUCCEEDED,nextNode);
     }
 }

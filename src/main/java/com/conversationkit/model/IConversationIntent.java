@@ -23,10 +23,13 @@
  */
 package com.conversationkit.model;
 
+import java.util.Map;
+
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public interface IConversationIntent {
-    
+    public String getIntentId();
+    public Map<String,Object> getSlots();
 }

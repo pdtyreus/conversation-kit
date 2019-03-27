@@ -23,8 +23,7 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.action.NodeProcessingSucceededAction;
-import com.conversationkit.impl.action.MappedIntentToEdgeAction;
+import com.conversationkit.impl.action.EdgeMatchSucceededAction;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import java.util.HashMap;
@@ -60,15 +59,9 @@ public class ConversationReducer implements Reducer {
                     misunderstoodCount++;
                     nextState.put("misunderstoodCount", misunderstoodCount);
                     return nextState;
-                case NODE_PROCESSING_SUCCEEDED:
-                    NodeProcessingSucceededAction npsa = (NodeProcessingSucceededAction)action;
+                case EDGE_MATCH_SUCCEEDED:
+                    EdgeMatchSucceededAction npsa = (EdgeMatchSucceededAction)action;
                     nextState.put("nodeId", npsa.getPayload().get().getId());
-                    return nextState;
-                case MAPPED_INTENT_TO_EDGE:
-                    MappedIntentToEdgeAction mi2ea = (MappedIntentToEdgeAction) action;
-                    if (mi2ea.getPayload().isPresent()) {
-                        nextState.put("edgeId", mi2ea.getPayload().get());
-                    }
                     return nextState;
                 default:
                     return currentState;

@@ -26,20 +26,32 @@ package com.conversationkit.impl.edge;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
+import com.conversationkit.redux.Store;
+import java.util.function.BiFunction;
 
 /**
  * Convenience base class for creating edges.
- * 
+ *
  * @author pdtyreus
  */
-public class ConversationEdge implements IConversationEdge {
+public class ConversationEdge<I extends IConversationIntent> implements IConversationEdge<I> {
+
     private final IConversationNode endNode;
     private final String id;
+    private final BiFunction<I, Store, Boolean> validateFunction;
 
-    public ConversationEdge(IConversationNode endNode, String id) {
+    public ConversationEdge(IConversationNode endNode, String intentId) {
         this.endNode = endNode;
-        this.id = id;
+        this.id = intentId;
+        this.validateFunction = (intent, store) -> {
+            return true;
+        };
+    }
+
+    public ConversationEdge(IConversationNode endNode, String intentId, BiFunction<I, Store, Boolean> validateFunction) {
+        this.endNode = endNode;
+        this.id = intentId;
+        this.validateFunction = validateFunction;
     }
 
     @Override
@@ -48,13 +60,17 @@ public class ConversationEdge implements IConversationEdge {
     }
 
     @Override
-    public String getId() {
+    public String getIntentId() {
         return id;
     }
 
     @Override
-    public String toString() {
-        return "ConversationEdge {" + getId() + '}';
+    public boolean validate(I intent, Store store) {
+        return validateFunction.apply(intent, store);
     }
-    
+
+    @Override
+    public String toString() {
+        return "ConversationEdge {" + getIntentId() + '}';
+    }
 }
