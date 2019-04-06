@@ -24,8 +24,9 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.builder.JsonEdgeBuilder;
-import com.conversationkit.builder.JsonGraphBuilder;
+import com.conversationkit.builder.JsonNodeBuilder;
 import com.conversationkit.impl.edge.ConversationEdge;
+import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
@@ -36,11 +37,14 @@ import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
 import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -98,7 +102,7 @@ public class ConversationGraphTest {
 
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
 
-        JsonEdgeBuilder edgeBuilder = (String intentId, JsonObject metadata, IConversationNode target) -> {
+        JsonEdgeBuilder<ConversationEdge, DialogTreeNode> edgeBuilder = (String intentId, JsonObject metadata, DialogTreeNode target) -> {
             if (target.getId() == 4) {
                 return new ConversationEdge(target, intentId, answerInvalidator);
             } else if (target.getId() == 5) {
@@ -108,7 +112,28 @@ public class ConversationGraphTest {
             }
         };
 
-        IConversationNodeIndex index = JsonGraphBuilder.readJsonGraph(reader, JsonGraphBuilder.DEFAULT_NODE_BUILDER, edgeBuilder);
+        JsonNodeBuilder<DialogTreeNode> nodeBuilder = (Integer id, String type, JsonObject metadata) -> {
+
+            List<String> messages = new ArrayList();
+            if (metadata.get("message") != null) {
+                if (metadata.get("message").isArray()) {
+                    for (JsonValue node : metadata.get("message").asArray()) {
+                        messages.add(node.asString());
+                    }
+                } else {
+                    messages.add(metadata.get("message").asString());
+                }
+            } else {
+                throw new IOException("No \"message\" metadata for node " + id);
+            }
+
+            //make the node into something
+            DialogTreeNode conversationNode = new DialogTreeNode(id, messages);
+
+            return conversationNode;
+        };
+
+        IConversationNodeIndex<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, nodeBuilder, edgeBuilder);
         RegexIntentDetector intentDetector = new RegexIntentDetector(new HashMap());
 
         HashMap initialConversationState = new HashMap();
@@ -126,6 +151,13 @@ public class ConversationGraphTest {
         });
 
         logger.info("** Testing conversation");
+
+        DialogTreeNode currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+        StringBuilder convo = new StringBuilder();
+        Formatter formatter = new Formatter(convo);
+        for (String message : currentNode.) {
+            OutputUtil.formatInput(formatter, null);
+        }
 
 //        try {
 //            StringBuilder convo = new StringBuilder();
