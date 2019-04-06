@@ -31,8 +31,10 @@ import com.conversationkit.redux.StringAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -125,6 +127,37 @@ public class MiddlewaresTest  {
 
             }
             s.dispatch(new StringAction(DECREMENT));
+        });
+        assertEquals(1, store.getState().get("counter"));
+    }
+    
+    @Test
+    public void testSupplierCounter() {
+        HashMap<String, Object> state = new HashMap();
+        state.put("counter", 0);
+        Store<Map> store = Redux.createStore(reducer, state, constructor, new SupplierMiddleware(Executors.newSingleThreadExecutor()));
+
+        Supplier<Action> s = () -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+
+            }
+            return new StringAction(INCREMENT);
+        };
+        store.dispatch(s);
+        assertEquals(1, store.getState().get("counter"));
+
+        store.dispatch(new StringAction(INCREMENT));
+        assertEquals(2, store.getState().get("counter"));
+
+        store.dispatch((Supplier<Action>)() -> {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+
+            }
+            return new StringAction(DECREMENT);
         });
         assertEquals(1, store.getState().get("counter"));
     }

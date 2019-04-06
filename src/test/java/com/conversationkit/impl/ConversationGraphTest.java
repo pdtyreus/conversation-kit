@@ -24,7 +24,9 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.builder.JsonEdgeBuilder;
+import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.builder.JsonNodeBuilder;
+import com.conversationkit.impl.DirectedConversationEngine.MessageHandlingResult;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationIntent;
@@ -44,6 +46,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -93,7 +96,7 @@ public class ConversationGraphTest {
         BiFunction<IConversationIntent, Store, Boolean> answerValidator = (intent, store) -> {
 
             final String answer = (String) intent.getSlots().get("0");
-            PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of("6"));
+            PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of(answer));
 
             store.dispatch(action);
 
@@ -134,7 +137,13 @@ public class ConversationGraphTest {
         };
 
         IConversationNodeIndex<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, nodeBuilder, edgeBuilder);
-        RegexIntentDetector intentDetector = new RegexIntentDetector(new HashMap());
+        
+        Map intentMap = new LinkedHashMap();
+        intentMap.put("YES", RegexIntentDetector.YES);
+        intentMap.put("NUMBER_ANSWER","([a-z]+|\\d)");
+        
+        
+        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
         HashMap initialConversationState = new HashMap();
         initialConversationState.put("nodeId", 1);
@@ -146,18 +155,56 @@ public class ConversationGraphTest {
         initialState.put(DirectedConversationEngine.CONVERSATION_STATE_KEY, initialConversationState);
         initialState.put("math", initialCustomState);
 
-        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
-            return new TestState(map);
-        });
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(
+                intentDetector,
+                index,
+                initialState, (map) -> {
+                    return new TestState(map);
+                });
 
         logger.info("** Testing conversation");
 
         DialogTreeNode currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
         StringBuilder convo = new StringBuilder();
+        convo.append("\n");
         Formatter formatter = new Formatter(convo);
-        for (String message : currentNode.) {
-            OutputUtil.formatInput(formatter, null);
+        for (String message : currentNode.getMessages()) {
+            OutputUtil.formatInput(formatter, message);
         }
+
+        try {
+            MessageHandlingResult result = engine.handleIncomingMessage("five").get();
+
+            assertEquals(true, result.ok);
+            assertEquals(5, engine.getState().getCurrentNodeId().intValue());
+            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            for (String message : currentNode.getMessages()) {
+                OutputUtil.formatInput(formatter, message);
+            }
+            
+            result = engine.handleIncomingMessage("yes").get();
+
+            assertEquals(true, result.ok);
+            assertEquals(1, engine.getState().getCurrentNodeId().intValue());
+            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            for (String message : currentNode.getMessages()) {
+                OutputUtil.formatInput(formatter, message);
+            }
+            
+            assertEquals(true, result.ok);
+            result = engine.handleIncomingMessage("six").get();
+
+            assertEquals(4, engine.getState().getCurrentNodeId().intValue());
+            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            for (String message : currentNode.getMessages()) {
+                OutputUtil.formatInput(formatter, message);
+            }
+
+        } catch (ExecutionException | InterruptedException e) {
+            fail(e.getMessage());
+        }
+
+        logger.info(convo.toString());
 
 //        try {
 //            StringBuilder convo = new StringBuilder();

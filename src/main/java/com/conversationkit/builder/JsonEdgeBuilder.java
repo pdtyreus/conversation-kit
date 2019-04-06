@@ -33,6 +33,6 @@ import java.io.IOException;
  * @author pdtyreus
  */
 @FunctionalInterface
-public interface JsonEdgeBuilder {
-    public IConversationEdge edgeFromJson(String relation, JsonObject metadata, IConversationNode target) throws IOException;
+public interface JsonEdgeBuilder<E extends IConversationEdge, N extends IConversationNode> {
+    public E edgeFromJson(String relation, JsonObject metadata, N target) throws IOException;
 }

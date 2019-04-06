@@ -25,6 +25,7 @@ package com.conversationkit.nlp;
 
 import com.conversationkit.model.IConversationIntent;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
