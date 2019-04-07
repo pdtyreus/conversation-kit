@@ -46,6 +46,12 @@ public class ConversationReducer implements Reducer {
                     nextState.remove("intentId");
                     nextState.remove("edgeId");
                     return nextState;
+                case SET_NODE_ID:
+                    nextState.remove("intentId");
+                    nextState.remove("edgeId");
+                    nextState.remove("misunderstoodCount");
+                    nextState.put("nodeId", ((ConversationAction<Optional<String>>) action).getPayload().get());
+                    return nextState;
                 case INTENT_UNDERSTANDING_SUCCEEDED:
                     nextState.remove("misunderstoodCount");
                     nextState.put("intentId", ((ConversationAction<Optional<String>>) action).getPayload().get());

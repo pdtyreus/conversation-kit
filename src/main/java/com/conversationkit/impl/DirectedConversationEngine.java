@@ -106,7 +106,7 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
             Iterable<IConversationEdge> edges = currentNode.get().getEdges();
             for (IConversationEdge edge : edges) {
                 if (edge.getIntentId().equals(intent.getIntentId())) {
-                    logger.log(Level.INFO, "Found matching edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
+                    logger.log(Level.INFO, "Found unvalidated matching edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
                     boolean valid = edge.validate(intent, store);
                     if (valid) {
                         logger.log(Level.INFO, "Edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
@@ -121,7 +121,7 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
 
         for (IConversationEdge edge : fallbackEdges) {
             if (edge.getIntentId().equals(intent.getIntentId())) {
-                logger.log(Level.INFO, "Found matching fallback edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
+                logger.log(Level.INFO, "Found unvalidated matching fallback edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
                 boolean valid = edge.validate(intent, store);
                 if (valid) {
                     logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));

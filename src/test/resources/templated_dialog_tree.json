@@ -5,12 +5,12 @@
         "nodes": [
             {
                 "id": "1",
-                "type": "STATEMENT",
+                "type": "DialogTree",
                 "label": "Hello {{name}}, I'm a test bot"
             },
             {
                 "id": "2",
-                "type": "STATEMENT",
+                "type": "DialogTree",
                 "label": "You've hit your head. I'm going to ask you some questions."
             },
             {

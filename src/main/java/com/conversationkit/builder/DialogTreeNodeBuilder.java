@@ -21,16 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.action;
+package com.conversationkit.builder;
+
+import com.conversationkit.impl.node.DialogTreeNode;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public enum ActionType {
+public class DialogTreeNodeBuilder implements JsonNodeBuilder<DialogTreeNode> {
 
-    MESSAGE_RECEIVED, SET_NODE_ID,
-    INTENT_UNDERSTANDING_SUCCEEDED, INTENT_UNDERSTANDING_FAILED,
-    EDGE_MATCH_SUCCEEDED, EDGE_MATCH_FAILED
+    @Override
+    public DialogTreeNode nodeFromJson(Integer id, String type, JsonObject metadata) throws IOException {
 
+        List<String> messages = new ArrayList();
+        if (metadata.get("message") != null) {
+            if (metadata.get("message").isArray()) {
+                for (JsonValue node : metadata.get("message").asArray()) {
+                    messages.add(node.asString());
+                }
+            } else {
+                messages.add(metadata.get("message").asString());
+            }
+        } else {
+            throw new IOException("No \"message\" metadata for node " + id);
+        }
+
+        DialogTreeNode conversationNode = new DialogTreeNode(id, messages);
+
+        return conversationNode;
     }
+;
+
+}

@@ -8,7 +8,7 @@
                 "type": "ConversationNode",
                 "label": "1",
                 "metadata": {
-                    "message": ["This is a math test. You can answer with digits or text.","What is 3+3?"]
+                    "message": ["This is a math test. You can answer with digits or text.", "What is 3+3?"]
                 }
             },
             {
@@ -52,7 +52,7 @@
                 "target": "1",
                 "directed": true,
                 "label":"Yes",
-                 "relation":"YES",
+                "relation":"YES",
                 "metadata": {
                 }
             }

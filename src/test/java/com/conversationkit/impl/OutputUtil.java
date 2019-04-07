@@ -34,13 +34,6 @@ import java.util.Formatter;
  * @author pdtyreus
  */
 public class OutputUtil {
-    
-//    public static void formatSnippet(Formatter formatter, String text) {
-//        formatter.format("  > %-100s <\n", node.getValue());
-//        if ((node.getType() == SnippetType.QUESTION) && (node.getSuggestedResponses(state) != null)) {
-//            formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", node.getSuggestedResponses(state)) + " ]");
-//        }
-//    }
 
     public static void formatInput(Formatter formatter, String message) {
         formatter.format("  > %100s <\n", message);

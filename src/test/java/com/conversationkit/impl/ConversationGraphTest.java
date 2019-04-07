@@ -23,6 +23,7 @@
  */
 package com.conversationkit.impl;
 
+import com.conversationkit.builder.DialogTreeNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.builder.JsonNodeBuilder;
@@ -35,6 +36,7 @@ import com.conversationkit.model.IConversationNodeIndex;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
 import com.conversationkit.redux.impl.CompletableFutureMiddleware;
@@ -71,6 +73,16 @@ public class ConversationGraphTest {
 
         public TestState(Map source) {
             super(source, DirectedConversationEngine.CONVERSATION_STATE_KEY);
+        }
+
+        private Map getMathMap() {
+
+            return (Map) source.get("math");
+
+        }
+
+        public String getAnswer() {
+            return (String) getMathMap().get("answer");
         }
 
     }
@@ -115,34 +127,12 @@ public class ConversationGraphTest {
             }
         };
 
-        JsonNodeBuilder<DialogTreeNode> nodeBuilder = (Integer id, String type, JsonObject metadata) -> {
+        IConversationNodeIndex<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, new DialogTreeNodeBuilder(), edgeBuilder);
 
-            List<String> messages = new ArrayList();
-            if (metadata.get("message") != null) {
-                if (metadata.get("message").isArray()) {
-                    for (JsonValue node : metadata.get("message").asArray()) {
-                        messages.add(node.asString());
-                    }
-                } else {
-                    messages.add(metadata.get("message").asString());
-                }
-            } else {
-                throw new IOException("No \"message\" metadata for node " + id);
-            }
-
-            //make the node into something
-            DialogTreeNode conversationNode = new DialogTreeNode(id, messages);
-
-            return conversationNode;
-        };
-
-        IConversationNodeIndex<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, nodeBuilder, edgeBuilder);
-        
         Map intentMap = new LinkedHashMap();
         intentMap.put("YES", RegexIntentDetector.YES);
-        intentMap.put("NUMBER_ANSWER","([a-z]+|\\d)");
-        
-        
+        intentMap.put("NUMBER_ANSWER", "(one)|(two)|(three)|(four)|(five)|(six)|(\\d)");
+
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
         HashMap initialConversationState = new HashMap();
@@ -155,12 +145,29 @@ public class ConversationGraphTest {
         initialState.put(DirectedConversationEngine.CONVERSATION_STATE_KEY, initialConversationState);
         initialState.put("math", initialCustomState);
 
+        Reducer mathReducer = (Action action, Map currentState) -> {
+            switch (action.getType()) {
+                case "SET_ANSWER":
+                    Map nextState = new HashMap();
+                    nextState.putAll(currentState);
+                    nextState.put("answer", ((PayloadAction<String>) action).getPayload().get());
+                    return nextState;
+                default:
+                    return currentState;
+            }
+        };
+
+        Map<String, Reducer> reducers = new HashMap();
+        reducers.put("math", mathReducer);
+
         DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(
                 intentDetector,
                 index,
-                initialState, (map) -> {
+                initialState,
+                (map) -> {
                     return new TestState(map);
-                });
+                },
+                reducers);
 
         logger.info("** Testing conversation");
 
@@ -169,35 +176,41 @@ public class ConversationGraphTest {
         convo.append("\n");
         Formatter formatter = new Formatter(convo);
         for (String message : currentNode.getMessages()) {
-            OutputUtil.formatInput(formatter, message);
+            OutputUtil.formatOutput(formatter, message);
         }
 
         try {
+            OutputUtil.formatInput(formatter, "five");
             MessageHandlingResult result = engine.handleIncomingMessage("five").get();
 
             assertEquals(true, result.ok);
             assertEquals(5, engine.getState().getCurrentNodeId().intValue());
             currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
-                OutputUtil.formatInput(formatter, message);
+                message = message.replace("{{answer}}", engine.getState().getAnswer());
+                OutputUtil.formatOutput(formatter, message);
             }
-            
+
+            OutputUtil.formatInput(formatter, "yes");
             result = engine.handleIncomingMessage("yes").get();
 
             assertEquals(true, result.ok);
             assertEquals(1, engine.getState().getCurrentNodeId().intValue());
             currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
-                OutputUtil.formatInput(formatter, message);
+                message = message.replace("{{answer}}", engine.getState().getAnswer());
+                OutputUtil.formatOutput(formatter, message);
             }
-            
-            assertEquals(true, result.ok);
-            result = engine.handleIncomingMessage("six").get();
 
+            OutputUtil.formatInput(formatter, "6");
+            result = engine.handleIncomingMessage("6").get();
+
+            assertEquals(true, result.ok);
             assertEquals(4, engine.getState().getCurrentNodeId().intValue());
             currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
-                OutputUtil.formatInput(formatter, message);
+                message = message.replace("{{answer}}", engine.getState().getAnswer());
+                OutputUtil.formatOutput(formatter, message);
             }
 
         } catch (ExecutionException | InterruptedException e) {
@@ -206,31 +219,5 @@ public class ConversationGraphTest {
 
         logger.info(convo.toString());
 
-//        try {
-//            StringBuilder convo = new StringBuilder();
-//            Formatter formatter = new Formatter(convo);
-//
-//            String message = "hello";
-//            OutputUtil.formatInput(formatter, message);
-//            engine.handleIncomingMessage(store, store.getState(), message).get();
-//
-//            convo.append("\n");
-//            IConversationNode node = index.getNodeAtIndex(ConversationReducer.selectCurrentNodeId(store.getState()));
-//            OutputUtil.formatOutput(formatter, node.getValue());
-//
-//            message = "4";
-//            OutputUtil.formatInput(formatter, message);
-//            engine.handleIncomingMessage(store, store.getState(), message).get();
-//            convo.append("\n");
-//            node = index.getNodeAtIndex(ConversationReducer.selectCurrentNodeId(store.getState()));
-//            OutputUtil.formatOutput(formatter, node.getValue());
-//
-//            assertEquals(5, ConversationReducer.selectCurrentNodeId(store.getState()).intValue());
-//            message = "yup";
-//            OutputUtil.formatInput(formatter, message);
-//            logger.info(convo.toString());
-//        } catch (ExecutionException | InterruptedException e) {
-//            fail(e.getMessage());
-//        }
     }
 }

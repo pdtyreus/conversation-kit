@@ -57,11 +57,12 @@ public class RegexIntentDetector implements IntentDetector<IConversationIntent> 
 
         for (Map.Entry<String, Pattern> entry : intentRegexMap.entrySet()) {
             Matcher matcher = entry.getValue().matcher(text);
-            if (matcher.matches()) {
+            if (matcher.find()) {
                 logger.info(String.format("Matched intent %s with regex %s", entry.getKey(), entry.getValue()));
 
                 Map<String, Object> slots = new HashMap();
                 int i = 0;
+                matcher.reset();
                 while (matcher.find()) {
                     slots.put(i + "", matcher.group());
                 }
