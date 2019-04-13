@@ -26,6 +26,7 @@ package com.conversationkit.impl;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
 import com.conversationkit.impl.node.DialogTreeNode;
+import com.conversationkit.model.IConversationEngine.ErrorCode;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
@@ -45,7 +46,7 @@ import org.junit.BeforeClass;
  */
 public class DirectedConversationEngineTest {
 
-    private static MapBackedNodeIndex index;
+    private static MapBackedNodeRepository index;
     private static HashMap<String, Object> initialState;
 
     private static class TestState extends MapBackedConversationState {
@@ -58,6 +59,19 @@ public class DirectedConversationEngineTest {
             Map custom = (Map) source.get("custom");
             return (Boolean) custom.get("right");
         }
+
+        public static class TestStateBuilder extends ConversationStateBuilder<TestState> {
+
+            public TestStateBuilder(Map initialState) {
+                super(initialState);
+            }
+
+            @Override
+            public TestState buildFromState(Map state) {
+                return new TestState(state);
+            }
+
+        }
     }
 
     @BeforeClass
@@ -65,8 +79,8 @@ public class DirectedConversationEngineTest {
         ConversationNode top = new DialogTreeNode(1, Arrays.asList("top"));
         ConversationNode left = new DialogTreeNode(2, Arrays.asList("left"));
         ConversationNode right = new DialogTreeNode(3, Arrays.asList("right"));
-        ConversationEdge leftEdge = new ConversationEdge(left, "leftIntent");
-        ConversationEdge rightEdge = new ConversationEdge<>(right, "rightIntent", (intent, store) -> {
+        ConversationEdge leftEdge = new ConversationEdge(2, "leftIntent");
+        ConversationEdge rightEdge = new ConversationEdge<>(3, "rightIntent", (intent, store) -> {
             System.out.println("rightIntent action work");
 
             store.dispatch(new Action() {
@@ -88,7 +102,7 @@ public class DirectedConversationEngineTest {
         top.addEdge(leftEdge);
         top.addEdge(rightEdge);
 
-        index = new MapBackedNodeIndex();
+        index = new MapBackedNodeRepository();
         index.addNodeToIndex(1, top);
         index.addNodeToIndex(2, left);
         index.addNodeToIndex(3, right);
@@ -117,9 +131,7 @@ public class DirectedConversationEngineTest {
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
-        DirectedConversationEngine<TestState,IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
-            return new TestState(map);
-        });
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState.TestStateBuilder(initialState));
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
@@ -141,9 +153,7 @@ public class DirectedConversationEngineTest {
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
-        DirectedConversationEngine<TestState,IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
-            return new TestState(map);
-        });
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState.TestStateBuilder(initialState));
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
@@ -194,9 +204,7 @@ public class DirectedConversationEngineTest {
         Map<String, Reducer> reducerMap = new HashMap();
         reducerMap.put("custom", rightReducer);
 
-        DirectedConversationEngine<TestState,IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, initialState, (map) -> {
-            return new TestState(map);
-        });
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState.TestStateBuilder(initialState));
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
         assertEquals(false, engine.getState().isRight());

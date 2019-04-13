@@ -36,14 +36,13 @@ public interface IConversationEngine<N extends IConversationNode> {
      * @param message
      * @return 
      */
-    public CompletableFuture<MessageHandlingResult<N>> handleIncomingMessage(String message);
+    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message);
 
-    public static class MessageHandlingResult<N extends IConversationNode> {
+    public static class MessageHandlingResult {
 
         public boolean ok;
         public ErrorCode errorCode;
         public String errorMessage;
-        public N nextNode;
     }
 
     public static enum ErrorCode {

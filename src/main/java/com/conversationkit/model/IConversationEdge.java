@@ -36,14 +36,9 @@ import com.conversationkit.redux.Store;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversationEdge<I extends IConversationIntent, N extends IConversationNode> {
-    /**
-     * Returns the next node in the conversation graph along this edge. The 
-     * conversation will proceed along this edge if the conversation state 
-     * matches the criteria stored in the edge.
-     * @return the node at the end of this edge
-     */
-    public N getEndNode();
+public interface IConversationEdge<I extends IConversationIntent> {
+
+    public Integer getEndNodeId();
     
     public String getIntentId();
     

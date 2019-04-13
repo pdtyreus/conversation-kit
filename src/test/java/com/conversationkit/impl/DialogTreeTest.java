@@ -26,12 +26,13 @@ package com.conversationkit.impl;
 import com.conversationkit.builder.DialogTreeNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
+import com.conversationkit.impl.DialogTreeTest.TestState.TestStateBuilder;
 import com.conversationkit.impl.action.ActionType;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationEngine.MessageHandlingResult;
 import com.conversationkit.model.IConversationIntent;
-import com.conversationkit.model.IConversationNodeIndex;
+import com.conversationkit.model.ConversationNodeRepository;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
@@ -77,6 +78,19 @@ public class DialogTreeTest {
         public String getMood() {
             return (String) getDialogMap().get("mood");
         }
+        
+                 public static class TestStateBuilder extends ConversationStateBuilder<TestState> {
+
+            public TestStateBuilder(Map initialState) {
+                super(initialState);
+            }
+
+            @Override
+            public TestState buildFromState(Map state) {
+                return new TestState(state);
+            }
+             
+         }
 
     }
 
@@ -170,7 +184,7 @@ public class DialogTreeTest {
 
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
 
-        JsonEdgeBuilder<ConversationEdge, DialogTreeNode> edgeBuilder = (String intentId, JsonObject metadata, DialogTreeNode target) -> {
+        JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, JsonObject metadata, Integer target) -> {
 
             if ((metadata != null) && (metadata.get("validator") != null)) {
                 JsonObject validator = metadata.get("validator").asObject();
@@ -188,7 +202,7 @@ public class DialogTreeTest {
 
         };
 
-        IConversationNodeIndex<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, new DialogTreeNodeBuilder(), edgeBuilder);
+        ConversationNodeRepository<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, new DialogTreeNodeBuilder(), edgeBuilder);
 
         Map intentMap = new LinkedHashMap();
         intentMap.put("YES", RegexIntentDetector.YES);
@@ -225,15 +239,12 @@ public class DialogTreeTest {
         DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(
                 intentDetector,
                 index,
-                initialState,
-                (map) -> {
-                    return new TestState(map);
-                },
+                new TestStateBuilder(initialState),
                 reducers);
 
         logger.info("** Testing conversation");
 
-        DialogTreeNode currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+        DialogTreeNode currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
         StringBuilder convo = new StringBuilder();
         convo.append("\n");
         Formatter formatter = new Formatter(convo);
@@ -249,7 +260,7 @@ public class DialogTreeTest {
             assertEquals(3, engine.getState().getCurrentNodeId().intValue());
             assertEquals("great", engine.getState().getMood());
 
-            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
                 OutputUtil.formatOutput(formatter, message);
             }
@@ -274,7 +285,7 @@ public class DialogTreeTest {
             assertEquals(4, engine.getState().getCurrentNodeId().intValue());
             assertEquals("bad", engine.getState().getMood());
 
-            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
                 OutputUtil.formatOutput(formatter, message);
             }
@@ -287,7 +298,7 @@ public class DialogTreeTest {
             assertEquals(true, result.ok);
             assertEquals(6, engine.getState().getCurrentNodeId().intValue());
 
-            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
                 OutputUtil.formatOutput(formatter, message);
             }

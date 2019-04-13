@@ -56,8 +56,8 @@ public class DialogTreeEdge extends ConversationEdge {
      * @param intent string value to match
      * @param endNode next node in the conversation
      */
-    public DialogTreeEdge(String intent, IConversationNode endNode) {
-        super(endNode,intent);
+    public DialogTreeEdge(String intent, Integer endNodeId) {
+        super(endNodeId,intent);
     }
 
     @Override

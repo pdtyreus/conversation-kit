@@ -72,5 +72,18 @@ public class MapBackedConversationState implements IConversationState {
     public Integer getMisunderstoodCount() {
         return (Integer) getConversationMap().get("misunderstoodCount");
     }
+    
+//    public static class MapBackedConversationStateBuilder extends ConversationStateBuilder<MapBackedConversationState> {
+//
+//        public MapBackedConversationStateBuilder(Map initialState) {
+//            super(initialState);
+//        }
+//
+//        @Override
+//        public MapBackedConversationState buildFromState(Map state) {
+//            return new MapBackedConversationState(state);
+//        }
+//        
+//    }
 
 }

@@ -24,7 +24,7 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationNodeIndex;
+import com.conversationkit.model.ConversationNodeRepository;
 import com.conversationkit.model.IConversationState;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,13 +34,13 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class MapBackedNodeIndex<N extends IConversationNode> implements IConversationNodeIndex<N> {
+public class MapBackedNodeRepository<N extends IConversationNode> implements ConversationNodeRepository<N> {
 
-    private static final Logger logger = Logger.getLogger(MapBackedNodeIndex.class.getName());
+    private static final Logger logger = Logger.getLogger(MapBackedNodeRepository.class.getName());
     private final Map<Integer, N> nodeIndex = new HashMap();
 
     @Override
-    public N getNodeAtIndex(int id) {
+    public N getNodeById(int id) {
         return nodeIndex.get(id);
     }
     

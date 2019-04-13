@@ -27,12 +27,12 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import com.conversationkit.impl.MapBackedNodeIndex;
+import com.conversationkit.impl.MapBackedNodeRepository;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationNodeIndex;
+import com.conversationkit.model.ConversationNodeRepository;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
@@ -72,8 +72,8 @@ public class JsonGraphBuilder {
         return conversationNode;
     };
 
-    public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, JsonObject metadata, IConversationNode target) -> {
-        IConversationEdge edge = new ConversationEdge(target, edgeId);
+    public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, JsonObject metadata, Integer targetId) -> {
+        IConversationEdge edge = new ConversationEdge(targetId, edgeId);
 
         return edge;
     };
@@ -126,18 +126,18 @@ public class JsonGraphBuilder {
         return s;
     }
 
-    public static IConversationNodeIndex readJsonGraph(Reader reader) throws IOException {
+    public static ConversationNodeRepository readJsonGraph(Reader reader) throws IOException {
 
         return readJsonGraph(reader, DEFAULT_NODE_BUILDER, DEFAULT_EDGE_BUILDER);
     }
 
-    public static <N extends IConversationNode, E extends IConversationEdge> IConversationNodeIndex<N> readJsonGraph(Reader reader, JsonNodeBuilder<N> nodeBuilder, JsonEdgeBuilder<E,N> edgeBuilder) throws IOException {
+    public static <N extends IConversationNode, E extends IConversationEdge> ConversationNodeRepository<N> readJsonGraph(Reader reader, JsonNodeBuilder<N> nodeBuilder, JsonEdgeBuilder<E> edgeBuilder) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject().get("graph").asObject();
 
-        MapBackedNodeIndex<N> index = new MapBackedNodeIndex();
+        MapBackedNodeRepository<N> index = new MapBackedNodeRepository();
 
         int i = 0;
         //run through once to create nodes
@@ -195,8 +195,8 @@ public class JsonGraphBuilder {
             Integer sourceId = Integer.parseInt(edge.get("source").asString());
             Integer targetId = Integer.parseInt(edge.get("target").asString());
 
-            N source = index.getNodeAtIndex(sourceId);
-            N target = index.getNodeAtIndex(targetId);
+            N source = index.getNodeById(sourceId);
+            N target = index.getNodeById(targetId);
 
             if (source == null) {
                 throw new IOException("Source node missing for edge " + edge);
@@ -213,7 +213,7 @@ public class JsonGraphBuilder {
                 metadata = metadataValue.asObject();
             }
 
-            E conversationEdge = edgeBuilder.edgeFromJson(relation, metadata, target);
+            E conversationEdge = edgeBuilder.edgeFromJson(relation, metadata, targetId);
             if (conversationEdge == null) {
                 throw new IOException("Unhandled edge " + edge);
             }

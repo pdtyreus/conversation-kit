@@ -23,6 +23,9 @@
  */
 package com.conversationkit.model;
 
+import java.util.Map;
+import java.util.function.Function;
+
 /**
  * The conversation state is a data store designed to persist a user's progress
  * through a conversation, help customize the messages sent by the bot to the 
@@ -41,5 +44,22 @@ public interface IConversationState{
     public String getIntentId();
     public String getEdgeId();
     public Integer getMisunderstoodCount();
+    
+    public static abstract class ConversationStateBuilder<S extends IConversationState> implements Function<Map,S>{
+        private final Map initialState;
+        public ConversationStateBuilder(Map initialState) {
+            this.initialState = initialState;
+        }
+        
+        public Map getInitialState() {
+            return initialState;
+        }
+        
+        public abstract S buildFromState(Map state);
 
+        @Override
+        public S apply(Map state) {
+            return buildFromState(state);
+        }
+    }
 }

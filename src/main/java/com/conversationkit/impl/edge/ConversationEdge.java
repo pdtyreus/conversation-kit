@@ -34,29 +34,29 @@ import java.util.function.BiFunction;
  *
  * @author pdtyreus
  */
-public class ConversationEdge<I extends IConversationIntent, N extends IConversationNode> implements IConversationEdge<I,N> {
+public class ConversationEdge<I extends IConversationIntent> implements IConversationEdge<I> {
 
-    private final N endNode;
+    private final Integer endNodeId;
     private final String id;
     private final BiFunction<I, Store, Boolean> validateFunction;
 
-    public ConversationEdge(N endNode, String intentId) {
-        this.endNode = endNode;
+    public ConversationEdge(Integer endNodeId, String intentId) {
+        this.endNodeId = endNodeId;
         this.id = intentId;
         this.validateFunction = (intent, store) -> {
             return true;
         };
     }
 
-    public ConversationEdge(N endNode, String intentId, BiFunction<I, Store, Boolean> validateFunction) {
-        this.endNode = endNode;
+    public ConversationEdge(Integer endNodeId, String intentId, BiFunction<I, Store, Boolean> validateFunction) {
+        this.endNodeId = endNodeId;
         this.id = intentId;
         this.validateFunction = validateFunction;
     }
 
     @Override
-    public N getEndNode() {
-        return endNode;
+    public Integer getEndNodeId() {
+        return endNodeId;
     }
 
     @Override

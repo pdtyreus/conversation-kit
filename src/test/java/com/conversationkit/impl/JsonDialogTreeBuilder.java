@@ -23,7 +23,7 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.MapBackedNodeIndex;
+import com.conversationkit.impl.MapBackedNodeRepository;
 import com.conversationkit.impl.DirectedConversationEngine;
 import com.conversationkit.model.SnippetType;
 import com.eclipsesource.json.Json;
