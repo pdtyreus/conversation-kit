@@ -27,6 +27,7 @@ import com.conversationkit.impl.action.ActionType;
 import com.conversationkit.impl.action.EdgeMatchSucceededAction;
 import com.conversationkit.impl.action.MessageReceivedAction;
 import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.model.IConversationEngine;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
@@ -53,23 +54,23 @@ import java.util.logging.Logger;
  *
  * @author pdtyreus
  */
-public class DirectedConversationEngine<S extends IConversationState,I extends IConversationIntent> implements Dispatcher {
+public class DirectedConversationEngine<S extends IConversationState,I extends IConversationIntent,N extends IConversationNode<E>,E extends IConversationEdge<I,N>> implements Dispatcher, IConversationEngine<N> {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
-    protected final IConversationNodeIndex nodeIndex;
+    protected final IConversationNodeIndex<N> nodeIndex;
     protected final IntentDetector<I> intentDetector;
     //protected final Map<String, Integer> fallbackIntentMap = new HashMap();
-    protected final List<IConversationEdge> fallbackEdges = new ArrayList();
+    protected final List<E> fallbackEdges = new ArrayList();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     protected final Store<S> store;
 
     public final static String CONVERSATION_STATE_KEY = "conversation-kit";
 
-    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Function<Map, S> stateConstructor) {
+    public DirectedConversationEngine(IntentDetector<I> intentDetector, IConversationNodeIndex<N> nodeIndex, Map initialState, Function<Map, S> stateConstructor) {
         this(intentDetector, nodeIndex, initialState, stateConstructor, new HashMap());
     }
 
-    public DirectedConversationEngine(IntentDetector intentDetector, IConversationNodeIndex nodeIndex, Map initialState, Function<Map, S> stateConstructor, Map<String, Reducer> reducers) {
+    public DirectedConversationEngine(IntentDetector<I> intentDetector, IConversationNodeIndex<N> nodeIndex, Map initialState, Function<Map, S> stateConstructor, Map<String, Reducer> reducers) {
         this.nodeIndex = nodeIndex;
         this.intentDetector = intentDetector;
         reducers.put(CONVERSATION_STATE_KEY, new ConversationReducer());
@@ -81,7 +82,7 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
         this.executorService = executorService;
     }
 
-    public void addFallbackEdge(IConversationEdge edge) {
+    public void addFallbackEdge(E edge) {
         fallbackEdges.add(edge);
     }
 
@@ -100,11 +101,11 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
 //            return CompletableFuture.completedFuture(new MappedIntentToEdgeAction(intentId));
 //        }
 //    }
-    private Optional<IConversationEdge> findEdgeMatchingIntent(IConversationIntent intent, Optional<IConversationNode> currentNode) {
+    private Optional<E> findEdgeMatchingIntent(I intent, Optional<N> currentNode) {
         //List<IConversationEdge> candidates = new ArrayList();
         if (currentNode.isPresent()) {
-            Iterable<IConversationEdge> edges = currentNode.get().getEdges();
-            for (IConversationEdge edge : edges) {
+            Iterable<E> edges = currentNode.get().getEdges();
+            for (E edge : edges) {
                 if (edge.getIntentId().equals(intent.getIntentId())) {
                     logger.log(Level.INFO, "Found unvalidated matching edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
                     boolean valid = edge.validate(intent, store);
@@ -119,7 +120,7 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
         }
         logger.log(Level.INFO, "No matching connected edge for intent {0}", intent.getIntentId());
 
-        for (IConversationEdge edge : fallbackEdges) {
+        for (E edge : fallbackEdges) {
             if (edge.getIntentId().equals(intent.getIntentId())) {
                 logger.log(Level.INFO, "Found unvalidated matching fallback edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNode().getId(), intent.getIntentId()));
                 boolean valid = edge.validate(intent, store);
@@ -135,10 +136,10 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
         return Optional.empty();
     }
 
-    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message) {
+    public CompletableFuture<MessageHandlingResult<N>> handleIncomingMessage(String message) {
 
         Integer currentNodeId = store.getState().getCurrentNodeId();
-        final Optional<IConversationNode> currentNode
+        final Optional<N> currentNode
                 = (currentNodeId != null)
                         ? Optional.ofNullable(nodeIndex.getNodeAtIndex(currentNodeId))
                         : Optional.empty();
@@ -146,11 +147,11 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
         store.dispatch(new MessageReceivedAction(message));
         return intentDetector.detectIntent(message)
                 .thenApply((intent) -> {
-                    MessageHandlingResult result = new MessageHandlingResult();
+                    MessageHandlingResult<N> result = new MessageHandlingResult<>();
                     if (intent.isPresent()) {
-                        IConversationIntent conversationIntent = intent.get();
+                        I conversationIntent = intent.get();
                         store.dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, conversationIntent));
-                        Optional<IConversationEdge> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
+                        Optional<E> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
                         if (!outboundEdge.isPresent()) {
                             store.dispatch(new ConversationAction(ActionType.EDGE_MATCH_FAILED));
 
@@ -158,6 +159,7 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
                             result.errorCode = ErrorCode.INTENT_PROCESSING_FAILED;
                         } else {
                             store.dispatch(new EdgeMatchSucceededAction(outboundEdge.get().getEndNode()));
+                            result.nextNode = outboundEdge.get().getEndNode();
                             result.ok = true;
                         }
 
@@ -184,18 +186,6 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
     @Override
     public S dispatch(Object action) {
         return store.dispatch(action);
-    }
-
-    public static class MessageHandlingResult {
-
-        public boolean ok;
-        public ErrorCode errorCode;
-        public String errorMessage;
-    }
-
-    public static enum ErrorCode {
-
-        INTENT_UNDERSTANDING_FAILED, INTENT_PROCESSING_FAILED
     }
 
 }

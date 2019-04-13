@@ -24,28 +24,30 @@
 package com.conversationkit.model;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface encapsulating the basic API for traversing a conversation.
- * Implementation details may vary, but generally the conversation is started
- * from a given state and runs until it requires a response from the user. The
- * user response is then used to update the conversation state, and the
- * conversation is restarted (continued) with the updated state.
- * @author pdtyreus
- * @param <S> an implementation of to store the current state of the conversation
- * for the current user
+ *
  */
-public interface IConversationEngine<S extends IConversationState> {
+public interface IConversationEngine<N extends IConversationNode> {
+
     /**
-     * Follows the conversation graph starting at the current node defined by the state
-     * parameter.  Implementation details may vary, but generally this method will
-     * return all the <code>IConversationSnippet</code>s along the graph until
-     * it reaches a node that requires a response from the user. The <code>state</code>
-     * is updated to reflect the new <code>currentNodeId</code>.
-     * 
-     * @param state initial state
-     * @return IConversationSnippets to display to the user
+     * @param message
+     * @return 
      */
-    public Iterable<IConversationSnippet> startConversationFromState(S state);
-    
+    public CompletableFuture<MessageHandlingResult<N>> handleIncomingMessage(String message);
+
+    public static class MessageHandlingResult<N extends IConversationNode> {
+
+        public boolean ok;
+        public ErrorCode errorCode;
+        public String errorMessage;
+        public N nextNode;
+    }
+
+    public static enum ErrorCode {
+
+        INTENT_UNDERSTANDING_FAILED, INTENT_PROCESSING_FAILED
+    }
 }

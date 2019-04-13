@@ -26,30 +26,22 @@ package com.conversationkit.impl;
 import com.conversationkit.builder.DialogTreeNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
-import com.conversationkit.builder.JsonNodeBuilder;
-import com.conversationkit.impl.DirectedConversationEngine.MessageHandlingResult;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
+import com.conversationkit.model.IConversationEngine.MessageHandlingResult;
 import com.conversationkit.model.IConversationIntent;
-import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationNodeIndex;
-import com.conversationkit.model.IConversationState;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
-import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
-import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -57,9 +49,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
-import junit.framework.TestCase;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -181,11 +171,11 @@ public class ConversationGraphTest {
 
         try {
             OutputUtil.formatInput(formatter, "five");
-            MessageHandlingResult result = engine.handleIncomingMessage("five").get();
+            MessageHandlingResult<DialogTreeNode> result = engine.handleIncomingMessage("five").get();
 
             assertEquals(true, result.ok);
             assertEquals(5, engine.getState().getCurrentNodeId().intValue());
-            currentNode = index.getNodeAtIndex(engine.getState().getCurrentNodeId());
+            currentNode = result.nextNode;
             for (String message : currentNode.getMessages()) {
                 message = message.replace("{{answer}}", engine.getState().getAnswer());
                 OutputUtil.formatOutput(formatter, message);

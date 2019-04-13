@@ -26,23 +26,17 @@ package com.conversationkit.impl;
 import com.conversationkit.builder.DialogTreeNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
-import com.conversationkit.impl.DirectedConversationEngine;
-import com.conversationkit.impl.DirectedConversationEngine.MessageHandlingResult;
 import com.conversationkit.impl.action.ActionType;
-import com.conversationkit.impl.action.EdgeMatchSucceededAction;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
+import com.conversationkit.model.IConversationEngine.MessageHandlingResult;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNodeIndex;
-import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.UnexpectedResponseException;
-import com.conversationkit.model.UnmatchedResponseException;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Store;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -58,9 +52,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
-import junit.framework.TestCase;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  *

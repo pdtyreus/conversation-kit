@@ -64,15 +64,4 @@ public class DialogTreeNode extends ConversationNode {
         return messages;
     }
 
-    public Iterable<String> getSuggestedResponses() {
-        List<String> allowed = new ArrayList();
-        for (IConversationEdge edge : edges) {
-            if (edge instanceof DialogTreeEdge) {
-                DialogTreeEdge dtEdge = (DialogTreeEdge) edge;
-                allowed.add(dtEdge.getIntentId());
-            }
-        }
-        return allowed;
-    }
-
 }

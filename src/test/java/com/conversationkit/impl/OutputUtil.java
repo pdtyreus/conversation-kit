@@ -23,10 +23,6 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetType;
 import java.util.Formatter;
 
 /**

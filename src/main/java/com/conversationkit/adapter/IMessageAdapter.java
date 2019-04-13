@@ -23,9 +23,6 @@
  */
 package com.conversationkit.adapter;
 
-import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.IConversationState;
-
 /**
  *
  * @author pdtyreus

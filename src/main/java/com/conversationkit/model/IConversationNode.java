@@ -31,14 +31,14 @@ package com.conversationkit.model;
  * the first matching edge at each vertex.
  * @author pdtyreus
  */
-public interface IConversationNode {
+public interface IConversationNode<E extends IConversationEdge> {
 
     /**
      * Returns a list of outbound edges from the current node. One matching 
      * edge may be chosen to continue the conversation to the next node.
      * @return outbound edges
      */
-    public Iterable<IConversationEdge> getEdges();
+    public Iterable<E> getEdges();
 
     /**
      * Adds an edge to the list of possible outbound edges.

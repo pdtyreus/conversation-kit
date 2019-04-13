@@ -23,7 +23,6 @@
  */
 package com.conversationkit.impl.button.facebook;
 
-import com.conversationkit.model.IConversationSnippetButton;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +30,7 @@ import java.util.Map;
  *
  * @author pdtyreus
  */
-public class WebUrlButton implements IConversationSnippetButton {
+public class WebUrlButton  {
 
     private final String text;
     private final String value;
@@ -56,22 +55,18 @@ public class WebUrlButton implements IConversationSnippetButton {
 
     }
 
-    @Override
     public String getType() {
         return "web_url";
     }
 
-    @Override
     public String getText() {
         return text;
     }
 
-    @Override
     public String getValue() {
         return value;
     }
 
-    @Override
     public Map<String, Object> getAttributes() {
         return attributes;
     }

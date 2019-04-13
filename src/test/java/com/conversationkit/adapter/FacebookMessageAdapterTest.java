@@ -23,16 +23,8 @@
  */
 package com.conversationkit.adapter;
 
-import com.conversationkit.impl.node.ConversationNodeButton;
-import com.conversationkit.impl.node.ResponseSuggestingNode;
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonValue;
-import com.conversationkit.model.SnippetContentType;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  *

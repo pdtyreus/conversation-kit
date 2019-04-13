@@ -26,13 +26,9 @@ package com.conversationkit.adapter;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import com.conversationkit.model.IConversationSnippet;
-import com.conversationkit.model.IConversationSnippetButton;
-import com.conversationkit.model.IConversationState;
 import com.conversationkit.model.SnippetContentType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -77,10 +73,10 @@ public class FacebookMessageAdapter implements IMessageAdapter {
         if (arguments.length > 2) {
             suggestedResponses = (Iterable<String>)arguments[2];
         }
-        Iterable<IConversationSnippetButton> buttons = null;
-        if (arguments.length > 3) {
-            buttons = (Iterable<IConversationSnippetButton>) arguments[3];
-        }
+//        Iterable<IConversationSnippetButton> buttons = null;
+//        if (arguments.length > 3) {
+//            buttons = (Iterable<IConversationSnippetButton>) arguments[3];
+//        }
 
         JsonValue quickReplies = null;
         if (suggestedResponses != null) {
@@ -128,11 +124,11 @@ public class FacebookMessageAdapter implements IMessageAdapter {
             case BUTTONS:
 
                 JsonValue buttonsJson = Json.array();
-                if (buttons != null) {
-                    for (IConversationSnippetButton iButton : buttons) {
-                        buttonsJson.asArray().add(createButton(iButton));
-                    }
-                }
+//                if (buttons != null) {
+//                    for (IConversationSnippetButton iButton : buttons) {
+//                        buttonsJson.asArray().add(createButton(iButton));
+//                    }
+//                }
                 JsonObject payload = Json.object();
                 payload.add("buttons", buttonsJson);
                 payload.add("template_type", "button");
@@ -178,38 +174,38 @@ public class FacebookMessageAdapter implements IMessageAdapter {
 
         web_url, postback, phone_number, element_share
     }
-
-    private JsonObject createButton(IConversationSnippetButton iButton) {
-
-        ButtonType type = ButtonType.valueOf(iButton.getType());
-
-        JsonObject button = Json.object();
-
-        switch (type) {
-            case web_url:
-                button.add("type", iButton.getType());
-                button.add("url", iButton.getValue());
-                button.add("title", iButton.getText());
-                break;
-            case postback:
-            case phone_number:
-                button.add("type", iButton.getType());
-                button.add("payload", iButton.getValue());
-                button.add("title", iButton.getText());
-                break;
-            case element_share:
-                button.add("type", iButton.getType());
-                break;
-        }
-
-        for (Map.Entry<String, Object> entry : iButton.getAttributes().entrySet()) {
-            if (entry.getValue() instanceof String) {
-                button.add(entry.getKey(), (String) entry.getValue());
-            } else if (entry.getValue() instanceof Boolean) {
-                button.add(entry.getKey(), (Boolean) entry.getValue());
-            }
-        }
-
-        return button;
-    }
+//
+//    private JsonObject createButton(IConversationSnippetButton iButton) {
+//
+//        ButtonType type = ButtonType.valueOf(iButton.getType());
+//
+//        JsonObject button = Json.object();
+//
+//        switch (type) {
+//            case web_url:
+//                button.add("type", iButton.getType());
+//                button.add("url", iButton.getValue());
+//                button.add("title", iButton.getText());
+//                break;
+//            case postback:
+//            case phone_number:
+//                button.add("type", iButton.getType());
+//                button.add("payload", iButton.getValue());
+//                button.add("title", iButton.getText());
+//                break;
+//            case element_share:
+//                button.add("type", iButton.getType());
+//                break;
+//        }
+//
+//        for (Map.Entry<String, Object> entry : iButton.getAttributes().entrySet()) {
+//            if (entry.getValue() instanceof String) {
+//                button.add(entry.getKey(), (String) entry.getValue());
+//            } else if (entry.getValue() instanceof Boolean) {
+//                button.add(entry.getKey(), (Boolean) entry.getValue());
+//            }
+//        }
+//
+//        return button;
+//    }
 }

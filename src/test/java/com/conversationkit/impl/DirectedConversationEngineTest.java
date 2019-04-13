@@ -23,7 +23,6 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.DirectedConversationEngine.ErrorCode;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
 import com.conversationkit.impl.node.DialogTreeNode;

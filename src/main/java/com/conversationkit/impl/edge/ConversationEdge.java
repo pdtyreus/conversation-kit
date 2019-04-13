@@ -34,13 +34,13 @@ import java.util.function.BiFunction;
  *
  * @author pdtyreus
  */
-public class ConversationEdge<I extends IConversationIntent> implements IConversationEdge<I> {
+public class ConversationEdge<I extends IConversationIntent, N extends IConversationNode> implements IConversationEdge<I,N> {
 
-    private final IConversationNode endNode;
+    private final N endNode;
     private final String id;
     private final BiFunction<I, Store, Boolean> validateFunction;
 
-    public ConversationEdge(IConversationNode endNode, String intentId) {
+    public ConversationEdge(N endNode, String intentId) {
         this.endNode = endNode;
         this.id = intentId;
         this.validateFunction = (intent, store) -> {
@@ -48,14 +48,14 @@ public class ConversationEdge<I extends IConversationIntent> implements IConvers
         };
     }
 
-    public ConversationEdge(IConversationNode endNode, String intentId, BiFunction<I, Store, Boolean> validateFunction) {
+    public ConversationEdge(N endNode, String intentId, BiFunction<I, Store, Boolean> validateFunction) {
         this.endNode = endNode;
         this.id = intentId;
         this.validateFunction = validateFunction;
     }
 
     @Override
-    public IConversationNode getEndNode() {
+    public N getEndNode() {
         return endNode;
     }
 
