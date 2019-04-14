@@ -49,7 +49,7 @@ public class DirectedConversationEngineTest {
     private static MapBackedNodeRepository index;
     private static HashMap<String, Object> initialState;
 
-    private static class TestState extends MapBackedConversationState {
+    private static class TestState extends MapBackedConversationState<TestState> {
 
         public TestState(Map source) {
             super(source, DirectedConversationEngine.CONVERSATION_STATE_KEY);
@@ -60,18 +60,12 @@ public class DirectedConversationEngineTest {
             return (Boolean) custom.get("right");
         }
 
-        public static class TestStateBuilder extends ConversationStateBuilder<TestState> {
-
-            public TestStateBuilder(Map initialState) {
-                super(initialState);
-            }
-
-            @Override
-            public TestState buildFromState(Map state) {
-                return new TestState(state);
-            }
-
+        @Override
+        public TestState apply(Map t) {
+            return new TestState(t);
         }
+
+        
     }
 
     @BeforeClass
@@ -131,7 +125,7 @@ public class DirectedConversationEngineTest {
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
-        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState.TestStateBuilder(initialState));
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState(initialState));
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
@@ -153,7 +147,7 @@ public class DirectedConversationEngineTest {
         intentMap.put("rightIntent", "right");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
-        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState.TestStateBuilder(initialState));
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState(initialState));
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
@@ -204,7 +198,7 @@ public class DirectedConversationEngineTest {
         Map<String, Reducer> reducerMap = new HashMap();
         reducerMap.put("custom", rightReducer);
 
-        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState.TestStateBuilder(initialState));
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(intentDetector, index, new TestState(initialState));
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
         assertEquals(false, engine.getState().isRight());

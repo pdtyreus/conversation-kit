@@ -34,7 +34,7 @@ import java.util.function.Function;
  * storage.
  * @author pdtyreus
  */
-public interface IConversationState{
+public interface IConversationState <S extends IConversationState> extends Function<Map,S> {
     /**
      * Returns the id of the node representing the last message sent to the 
      * user.
@@ -44,22 +44,5 @@ public interface IConversationState{
     public String getIntentId();
     public String getEdgeId();
     public Integer getMisunderstoodCount();
-    
-    public static abstract class ConversationStateBuilder<S extends IConversationState> implements Function<Map,S>{
-        private final Map initialState;
-        public ConversationStateBuilder(Map initialState) {
-            this.initialState = initialState;
-        }
-        
-        public Map getInitialState() {
-            return initialState;
-        }
-        
-        public abstract S buildFromState(Map state);
-
-        @Override
-        public S apply(Map state) {
-            return buildFromState(state);
-        }
-    }
+    public Map getStateAsMap();
 }

@@ -32,7 +32,6 @@ import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.ConversationNodeRepository;
 import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.IConversationState.ConversationStateBuilder;
 import com.conversationkit.nlp.IntentDetector;
 import com.conversationkit.redux.Dispatcher;
 import com.conversationkit.redux.Reducer;
@@ -67,16 +66,16 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
 
     public final static String CONVERSATION_STATE_KEY = "conversation-kit";
 
-    public DirectedConversationEngine(IntentDetector<I> intentDetector, ConversationNodeRepository nodeRepository, ConversationStateBuilder<S> stateBuilder) {
-        this(intentDetector, nodeRepository, stateBuilder, new HashMap());
+    public DirectedConversationEngine(IntentDetector<I> intentDetector, ConversationNodeRepository nodeRepository, S state) {
+        this(intentDetector, nodeRepository, state, new HashMap());
     }
 
-    public DirectedConversationEngine(IntentDetector<I> intentDetector, ConversationNodeRepository nodeRepository, ConversationStateBuilder<S> stateBuilder, Map<String, Reducer> reducers) {
+    public DirectedConversationEngine(IntentDetector<I> intentDetector, ConversationNodeRepository nodeRepository, S state, Map<String, Reducer> reducers) {
         this.nodeRepository = nodeRepository;
         this.intentDetector = intentDetector;
         reducers.put(CONVERSATION_STATE_KEY, new ConversationReducer());
         Reducer reducer = Redux.combineReducers(reducers);
-        store = Redux.createStore(reducer, stateBuilder.getInitialState(), stateBuilder);
+        store = Redux.createStore(reducer, state.getStateAsMap(), state);
     }
 
     public void setExecutorService(ExecutorService executorService) {

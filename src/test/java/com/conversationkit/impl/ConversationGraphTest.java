@@ -26,7 +26,6 @@ package com.conversationkit.impl;
 import com.conversationkit.builder.DialogTreeNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
-import com.conversationkit.impl.ConversationGraphTest.TestState.TestStateBuilder;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationEngine.MessageHandlingResult;
@@ -60,7 +59,7 @@ public class ConversationGraphTest {
 
     private static final Logger logger = Logger.getLogger(ConversationGraphTest.class.getName());
 
-    public static class TestState extends MapBackedConversationState {
+    public static class TestState extends MapBackedConversationState<TestState> {
 
         public TestState(Map source) {
             super(source, DirectedConversationEngine.CONVERSATION_STATE_KEY);
@@ -75,19 +74,11 @@ public class ConversationGraphTest {
         public String getAnswer() {
             return (String) getMathMap().get("answer");
         }
-        
-         public static class TestStateBuilder extends ConversationStateBuilder<TestState> {
 
-            public TestStateBuilder(Map initialState) {
-                super(initialState);
-            }
-
-            @Override
-            public TestState buildFromState(Map state) {
-                return new TestState(state);
-            }
-             
-         }
+        @Override
+        public TestState apply(Map t) {
+            return new TestState(t);
+        }
 
     }
 
@@ -167,7 +158,7 @@ public class ConversationGraphTest {
         DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(
                 intentDetector,
                 index,
-                new TestStateBuilder(initialState),
+                new TestState(initialState),
                 reducers);
 
         logger.info("** Testing conversation");

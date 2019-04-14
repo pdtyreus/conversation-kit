@@ -24,13 +24,14 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.model.IConversationState;
+import java.util.Collections;
 import java.util.Map;
 
 /**
  *
  * @author pdtyreus
  */
-public class MapBackedConversationState implements IConversationState {
+public abstract class MapBackedConversationState <S extends MapBackedConversationState> implements IConversationState<S> {
 
     protected final Map source;
     private final String conversationKey;
@@ -72,18 +73,10 @@ public class MapBackedConversationState implements IConversationState {
     public Integer getMisunderstoodCount() {
         return (Integer) getConversationMap().get("misunderstoodCount");
     }
-    
-//    public static class MapBackedConversationStateBuilder extends ConversationStateBuilder<MapBackedConversationState> {
-//
-//        public MapBackedConversationStateBuilder(Map initialState) {
-//            super(initialState);
-//        }
-//
-//        @Override
-//        public MapBackedConversationState buildFromState(Map state) {
-//            return new MapBackedConversationState(state);
-//        }
-//        
-//    }
+
+    @Override
+    public Map getStateAsMap() {
+        return Collections.unmodifiableMap(source);
+    }
 
 }

@@ -46,7 +46,7 @@ public final class Store<S> implements Dispatcher {
 
     private final Reducer reducer;
     private ActionDispatcher dispatcher;
-    private final Function<Map,S> constructor;
+    private final Function<Map,S> typedStateBuilder;
     private final Map<UUID, Consumer<Map<String, Object>>> consumers = new HashMap<>();
 
     @FunctionalInterface
@@ -56,10 +56,10 @@ public final class Store<S> implements Dispatcher {
 
     }
 
-    protected Store(Reducer reducer, Map initialState, Function<Map,S> constructor, Middleware... middlewares) {
+    protected Store(Reducer reducer, Map initialState, Function<Map,S> stateBuilder, Middleware... middlewares) {
         this.reducer = reducer;
         this.currentState = initialState;
-        this.constructor = constructor;
+        this.typedStateBuilder = stateBuilder;
 
         List<Middleware> allMiddlewares = new ArrayList();
         //native middleware, last middleware in chain
@@ -110,7 +110,7 @@ public final class Store<S> implements Dispatcher {
     }
 
     public S getState() {
-        return constructor.apply(currentState);
+        return typedStateBuilder.apply(currentState);
     }
 
     public UUID subscribe(Consumer<Map<String, Object>> subscriber) {

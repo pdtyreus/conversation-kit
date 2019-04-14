@@ -26,7 +26,6 @@ package com.conversationkit.impl;
 import com.conversationkit.builder.DialogTreeNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
-import com.conversationkit.impl.DialogTreeTest.TestState.TestStateBuilder;
 import com.conversationkit.impl.action.ActionType;
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
@@ -63,7 +62,7 @@ public class DialogTreeTest {
 
     private static final Logger logger = Logger.getLogger(DialogTreeTest.class.getName());
 
-    public static class TestState extends MapBackedConversationState {
+    public static class TestState extends MapBackedConversationState<TestState> {
 
         public TestState(Map source) {
             super(source, DirectedConversationEngine.CONVERSATION_STATE_KEY);
@@ -78,19 +77,13 @@ public class DialogTreeTest {
         public String getMood() {
             return (String) getDialogMap().get("mood");
         }
+
+        @Override
+        public TestState apply(Map t) {
+            return new TestState(t);
+        }
         
-                 public static class TestStateBuilder extends ConversationStateBuilder<TestState> {
 
-            public TestStateBuilder(Map initialState) {
-                super(initialState);
-            }
-
-            @Override
-            public TestState buildFromState(Map state) {
-                return new TestState(state);
-            }
-             
-         }
 
     }
 
@@ -239,7 +232,7 @@ public class DialogTreeTest {
         DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(
                 intentDetector,
                 index,
-                new TestStateBuilder(initialState),
+                new TestState(initialState),
                 reducers);
 
         logger.info("** Testing conversation");
