@@ -26,7 +26,6 @@ package com.conversationkit.adapter;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import com.conversationkit.model.SnippetContentType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -69,7 +68,7 @@ public class FacebookMessageAdapter implements IMessageAdapter {
                         .add("id", (String) arguments[0])).asObject();
         
         Iterable<String> suggestedResponses = null;
-        SnippetContentType contentType = (SnippetContentType)arguments[1];
+        FacebookMessageType contentType = (FacebookMessageType)arguments[1];
         if (arguments.length > 2) {
             suggestedResponses = (Iterable<String>)arguments[2];
         }
@@ -173,6 +172,10 @@ public class FacebookMessageAdapter implements IMessageAdapter {
     private enum ButtonType {
 
         web_url, postback, phone_number, element_share
+    }
+    
+    public static enum FacebookMessageType {
+        TEXT, IMAGE, VIDEO, AUDIO, FILE, LOCATION_REQUEST, BUTTONS
     }
 //
 //    private JsonObject createButton(IConversationSnippetButton iButton) {

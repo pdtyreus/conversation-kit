@@ -25,12 +25,8 @@ package com.conversationkit.impl.node;
 
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetType;
-import com.conversationkit.redux.Store;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Convenience base class for creating nodes.

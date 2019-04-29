@@ -29,19 +29,9 @@ package com.conversationkit.impl.action;
  */
 public class IntentFulfillmentException extends RuntimeException {
 
-    /**
-     * Creates a new instance of <code>IntentFulfillmentException</code> without
-     * detail message.
-     */
     public IntentFulfillmentException() {
     }
 
-    /**
-     * Constructs an instance of <code>IntentFulfillmentException</code> with
-     * the specified detail message.
-     *
-     * @param msg the detail message.
-     */
     public IntentFulfillmentException(String msg) {
         super(msg);
     }

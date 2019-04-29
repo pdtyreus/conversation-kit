@@ -24,8 +24,6 @@
 package com.conversationkit.builder;
 
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
 import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 

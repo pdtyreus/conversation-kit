@@ -24,7 +24,6 @@
 package com.conversationkit.builder;
 
 import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.model.IConversationNode;
 import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 
