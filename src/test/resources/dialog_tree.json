@@ -8,7 +8,7 @@
                 "type": "DialogTree",
                 "label": "1",
                 "metadata": {
-                    "message": ["Hello I'm a test bot.","How are you feeling today?"]
+                    "message": ["Hello I'm a test bot.", "How are you feeling today?"]
                 }
             },
             {
@@ -24,14 +24,14 @@
                 "type": "DialogTree",
                 "label": "4",
                 "metadata": {
-                    "message": ["Really sorry to hear that.","Is there anything I can do to help?"]
+                    "message": ["Really sorry to hear that.", "Is there anything I can do to help?"]
                 }
-                
+
             },
             {
-                "id":"6",
-                "type":"DialogTree",
-                "label":"6",
+                "id": "6",
+                "type": "DialogTree",
+                "label": "6",
                 "metadata": {
                     "message": ["I'm not sure I appreciate that tone. Goodbye."]
                 }
@@ -46,10 +46,15 @@
                 "relation": "ANY",
                 "metadata": {
                     "validator": {
-                        "slot":0,
-                        "actionType":"SET_MOOD",
-                        "matches":"great"
+                        "type":"string",
+                        "slot": 0,
+                        "matches": "great"
+                    },
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_MOOD"
                     }
+
                 }
             },
             {
@@ -60,10 +65,15 @@
                 "relation": "ANY",
                 "metadata": {
                     "validator": {
-                        "slot":0,
-                        "actionType":"SET_MOOD",
-                        "matches":"bad"
+                        "type":"string",
+                        "slot": 0,
+                        "matches": "bad"
+                    },
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_MOOD"
                     }
+
                 }
             },
             {
@@ -78,7 +88,7 @@
                 "target": "6",
                 "directed": true,
                 "label": "Yeah, you could work for a change.",
-                "relation":"YES"
+                "relation": "YES"
             }
         ]
     }

@@ -25,22 +25,31 @@ package com.conversationkit.impl.node;
 
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
+import com.eclipsesource.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Convenience base class for creating nodes.
- * 
+ *
  * @author pdtyreus
  */
-public abstract class ConversationNode implements IConversationNode {
+public class ConversationNode implements IConversationNode {
 
     protected final List<IConversationEdge> edges;
     private final int id;
+    private final JsonObject metadata;
 
     public ConversationNode(int id) {
         this.id = id;
         this.edges = new ArrayList();
+        this.metadata = new JsonObject();
+    }
+
+    public ConversationNode(int id, JsonObject metadata) {
+        this.id = id;
+        this.edges = new ArrayList();
+        this.metadata = metadata;
     }
 
     @Override
@@ -58,5 +67,9 @@ public abstract class ConversationNode implements IConversationNode {
         return id;
     }
 
-    
+    @Override
+    public JsonObject getMetadata() {
+        return metadata;
+    }
+
 }

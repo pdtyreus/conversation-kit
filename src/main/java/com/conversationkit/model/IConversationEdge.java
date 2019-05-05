@@ -23,7 +23,9 @@
  */
 package com.conversationkit.model;
 
+import com.conversationkit.redux.Dispatcher;
 import com.conversationkit.redux.Store;
+import java.util.List;
 
 /**
  * A conversation edge is a directed connection between two nodes on the 
@@ -36,11 +38,21 @@ import com.conversationkit.redux.Store;
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
-public interface IConversationEdge<I extends IConversationIntent> {
+public interface IConversationEdge<I extends IConversationIntent, S extends IConversationState> {
 
     public Integer getEndNodeId();
     
     public String getIntentId();
     
-    public boolean validate(I intent, Store store);
+    public boolean validate(I intent, S state);
+    
+    /**
+     * Side effects that should occur if this edge is validated. Side effects are
+     * ways to change the state before the next step in the conversation. The type
+     * of Object returned depends on the Redux middlewares that are installed. The 
+     * @param intent
+     * @param state
+     * @return 
+     */
+    public List<Object> getSideEffects(I intent, S state);
 }

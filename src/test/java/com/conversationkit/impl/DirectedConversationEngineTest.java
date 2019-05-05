@@ -65,7 +65,6 @@ public class DirectedConversationEngineTest {
             return new TestState(t);
         }
 
-        
     }
 
     @BeforeClass
@@ -74,25 +73,27 @@ public class DirectedConversationEngineTest {
         ConversationNode left = new DialogTreeNode(2, Arrays.asList("left"));
         ConversationNode right = new DialogTreeNode(3, Arrays.asList("right"));
         ConversationEdge leftEdge = new ConversationEdge(2, "leftIntent");
-        ConversationEdge rightEdge = new ConversationEdge<>(3, "rightIntent", (intent, store) -> {
-            System.out.println("rightIntent action work");
+        ConversationEdge rightEdge = new ConversationEdge<>(
+                3,
+                "rightIntent",
+                (intent, state) -> {
+                    return true;
+                },
+                (intent, state) -> {
+                    return new Action() {
 
-            store.dispatch(new Action() {
+                        @Override
+                        public String getType() {
+                            return "right_handled";
+                        }
 
-                @Override
-                public String getType() {
-                    return "right_handled";
-                }
+                        @Override
+                        public String toString() {
+                            return "rightIntent Action";
+                        }
 
-                @Override
-                public String toString() {
-                    return "rightIntent Action";
-                }
-
-            });
-
-            return true;
-        });
+                    };
+                });
         top.addEdge(leftEdge);
         top.addEdge(rightEdge);
 

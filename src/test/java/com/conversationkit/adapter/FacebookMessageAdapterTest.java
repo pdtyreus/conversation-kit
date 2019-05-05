@@ -23,7 +23,10 @@
  */
 package com.conversationkit.adapter;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonValue;
 import java.util.logging.Logger;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -40,11 +43,11 @@ public class FacebookMessageAdapterTest {
     public void testSnippetToJson() {
         final String text =  "Facebook Messenger";
         
-//        ResponseSuggestingNode snippet = new ResponseSuggestingNode(1,text,SnippetContentType.TEXT);
-//        
-//        
+        //ResponseSuggestingNode snippet = new ResponseSuggestingNode(1,text,SnippetContentType.TEXT);
+        
+        
 //        String phoneNumber = "+1415000000";
-//        String result = instance.responseToJson(snippet.getValue(), phoneNumber, snippet.getContentType(), snippet.getSuggestedResponses());
+//        String result = instance.responseToJson(text, phoneNumber, FacebookMessageAdapter.FacebookMessageType.TEXT);
 //        logger.info(result);
 //        JsonValue value = Json.parse(result);
 //        assertEquals(phoneNumber, value.asObject().get("recipient").asObject().get("id").asString());
@@ -54,7 +57,7 @@ public class FacebookMessageAdapterTest {
 //        snippet.addSuggestedResponse("yes");
 //        snippet.addSuggestedResponse("no");
 //        
-//        result = instance.responseToJson(snippet.getValue(), phoneNumber, snippet.getContentType(), snippet.getSuggestedResponses());
+//        result = instance.responseToJson(text, phoneNumber, FacebookMessageAdapter.FacebookMessageType.TEXT, snippet.getSuggestedResponses());
 //        logger.info(result);
 //        value = Json.parse(result);
 //        assertEquals(phoneNumber, value.asObject().get("recipient").asObject().get("id").asString());

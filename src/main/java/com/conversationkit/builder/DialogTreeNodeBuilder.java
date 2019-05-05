@@ -32,7 +32,7 @@ import java.util.List;
 
 /**
  *
- * @author tyreus
+ * @author pdtyreus
  */
 public class DialogTreeNodeBuilder implements JsonNodeBuilder<DialogTreeNode> {
 
@@ -56,6 +56,5 @@ public class DialogTreeNodeBuilder implements JsonNodeBuilder<DialogTreeNode> {
 
         return conversationNode;
     }
-;
 
 }

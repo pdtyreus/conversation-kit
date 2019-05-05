@@ -34,7 +34,6 @@ import com.conversationkit.model.ConversationNodeRepository;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
-import com.conversationkit.redux.Store;
 import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -87,36 +86,37 @@ public class ConversationGraphTest {
 
         logger.info("** Initializing Templated Regex / JavaScript Conversation for testing");
 
-        BiFunction<IConversationIntent, Store, Boolean> answerInvalidator = (intent, store) -> {
+        BiFunction<IConversationIntent, TestState, Boolean> answerInvalidator = (intent, state) -> {
 
             final String answer = (String) intent.getSlots().get("0");
-            PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of(answer));
 
             if ("6".equals(answer) || "six".equalsIgnoreCase(answer)) {
-                store.dispatch(action);
                 return true;
             }
 
             return false;
         };
 
-        BiFunction<IConversationIntent, Store, Boolean> answerValidator = (intent, store) -> {
+        BiFunction<IConversationIntent, TestState, Boolean> answerValidator = (intent, state) -> {
+
+            return true;
+        };
+        
+        BiFunction<IConversationIntent, TestState, Action> answerSideEffect = (intent, state) -> {
 
             final String answer = (String) intent.getSlots().get("0");
             PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of(answer));
 
-            store.dispatch(action);
-
-            return true;
+            return action;
         };
 
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
 
         JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, JsonObject metadata, Integer target) -> {
             if (target == 4) {
-                return new ConversationEdge(target, intentId, answerInvalidator);
+                return new ConversationEdge(target, intentId, answerInvalidator, answerSideEffect);
             } else if (target == 5) {
-                return new ConversationEdge(target, intentId, answerValidator);
+                return new ConversationEdge(target, intentId, answerValidator, answerSideEffect);
             } else {
                 return new ConversationEdge(target, intentId);
             }

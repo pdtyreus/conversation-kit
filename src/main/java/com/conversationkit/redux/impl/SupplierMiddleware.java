@@ -49,7 +49,7 @@ public class SupplierMiddleware implements Middleware {
     @Override
     public void dispatch(Store store, Object action, Middleware next) {
         if (action instanceof Supplier) {
-            logger.log(Level.FINE, "middleware handling future action {0}", action.toString());
+            logger.log(Level.FINE, "middleware handling supplier action {0}", action.toString());
             Supplier s = (Supplier) action;
             try {
                 Object a = CompletableFuture.supplyAsync(s, executorService).get();

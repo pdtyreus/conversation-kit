@@ -37,6 +37,8 @@ import com.conversationkit.redux.Dispatcher;
 import com.conversationkit.redux.Reducer;
 import com.conversationkit.redux.Redux;
 import com.conversationkit.redux.Store;
+import com.conversationkit.redux.impl.CompletableFutureMiddleware;
+import com.conversationkit.redux.impl.SupplierMiddleware;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,7 +63,6 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
     protected final IntentDetector<I> intentDetector;
     //protected final Map<String, Integer> fallbackIntentMap = new HashMap();
     protected final List<IConversationEdge> fallbackEdges = new ArrayList();
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     protected final Store<S> store;
 
     public final static String CONVERSATION_STATE_KEY = "conversation-kit";
@@ -75,13 +76,9 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
         this.intentDetector = intentDetector;
         reducers.put(CONVERSATION_STATE_KEY, new ConversationReducer());
         Reducer reducer = Redux.combineReducers(reducers);
-        store = Redux.createStore(reducer, state.getStateAsMap(), state);
+        store = Redux.createStore(reducer, state.getStateAsMap(), state, new CompletableFutureMiddleware());
     }
-
-    public void setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
-    }
-
+    
     public void addFallbackEdge(IConversationEdge edge) {
         fallbackEdges.add(edge);
     }
@@ -107,13 +104,17 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
             Iterable<IConversationEdge> edges = currentNode.get().getEdges();
             for (IConversationEdge edge : edges) {
                 if (edge.getIntentId().equals(intent.getIntentId())) {
-                    logger.log(Level.INFO, "Found unvalidated matching edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()));
-                    boolean valid = edge.validate(intent, store);
+                    logger.log(Level.INFO, "Found unvalidated matching edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                    boolean valid = edge.validate(intent, store.getState());
                     if (valid) {
-                        logger.log(Level.INFO, "Edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()));
+                        logger.log(Level.INFO, "Edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                        for (Object effect : edge.getSideEffects(intent, store.getState())) {
+                            logger.log(Level.INFO, "Dispatching side effect {0}.", effect);
+                            dispatch(effect);
+                        }
                         return Optional.of(edge);
                     } else {
-                        logger.log(Level.INFO, "Edge with end node {0} for intent {1} does not validate.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()));
+                        logger.log(Level.INFO, "Edge with end node {0} for intent {1} does not validate.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
                     }
                 }
             }
@@ -122,13 +123,13 @@ public class DirectedConversationEngine<S extends IConversationState,I extends I
 
         for (IConversationEdge edge : fallbackEdges) {
             if (edge.getIntentId().equals(intent.getIntentId())) {
-                logger.log(Level.INFO, "Found unvalidated matching fallback edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()));
-                boolean valid = edge.validate(intent, store);
+                logger.log(Level.INFO, "Found unvalidated matching fallback edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                boolean valid = edge.validate(intent, store.getState());
                 if (valid) {
-                    logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()));
+                    logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
                     return Optional.of(edge);
                 } else {
-                    logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} does not validate.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()));
+                    logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} does not validate.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
                 }
             }
         }

@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -78,12 +79,14 @@ public class DialogTreeTest {
             return (String) getDialogMap().get("mood");
         }
 
+        public String getNumFingers() {
+            return (String) getDialogMap().get("numFingers");
+        }
+
         @Override
         public TestState apply(Map t) {
             return new TestState(t);
         }
-        
-
 
     }
 
@@ -91,32 +94,27 @@ public class DialogTreeTest {
      * Dispatches an action if the value in the specified slot matches one of
      * the provided strings.
      */
-    private static class DialogValidator implements BiFunction<IConversationIntent, Store, Boolean> {
+    private static class DialogStringValidator implements BiFunction<IConversationIntent, TestState, Boolean> {
 
-        private final String actionType;
         private final int slot;
         private final Set<String> matches;
 
-        public DialogValidator(String actionType, int slot, Set<String> matches) {
-            this.actionType = actionType;
+        public DialogStringValidator(int slot, Set<String> matches) {
             this.slot = slot;
             this.matches = matches;
         }
 
-        public DialogValidator(String actionType, int slot, String match) {
-            this.actionType = actionType;
+        public DialogStringValidator(int slot, String match) {
             this.slot = slot;
             this.matches = new HashSet();
             this.matches.add(match);
         }
 
         @Override
-        public Boolean apply(IConversationIntent intent, Store store) {
+        public Boolean apply(IConversationIntent intent, TestState state) {
             final String answer = (String) intent.getSlots().get(slot + "");
-            PayloadAction<String> action = PayloadAction.build(actionType, Optional.of(answer));
 
             if (matches.contains(answer)) {
-                store.dispatch(action);
                 return true;
             }
 
@@ -125,49 +123,174 @@ public class DialogTreeTest {
 
     }
 
+    private static class DialogKeyValidator implements BiFunction<IConversationIntent, TestState, Boolean> {
+
+        private final int slot;
+        private final String match;
+
+        public DialogKeyValidator(int slot, String match) {
+            this.slot = slot;
+            this.match = match;
+        }
+
+        @Override
+        public Boolean apply(IConversationIntent intent, TestState state) {
+            final String answer = (String) intent.getSlots().get(slot + "");
+
+            if (answer.equals(state.getDialogMap().get(match))) {
+                return true;
+            }
+
+            return false;
+        }
+
+    }
+
+    private static class DialogSideEffect implements BiFunction<IConversationIntent, TestState, Object> {
+
+        private final String actionType;
+        private final int slot;
+
+        public DialogSideEffect(String actionType, int slot) {
+            this.actionType = actionType;
+            this.slot = slot;
+        }
+
+        @Override
+        public Object apply(IConversationIntent intent, TestState state) {
+            final String answer = (String) intent.getSlots().get(slot + "");
+            PayloadAction<String> action = PayloadAction.build(actionType, Optional.of(answer));
+
+            return action;
+
+        }
+
+    }
+
+    JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, JsonObject metadata, Integer target) -> {
+
+        if ((metadata != null) && (metadata.get("validator") != null)) {
+            JsonObject validator = metadata.get("validator").asObject();
+            JsonObject effect = metadata.get("effect").asObject();
+            if (validator != null) {
+                BiFunction<IConversationIntent, TestState, Boolean> dialogValidator;
+                String type = validator.getString("type", "unknown");
+                if (type.equals("string")) {
+                    dialogValidator = new DialogStringValidator(
+                            validator.getInt("slot", 0),
+                            validator.getString("matches", ""));
+                } else {
+                    dialogValidator = new DialogKeyValidator(
+                            validator.getInt("slot", 0),
+                            validator.getString("matches", ""));
+                }
+                DialogSideEffect sideEffect = new DialogSideEffect(
+                        effect.getString("actionType", ""),
+                        effect.getInt("slot", 0));
+
+                return new ConversationEdge(target, intentId, dialogValidator, sideEffect);
+            }
+        } else if ((metadata != null) && (metadata.get("effect") != null)) {
+            JsonObject effect = metadata.get("effect").asObject();
+            DialogSideEffect sideEffect = new DialogSideEffect(
+                    effect.getString("actionType", ""),
+                    effect.getInt("slot", 0));
+
+            return new ConversationEdge(target, intentId, sideEffect);
+        }
+
+        return new ConversationEdge(target, intentId);
+
+    };
+
+    //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
+    private class TemplateEngine {
+
+        public String apply(String input, Map<String, Object> state) {
+            for (Entry<String, Object> entry : state.entrySet()) {
+                if (entry.getValue() instanceof String) {
+                    input = input.replace("{{" + entry.getKey() + "}}", (String) entry.getValue());
+                }
+            }
+            return input;
+        }
+    }
+
     @Test
     public void testTemplatedDialogTree() throws IOException {
 
         logger.info("** Initializing Templated DialogTree for testing");
 
-        //In practice you would use a real template engine here, but we are making a simple one to minimize dependencies
-//        JsonDialogTreeBuilder builder = new JsonDialogTreeBuilder();
-//        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
-//        DirectedConversationEngine<TestCaseUserState> tree = builder.readDialogTree(reader);
-//
-//        logger.info("** Testing conversation");
-//        
-//        TestCaseUserState state = new TestCaseUserState();
-//        state.setCurrentNodeId(1);
-//        state.setName("Daniel");
-//        state.setNumber(3);
-//
-//        Iterable<IConversationSnippet> nodes = tree.startConversationFromState(state);
-//        StringBuilder convo = new StringBuilder();
-//        Formatter formatter = new Formatter(convo);
-//
-//        convo.append("\n");
-//        for (IConversationSnippet node : nodes) {
-//            OutputUtil.formatSnippet(formatter, node, state);
-//        }
-//
-//        String response = "4";
-//        OutputUtil.formatResponse(formatter, response);
-//        try {
-//            tree.updateStateWithResponse(state, response);
-//        } catch (UnmatchedResponseException | UnexpectedResponseException e) {
-//            fail(e.toString());
-//        } 
-//        nodes = tree.startConversationFromState(state);
-//        for (IConversationSnippet node : nodes) {
-//            OutputUtil.formatSnippet(formatter, node, state);
-//        }
-//
-//        assertEquals(4, state.getCurrentNodeId());
-//        
-//        assertEquals(response, state.get("numFingers").toString());
-//
-//        logger.info(convo.toString());
+        Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/templated_dialog_tree.json"));
+        ConversationNodeRepository<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, new DialogTreeNodeBuilder(), edgeBuilder);
+
+        Map intentMap = new LinkedHashMap();
+
+        intentMap.put("ANY", "\\w+");
+
+        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
+
+        HashMap initialConversationState = new HashMap();
+        initialConversationState.put("nodeId", 1);
+
+        HashMap initialCustomState = new HashMap();
+        initialCustomState.put("name", "Daniel");
+        initialCustomState.put("numFingers", "0");
+        initialCustomState.put("fingers", 3);
+
+        Map initialState = new HashMap();
+        initialState.put(DirectedConversationEngine.CONVERSATION_STATE_KEY, initialConversationState);
+        initialState.put("dialog", initialCustomState);
+
+        Reducer dialogReducer = (Action action, Map currentState) -> {
+            switch (action.getType()) {
+                case "SET_FINGERS":
+                    Map nextState = new HashMap();
+                    nextState.putAll(currentState);
+                    nextState.put("numFingers", ((PayloadAction<String>) action).getPayload().get());
+                    return nextState;
+                default:
+                    return currentState;
+            }
+        };
+
+        Map<String, Reducer> reducers = new HashMap();
+        reducers.put("dialog", dialogReducer);
+
+        DirectedConversationEngine<TestState, IConversationIntent> engine = new DirectedConversationEngine<>(
+                intentDetector,
+                index,
+                new TestState(initialState),
+                reducers);
+
+        logger.info("** Testing conversation");
+
+        DialogTreeNode currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        StringBuilder convo = new StringBuilder();
+        convo.append("\n");
+        Formatter formatter = new Formatter(convo);
+        for (String message : currentNode.getMessages()) {
+            OutputUtil.formatOutput(formatter, message);
+        }
+
+        try {
+            OutputUtil.formatInput(formatter, "2");
+            MessageHandlingResult result = engine.handleIncomingMessage("2").get();
+
+            assertEquals(true, result.ok);
+            assertEquals(4, engine.getState().getCurrentNodeId().intValue());
+            assertEquals("2", engine.getState().getNumFingers());
+
+            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+            for (String message : currentNode.getMessages()) {
+                OutputUtil.formatOutput(formatter, message);
+            }
+
+        } catch (ExecutionException | InterruptedException e) {
+            fail(e.getMessage());
+        }
+
+        logger.info(convo.toString());
     }
 
     @Test
@@ -176,24 +299,6 @@ public class DialogTreeTest {
         logger.info("** Initializing Basic DialogTree for testing");
 
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/dialog_tree.json"));
-
-        JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, JsonObject metadata, Integer target) -> {
-
-            if ((metadata != null) && (metadata.get("validator") != null)) {
-                JsonObject validator = metadata.get("validator").asObject();
-                if (validator != null) {
-                    DialogValidator dialogValidator = new DialogValidator(
-                            validator.getString("actionType", ""),
-                            validator.getInt("slot", 0),
-                            validator.getString("matches", ""));
-
-                    return new ConversationEdge(target, intentId, dialogValidator);
-                }
-            }
-
-            return new ConversationEdge(target, intentId);
-
-        };
 
         ConversationNodeRepository<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, new DialogTreeNodeBuilder(), edgeBuilder);
 
