@@ -24,18 +24,28 @@
 package com.conversationkit.redux;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 /**
- *
+ * A Java implementation of a Redux store.
+ * <p>
+ * A store holds the whole state tree of your application. The only way to 
+ * change the state inside it is to dispatch an action on it. This implementation
+ * difference from the Javascript version in a few keys ways. For starters, this
+ * Store is a Java class rather than a Javascript object. Second, the Store is
+ * a generic class so that the state it holds can be typed. Third, the Store requires
+ * an additional parameter in it's constructor to tell it how to create a typed
+ * instance of the state from the internal representation.
+ * <p>
+ * Internally the state is stored as a {@link Map} to make it more compatible with 
+ * the API for the {@link Reducer}.
+ * @see <a href="https://redux.js.org/api/store">https://redux.js.org/api/store</a>
  * @author pdtyreus
  */
 public final class Store<S> implements Dispatcher {
@@ -62,11 +72,11 @@ public final class Store<S> implements Dispatcher {
         this.typedStateBuilder = stateBuilder;
 
         List<Middleware> allMiddlewares = new ArrayList();
-        //native middleware, last middleware in chain
-
+        
         for (Middleware mw : middlewares) {
             allMiddlewares.add(mw);
         }
+        //native middleware, last middleware in chain
         allMiddlewares.add((store, action, next) -> {
             Map nextState;
             synchronized (Store.this) {
@@ -86,11 +96,11 @@ public final class Store<S> implements Dispatcher {
             }
         });
 
-        logger.info(String.format("initializing redux store with %d middleware(s).", (allMiddlewares.size() - 1)));
+        logger.info(String.format("[REDUX] initializing redux store with %d middleware(s).", (allMiddlewares.size() - 1)));
 
         for (int i = allMiddlewares.size() - 1; i >= 0; i--) {
             final Middleware mw = allMiddlewares.get(i);
-            logger.fine(String.format("chaining middleware (%d)", i));
+            logger.fine(String.format("[REDUX] chaining middleware (%d)", i));
             //this will be null for the native middleware only, which is last
             final Middleware next = (i == allMiddlewares.size() - 1 ? null : allMiddlewares.get(i + 1));
             this.dispatcher = (action) -> {

@@ -26,12 +26,11 @@ package com.conversationkit.redux.impl;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Middleware;
 import com.conversationkit.redux.Store;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- *
- * @author tyreus
+ * Redux middleware that handles an async {@link Action} of type {@link Consumer} 
+ * @author pdtyreus
  */
 public class ThunkMiddleware implements Middleware {
 

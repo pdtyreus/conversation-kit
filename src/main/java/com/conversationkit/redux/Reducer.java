@@ -26,6 +26,10 @@ package com.conversationkit.redux;
 import java.util.Map;
 
 @FunctionalInterface
+/**
+ * Reducers calculate a new state given the previous state and an action.
+ * @see <a href="https://redux.js.org/glossary#reducer">https://redux.js.org/glossary#reducer</a>
+ */
 public interface Reducer {
 
     Map reduce(Action action, Map currentState);

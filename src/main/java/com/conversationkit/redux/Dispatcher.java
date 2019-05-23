@@ -23,10 +23,11 @@
  */
 package com.conversationkit.redux;
 
-import java.util.Map;
-
 /**
- *
+ * A dispatching function (or simply dispatch function) is a function that 
+ * accepts an action or an async action; it then may or may not dispatch 
+ * one or more actions to the store.
+ * @see <a href="https://redux.js.org/glossary#dispatching-function">https://redux.js.org/glossary#dispatching-function</a>
  * @author pdtyreus
  */
 public interface Dispatcher <S>{

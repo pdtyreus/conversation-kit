@@ -24,7 +24,9 @@
 package com.conversationkit.redux;
 
 /**
- *
+ * An action is a plain object that represents an intention to change the state. 
+ * Actions are the only way to get data into the {@link Store}.
+ * @see <a href="https://redux.js.org/glossary#action">https://redux.js.org/glossary#action</a>
  * @author pdtyreus
  */
 @FunctionalInterface

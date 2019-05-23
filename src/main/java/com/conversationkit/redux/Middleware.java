@@ -23,9 +23,11 @@
  */
 package com.conversationkit.redux;
 
-import java.util.Map;
-
 @FunctionalInterface
+/**
+ * A middleware is a higher-order function that composes a dispatch function to return a new dispatch function. It often turns async actions into actions.
+ * @see <a href="https://redux.js.org/glossary#middleware">https://redux.js.org/glossary#middleware</a>
+ */
 public interface Middleware<S> {
 
     void dispatch(Store<S> store, Object action, Middleware<S> next);

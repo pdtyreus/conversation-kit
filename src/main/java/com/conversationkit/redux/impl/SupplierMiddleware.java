@@ -23,17 +23,17 @@
  */
 package com.conversationkit.redux.impl;
 
+import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Middleware;
 import com.conversationkit.redux.Store;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Redux middleware that handles an async {@link Action} of type {@link Supplier} 
  * @author pdtyreus
  */
 public class SupplierMiddleware implements Middleware {
