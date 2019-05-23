@@ -25,14 +25,14 @@ package com.conversationkit.impl;
 
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.ConversationNodeRepository;
-import com.conversationkit.model.IConversationState;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- *
+ * An implementation of {@link ConversationNodeRepository} backed by a simple {@link Map}.
  * @author pdtyreus
+ * @param <N>
  */
 public class MapBackedNodeRepository<N extends IConversationNode> implements ConversationNodeRepository<N> {
 

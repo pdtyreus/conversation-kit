@@ -28,8 +28,9 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- *
+ * An implementation of {@link IConversationState} backed by a simple {@link Map}.
  * @author pdtyreus
+ * @param <S>
  */
 public abstract class MapBackedConversationState <S extends MapBackedConversationState> implements IConversationState<S> {
 
@@ -57,16 +58,6 @@ public abstract class MapBackedConversationState <S extends MapBackedConversatio
     @Override
     public Integer getCurrentNodeId() {
         return (Integer) getConversationMap().get("nodeId");
-    }
-
-    @Override
-    public String getIntentId() {
-        return (String) getConversationMap().get("intentId");
-    }
-
-    @Override
-    public String getEdgeId() {
-        return (String) getConversationMap().get("edgeId");
     }
 
     @Override

@@ -23,15 +23,15 @@
  */
 package com.conversationkit.model;
 
-import com.conversationkit.redux.Dispatcher;
-import com.conversationkit.redux.Store;
 import java.util.List;
 
 /**
  * A conversation edge is a directed connection between two nodes on the 
  * conversation graph. Each edge has exactly one start node and one end node, 
- * but a node frequently has multiple outbound edges. The conversation
- * implementation will look at each outbound edge from a node to decide which
+ * but a node frequently has multiple outbound edges. Each edge represents a particular
+ * intent {@link IConversationIntent} by the user. The conversation
+ * implementation will delegate to a NLU engine to determine a user's intent from 
+ * his or her input and then look at each outbound edge from a node to decide which
  * edge to use to continue traversing the conversation graph.
  * 
  * @author pdtyreus
@@ -44,15 +44,30 @@ public interface IConversationEdge<I extends IConversationIntent, S extends ICon
     
     public String getIntentId();
     
+    /**
+     * Additional logic to perform before continuing the conversation along this edge. It's possible for
+     * a node to have multiple edges with the same intentId. Each edge could have different preconditions
+     * that must be met in order to match. The validate function allows the engine to check the preconditions
+     * against the current state and return true or false. If the edge intent matches but the validate
+     * fails, the engine will look at the next edge with the same intent.
+     * @param intent
+     * @param state
+     * @return 
+     */
     public boolean validate(I intent, S state);
     
     /**
      * Side effects that should occur if this edge is validated. Side effects are
      * ways to change the state before the next step in the conversation. The type
-     * of Object returned depends on the Redux middlewares that are installed. The 
-     * @param intent
-     * @param state
-     * @return 
+     * of Object returned depends on the {@link Redux} {@link Middleware}s that are installed.
+     * <p>
+     * Side effects should be used to perform actions like loading additional data
+     * from a web service or database that is required to respond to the user. The state
+     * that is passed in should not be modified directly. Instead the list of actions
+     * returned will be passed sequentially to the Redux middleware chain and executed in order.
+     * @param intent the validated intent
+     * @param state immutable copy of the state
+     * @return a list of actions to perform before the next conversation step
      */
     public List<Object> getSideEffects(I intent, S state);
 }

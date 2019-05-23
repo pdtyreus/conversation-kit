@@ -23,8 +23,10 @@
  */
 package com.conversationkit.impl.action;
 
+import com.conversationkit.redux.Action;
+
 /**
- *
+ * Enumerated <code>type</code>s for conversation-scoped {@link Action}s.
  * @author pdtyreus
  */
 public enum ActionType {

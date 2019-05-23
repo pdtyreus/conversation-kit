@@ -26,10 +26,23 @@ package com.conversationkit.model;
 import java.util.Map;
 
 /**
- *
+ * A general representation of a user's intent from a statement or question in a conversation.
+ * <p>
+ * Intents in your map user input to responses. The implementation will depend on the
+ * vender you choose for natural language understanding. 
  * @author pdtyreus
  */
 public interface IConversationIntent {
+    /**
+     * A unique ID for the intent.
+     * @return 
+     */
     public String getIntentId();
+    /**
+     * Slots are parameters collected from the user's input while detecting intent. As an example, a
+     * a slot might be a color. So in the user input, "Press the red button" the intent
+     * might be <code>PRESS_BUTTON</code> with a slot of <code>color</code> set to <code>red</code>.
+     * @return 
+     */
     public Map<String,Object> getSlots();
 }

@@ -29,12 +29,23 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Interface encapsulating the basic API for traversing a conversation.
  *
+ * @param <N>
  */
 public interface IConversationEngine<N extends IConversationNode> {
 
     /**
+     * Accepts a message from the user, interprets the intent, and advances the conversation
+     * to the next node along the edge determined by the conversation graph. 
+     * <p>
+     * If the engine
+     * was able to successfully determine the intent and move along the conversation graph,
+     * the {@link MessageHandlingResult} will have a value of <code>ok</code> set to <code>true</code>.
+     * Otherwise an <code>errorCode</code> and <code>errorMessage</code> will be returned. An
+     * <code>INTENT_UNDERSTANDING_FAILED</code> error will occur if the NLU system was
+     * unable to match the input to an intent. An <code>EDGE_MATCHING_FAILED</code> will be
+     * returned if no suitable outbound edge could be matched to the given input.
      * @param message
-     * @return 
+     * @return the result of handling the incoming message.
      */
     public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message);
 
@@ -47,6 +58,6 @@ public interface IConversationEngine<N extends IConversationNode> {
 
     public static enum ErrorCode {
 
-        INTENT_UNDERSTANDING_FAILED, INTENT_PROCESSING_FAILED
+        INTENT_UNDERSTANDING_FAILED, EDGE_MATCHING_FAILED
     }
 }

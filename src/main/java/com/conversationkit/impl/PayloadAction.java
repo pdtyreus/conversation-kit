@@ -27,7 +27,7 @@ import com.conversationkit.redux.Action;
 import java.util.Optional;
 
 /**
- *
+ * A Redux Action that also carries a typed payload.
  * @author pdtyreus
  */
 public interface PayloadAction<S> extends Action {

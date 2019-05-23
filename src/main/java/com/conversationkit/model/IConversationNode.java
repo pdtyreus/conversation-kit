@@ -32,6 +32,7 @@ import com.eclipsesource.json.JsonObject;
  * traverses the graph between nodes in by analyzing the state and choosing
  * the first matching edge at each vertex.
  * @author pdtyreus
+ * @param <E> generic type of the node's edges
  */
 public interface IConversationNode<E extends IConversationEdge> {
 
@@ -54,6 +55,13 @@ public interface IConversationNode<E extends IConversationEdge> {
      */
     public int getId();
     
+    /**
+     * Node metadata is any additional information the node may
+     * need to build platform-specific implementations of itself. The values stored
+     * in the metadata will be highly dependent on the final use case and is
+     * designed to be highly flexible. 
+     * @return 
+     */
     public JsonObject getMetadata();
     
 }

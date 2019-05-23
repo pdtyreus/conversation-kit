@@ -32,7 +32,11 @@ import java.util.function.Function;
  * user, and to save data from user responses during the conversation. In many
  * cases the implementation will be backed by a database or other permanent
  * storage.
+ * <p>
+ * The state implementation must also know how to construct itself from a {@link Map} and
+ * therefore this interface extends {@link Function}.
  * @author pdtyreus
+ * @param <S> generic type of the state
  */
 public interface IConversationState <S extends IConversationState> extends Function<Map,S> {
     /**
@@ -41,8 +45,14 @@ public interface IConversationState <S extends IConversationState> extends Funct
      * @return the node id
      */
     public Integer getCurrentNodeId();
-    public String getIntentId();
-    public String getEdgeId();
+    /**
+     * The number of consecutive times the engine has misunderstood the user's input.
+     * @return 
+     */
     public Integer getMisunderstoodCount();
+    /**
+     * Converts the state into a Map.
+     * @return The current state as a map
+     */
     public Map getStateAsMap();
 }

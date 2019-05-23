@@ -23,7 +23,7 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.impl.action.EdgeMatchSucceededAction;
+import com.conversationkit.model.IConversationNode;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import java.util.HashMap;
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Redux reducer function to handle conversation-scoped actions.
  *
  * @author pdtyreus
  */
@@ -66,7 +67,7 @@ public class ConversationReducer implements Reducer {
                     nextState.put("misunderstoodCount", misunderstoodCount);
                     return nextState;
                 case EDGE_MATCH_SUCCEEDED:
-                    EdgeMatchSucceededAction npsa = (EdgeMatchSucceededAction)action;
+                    ConversationAction<IConversationNode> npsa = (ConversationAction<IConversationNode>) action;
                     nextState.put("nodeId", npsa.getPayload().get().getId());
                     return nextState;
                 default:
@@ -78,19 +79,4 @@ public class ConversationReducer implements Reducer {
 
     }
 
-    public static Integer selectCurrentNodeId(Map<String, Object> currentState) {
-        return (Integer) currentState.get("nodeId");
-    }
-    
-    public static String selectIntentId(Map<String, Object> currentState) {
-        return (String) currentState.get("intentId");
-    }
-    
-    public static String selectEdgeId(Map<String, Object> currentState) {
-        return (String) currentState.get("edgeId");
-    }
-    
-    public static Integer selectMisunderstoodCount(Map<String, Object> currentState) {
-        return (Integer) currentState.get("misunderstoodCount");
-    }
 }

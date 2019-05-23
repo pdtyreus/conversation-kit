@@ -24,14 +24,14 @@
 package com.conversationkit.impl;
 
 import com.conversationkit.impl.action.ActionType;
-import com.conversationkit.redux.Action;
 import java.util.Optional;
 
 /**
- *
+ * A Redix Action implementation that carries a typed payload and is limited to 
+ * conversation-based enums as its Action <code>type</action>.
  * @author pdtyreus
  */
-public class ConversationAction<S> implements Action {
+public class ConversationAction<S> implements PayloadAction<S> {
 
     private final ActionType type;
     private final Optional<S> payload;
