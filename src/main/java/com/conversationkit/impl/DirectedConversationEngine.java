@@ -47,10 +47,34 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * TODO
+ * An implementation of IConversationEngine that holds the current state of a conversation
+ * and determines the flow by interpreting user intent and matching it to the conversation graph.
+ * <p>
+ * The engine creates a Redux {@link Store} when initialized to hold the state of the conversation
+ * for a given user. The state is only mutated 
+ * by {@link DirectedConversationEngine#dispatch }ing actions. This provides
+ * predictable state that is easier to test.
+ * <p>
+ * The {@link IntentDetector} is responsible for matching the user input with an 
+ * edge on the conversation graph. Most likely you will want to wrap a commercial
+ * NLU service like Amazon Lex or Google DialogFlow.
+ * <p>
+ * The general flow of {@link #handleIncomingMessage(java.lang.String)} in this implementation is as follows:
+ * <ol>
+ * <li>Receive a message and update the state with that message.</li>
+ * <li>Delegate to the IntentDetector to try to determine the user's intent.</li>
+ * <li>Loop over all outbound edges for the current node and find the first edge that 
+ * matches the intent and has {@link IConversationEdge#validate }
+ * that returns true.</li>
+ * <li>Dispatch any side effects for the matched edge and process on the Redux middleware chain.</li>
+ * <li>Update the state with the new node id.</li>
+ * </ol>
+ * <p>
+ * If any of the above steps fail, {@link #handleIncomingMessage} will return an error.
+ * 
  * @author pdtyreus
- * @param <S>
- * @param <I>
+ * @param <S> type of IConversationState
+ * @param <I> type of IConversationIntent
  */
 public class DirectedConversationEngine<S extends IConversationState, I extends IConversationIntent> implements Dispatcher, IConversationEngine {
 

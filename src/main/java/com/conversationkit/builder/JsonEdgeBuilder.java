@@ -28,8 +28,9 @@ import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 
 /**
- *
+ * Builds an instance of IConversationEdge from the JSON graph values.
  * @author pdtyreus
+ * @param <E> type of IConversationEdge
  */
 @FunctionalInterface
 public interface JsonEdgeBuilder<E extends IConversationEdge> {

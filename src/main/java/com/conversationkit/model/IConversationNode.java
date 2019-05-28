@@ -60,7 +60,7 @@ public interface IConversationNode<E extends IConversationEdge> {
      * need to build platform-specific implementations of itself. The values stored
      * in the metadata will be highly dependent on the final use case and is
      * designed to be highly flexible. 
-     * @return 
+     * @return JSON metadata
      */
     public JsonObject getMetadata();
     

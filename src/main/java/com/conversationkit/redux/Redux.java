@@ -68,7 +68,7 @@ public class Redux {
      * reducing function you can pass to createStore. The key of the reducers map
      * dictates the slice of state the reducer will manage.
      * @see <a href="https://redux.js.org/api/combinereducers">https://redux.js.org/api/combinereducers</a>
-     * @param reducers
+     * @param reducers map of state keys to reducers
      * @return a combined Reducer
      */
     public static Reducer combineReducers(Map<String, Reducer> reducers) {

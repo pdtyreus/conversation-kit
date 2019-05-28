@@ -23,15 +23,12 @@
  */
 package com.conversationkit.model;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface encapsulating the basic API for traversing a conversation.
- *
- * @param <N>
  */
-public interface IConversationEngine<N extends IConversationNode> {
+public interface IConversationEngine {
 
     /**
      * Accepts a message from the user, interprets the intent, and advances the conversation
@@ -44,7 +41,7 @@ public interface IConversationEngine<N extends IConversationNode> {
      * <code>INTENT_UNDERSTANDING_FAILED</code> error will occur if the NLU system was
      * unable to match the input to an intent. An <code>EDGE_MATCHING_FAILED</code> will be
      * returned if no suitable outbound edge could be matched to the given input.
-     * @param message
+     * @param message user's input
      * @return the result of handling the incoming message.
      */
     public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message);

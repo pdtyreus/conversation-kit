@@ -25,7 +25,6 @@ package com.conversationkit.nlp;
 
 import com.conversationkit.model.IConversationIntent;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * A primitive intent detector that just tries to match the input string to RegEx patterns.
  * @author pdtyreus
  */
 public class RegexIntentDetector implements IntentDetector<IConversationIntent> {

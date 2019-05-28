@@ -28,8 +28,9 @@ import java.util.Optional;
 
 /**
  * A Redix Action implementation that carries a typed payload and is limited to 
- * conversation-based enums as its Action <code>type</action>.
+ * conversation-based enums as its Action <code>type</code>.
  * @author pdtyreus
+ * @param <S> type of payload
  */
 public class ConversationAction<S> implements PayloadAction<S> {
 

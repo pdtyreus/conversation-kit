@@ -41,8 +41,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * I/O class for loading a node index from a JSON file. Extend this class to
- * handle custom node and edge types.
+ * I/O class for loading a node index from a JSON file.
  *
  * @author pdtyreus
  * @see <a href="http://jsongraphformat.info/">JSON Graph Format</a>
@@ -51,6 +50,9 @@ public class JsonGraphBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonGraphBuilder.class.getName());
 
+    /**
+     * A default implementation of JsonNodeBuilder.
+     */
     public static final JsonNodeBuilder DEFAULT_NODE_BUILDER = (Integer id, String type, JsonObject metadata) -> {
 
         List<String> messages = new ArrayList();
@@ -72,6 +74,9 @@ public class JsonGraphBuilder {
         return conversationNode;
     };
 
+    /**
+     * A default implementation of JsonEdgeBuilder.
+     */
     public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, String label, JsonObject metadata, Integer targetId) -> {
         IConversationEdge edge = new ConversationEdge(targetId, edgeId);
 
@@ -90,11 +95,27 @@ public class JsonGraphBuilder {
         return s;
     }
 
+    /**
+     * Reads JSON an creates a node repository using default node and edge builder implementations.
+     * @param reader A reader of the JSON source file
+     * @return A ConversationNodeRepository
+     * @throws IOException when the JSON is not able to be parsed.
+     */
     public static ConversationNodeRepository readJsonGraph(Reader reader) throws IOException {
 
         return readJsonGraph(reader, DEFAULT_NODE_BUILDER, DEFAULT_EDGE_BUILDER);
     }
 
+    /**
+     * 
+     * @param <N> IConversationNode class
+     * @param <E> IConversationEdge class
+     * @param reader A reader of the JSON source file
+     * @param nodeBuilder Custom node builder implementation
+     * @param edgeBuilder Custom edge builder implementation
+     * @return A typed ConversationNodeRepository
+     * @throws IOException when the JSON is not able to be parsed.
+     */
     public static <N extends IConversationNode<E>, E extends IConversationEdge> ConversationNodeRepository<N> readJsonGraph(Reader reader, JsonNodeBuilder<N> nodeBuilder, JsonEdgeBuilder<E> edgeBuilder) throws IOException {
 
         JsonValue value = Json.parse(reader);

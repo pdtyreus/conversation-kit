@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * An implementation of {@link IConversationState} backed by a simple {@link Map}.
  * @author pdtyreus
- * @param <S>
+ * @param <S> type of IConversationState
  */
 public abstract class MapBackedConversationState <S extends MapBackedConversationState> implements IConversationState<S> {
 

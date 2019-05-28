@@ -34,15 +34,14 @@ import java.util.Map;
  */
 public interface IConversationIntent {
     /**
-     * A unique ID for the intent.
-     * @return 
+     * @return unique ID for the intent.
      */
     public String getIntentId();
     /**
      * Slots are parameters collected from the user's input while detecting intent. As an example, a
      * a slot might be a color. So in the user input, "Press the red button" the intent
      * might be <code>PRESS_BUTTON</code> with a slot of <code>color</code> set to <code>red</code>.
-     * @return 
+     * @return map of slot keys to slot values
      */
     public Map<String,Object> getSlots();
 }

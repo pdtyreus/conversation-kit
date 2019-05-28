@@ -25,10 +25,7 @@ package com.conversationkit.impl.edge;
 
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationIntent;
-import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
-import com.conversationkit.redux.Dispatcher;
-import com.conversationkit.redux.Store;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +35,8 @@ import java.util.function.BiFunction;
  * Convenience base class for creating edges.
  *
  * @author pdtyreus
+ * @param <I> type of IConversationIntent
+ * @param <S> type of IConversationState
  */
 public class ConversationEdge<I extends IConversationIntent, S extends IConversationState> implements IConversationEdge<I,S> {
 

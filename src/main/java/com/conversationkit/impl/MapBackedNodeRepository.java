@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 /**
  * An implementation of {@link ConversationNodeRepository} backed by a simple {@link Map}.
  * @author pdtyreus
- * @param <N>
+ * @param <N> type of IConversationNode
  */
 public class MapBackedNodeRepository<N extends IConversationNode> implements ConversationNodeRepository<N> {
 

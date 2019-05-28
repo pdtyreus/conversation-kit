@@ -24,9 +24,9 @@
 package com.conversationkit.model;
 
 /**
- * A repository to hold the collection of all nodes and retrieve one by it's id.
+ * A repository to hold the collection of all nodes and retrieve one by its id.
  * @author pdtyreus
- * @param <N>
+ * @param <N> the type of node stored in the repository
  */
 public interface ConversationNodeRepository <N extends IConversationNode>{
     public N getNodeById(int id);

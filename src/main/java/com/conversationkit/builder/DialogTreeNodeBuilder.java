@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * A node builder that extracts the content of the messages key in the metadata
+ * and stores them as messages in the DialogTreeNode.
  * @author pdtyreus
  */
 public class DialogTreeNodeBuilder implements JsonNodeBuilder<DialogTreeNode> {

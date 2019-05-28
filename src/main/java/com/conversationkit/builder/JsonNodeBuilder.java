@@ -28,8 +28,9 @@ import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 
 /**
- *
+ * Builds an instance of IConversationNode from the JSON graph values.
  * @author pdtyreus
+ * @param <N> type of IConversationNode
  */
 
 @FunctionalInterface

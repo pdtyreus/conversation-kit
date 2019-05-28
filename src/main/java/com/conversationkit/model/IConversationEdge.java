@@ -23,6 +23,8 @@
  */
 package com.conversationkit.model;
 
+import com.conversationkit.redux.Middleware;
+import com.conversationkit.redux.Redux;
 import java.util.List;
 
 /**
@@ -35,6 +37,7 @@ import java.util.List;
  * edge to use to continue traversing the conversation graph.
  * 
  * @author pdtyreus
+ * @param <I> type of IConversationIntent
  * @param <S> an implementation of to store the current state of the conversation
  * for the current user
  */
@@ -50,9 +53,9 @@ public interface IConversationEdge<I extends IConversationIntent, S extends ICon
      * that must be met in order to match. The validate function allows the engine to check the preconditions
      * against the current state and return true or false. If the edge intent matches but the validate
      * fails, the engine will look at the next edge with the same intent.
-     * @param intent
-     * @param state
-     * @return 
+     * @param intent the intent from the current user input
+     * @param state the current conversation sate
+     * @return true if the edge should validate, false otherwise
      */
     public boolean validate(I intent, S state);
     

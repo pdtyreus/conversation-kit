@@ -40,19 +40,15 @@ import java.util.function.Function;
  */
 public interface IConversationState <S extends IConversationState> extends Function<Map,S> {
     /**
-     * Returns the id of the node representing the last message sent to the 
-     * user.
-     * @return the node id
+     * @return the id of the node representing the last message sent to the user
      */
     public Integer getCurrentNodeId();
     /**
-     * The number of consecutive times the engine has misunderstood the user's input.
-     * @return 
+     * @return the number of consecutive times the engine has misunderstood the user's input.
      */
     public Integer getMisunderstoodCount();
     /**
-     * Converts the state into a Map.
-     * @return The current state as a map
+     * @return the current state as a Map
      */
     public Map getStateAsMap();
 }
