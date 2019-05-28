@@ -43,13 +43,8 @@
                 "target": "3",
                 "directed": true,
                 "label": "great",
-                "relation": "ANY",
+                "relation": "GREAT",
                 "metadata": {
-                    "validator": {
-                        "type":"string",
-                        "slot": 0,
-                        "matches": "great"
-                    },
                     "effect": {
                         "slot": 0,
                         "actionType": "SET_MOOD"
@@ -62,13 +57,8 @@
                 "target": "4",
                 "directed": true,
                 "label": "bad",
-                "relation": "ANY",
+                "relation": "BAD",
                 "metadata": {
-                    "validator": {
-                        "type":"string",
-                        "slot": 0,
-                        "matches": "bad"
-                    },
                     "effect": {
                         "slot": 0,
                         "actionType": "SET_MOOD"

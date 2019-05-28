@@ -28,10 +28,12 @@ import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.impl.action.ActionType;
 import com.conversationkit.impl.edge.ConversationEdge;
+import com.conversationkit.impl.edge.DialogTreeEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationEngine.MessageHandlingResult;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.ConversationNodeRepository;
+import com.conversationkit.model.IConversationState;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
@@ -90,63 +92,7 @@ public class DialogTreeTest {
 
     }
 
-    /**
-     * Dispatches an action if the value in the specified slot matches one of
-     * the provided strings.
-     */
-    private static class DialogStringValidator implements BiFunction<IConversationIntent, TestState, Boolean> {
-
-        private final int slot;
-        private final Set<String> matches;
-
-        public DialogStringValidator(int slot, Set<String> matches) {
-            this.slot = slot;
-            this.matches = matches;
-        }
-
-        public DialogStringValidator(int slot, String match) {
-            this.slot = slot;
-            this.matches = new HashSet();
-            this.matches.add(match);
-        }
-
-        @Override
-        public Boolean apply(IConversationIntent intent, TestState state) {
-            final String answer = (String) intent.getSlots().get(slot + "");
-
-            if (matches.contains(answer)) {
-                return true;
-            }
-
-            return false;
-        }
-
-    }
-
-    private static class DialogKeyValidator implements BiFunction<IConversationIntent, TestState, Boolean> {
-
-        private final int slot;
-        private final String match;
-
-        public DialogKeyValidator(int slot, String match) {
-            this.slot = slot;
-            this.match = match;
-        }
-
-        @Override
-        public Boolean apply(IConversationIntent intent, TestState state) {
-            final String answer = (String) intent.getSlots().get(slot + "");
-
-            if (answer.equals(state.getDialogMap().get(match))) {
-                return true;
-            }
-
-            return false;
-        }
-
-    }
-
-    private static class DialogSideEffect implements BiFunction<IConversationIntent, TestState, Object> {
+    private static class DialogSideEffect implements BiFunction<IConversationIntent, IConversationState, Object> {
 
         private final String actionType;
         private final int slot;
@@ -157,7 +103,7 @@ public class DialogTreeTest {
         }
 
         @Override
-        public Object apply(IConversationIntent intent, TestState state) {
+        public Object apply(IConversationIntent intent, IConversationState state) {
             final String answer = (String) intent.getSlots().get(slot + "");
             PayloadAction<String> action = PayloadAction.build(actionType, Optional.of(answer));
 
@@ -167,39 +113,18 @@ public class DialogTreeTest {
 
     }
 
-    JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, JsonObject metadata, Integer target) -> {
+    JsonEdgeBuilder<DialogTreeEdge> edgeBuilder = (String intentId, String label, JsonObject metadata, Integer target) -> {
 
-        if ((metadata != null) && (metadata.get("validator") != null)) {
-            JsonObject validator = metadata.get("validator").asObject();
-            JsonObject effect = metadata.get("effect").asObject();
-            if (validator != null) {
-                BiFunction<IConversationIntent, TestState, Boolean> dialogValidator;
-                String type = validator.getString("type", "unknown");
-                if (type.equals("string")) {
-                    dialogValidator = new DialogStringValidator(
-                            validator.getInt("slot", 0),
-                            validator.getString("matches", ""));
-                } else {
-                    dialogValidator = new DialogKeyValidator(
-                            validator.getInt("slot", 0),
-                            validator.getString("matches", ""));
-                }
-                DialogSideEffect sideEffect = new DialogSideEffect(
-                        effect.getString("actionType", ""),
-                        effect.getInt("slot", 0));
-
-                return new ConversationEdge(target, intentId, dialogValidator, sideEffect);
-            }
-        } else if ((metadata != null) && (metadata.get("effect") != null)) {
+        if ((metadata != null) && (metadata.get("effect") != null)) {
             JsonObject effect = metadata.get("effect").asObject();
             DialogSideEffect sideEffect = new DialogSideEffect(
                     effect.getString("actionType", ""),
                     effect.getInt("slot", 0));
 
-            return new ConversationEdge(target, intentId, sideEffect);
+            return new DialogTreeEdge(target, intentId, label, sideEffect);
         }
 
-        return new ConversationEdge(target, intentId);
+        return new DialogTreeEdge(target, intentId, label);
 
     };
 
@@ -226,7 +151,10 @@ public class DialogTreeTest {
 
         Map intentMap = new LinkedHashMap();
 
-        intentMap.put("ANY", "\\w+");
+        intentMap.put("ONE", "1");
+        intentMap.put("TWO", "2");
+        intentMap.put("THREE", "3");
+        intentMap.put("FOUR", "4");
 
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
@@ -236,11 +164,13 @@ public class DialogTreeTest {
         HashMap initialCustomState = new HashMap();
         initialCustomState.put("name", "Daniel");
         initialCustomState.put("numFingers", "0");
-        initialCustomState.put("fingers", 3);
+        initialCustomState.put("number", "3");
 
         Map initialState = new HashMap();
         initialState.put(DirectedConversationEngine.CONVERSATION_STATE_KEY, initialConversationState);
         initialState.put("dialog", initialCustomState);
+        
+        TemplateEngine templateEngine = new TemplateEngine();
 
         Reducer dialogReducer = (Action action, Map currentState) -> {
             switch (action.getType()) {
@@ -270,8 +200,10 @@ public class DialogTreeTest {
         convo.append("\n");
         Formatter formatter = new Formatter(convo);
         for (String message : currentNode.getMessages()) {
+            message = templateEngine.apply(message, (Map<String,Object>)engine.getState().getStateAsMap().get("dialog"));
             OutputUtil.formatOutput(formatter, message);
         }
+        OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
         try {
             OutputUtil.formatInput(formatter, "2");
@@ -283,6 +215,7 @@ public class DialogTreeTest {
 
             currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
             for (String message : currentNode.getMessages()) {
+                message = templateEngine.apply(message, (Map<String,Object>)engine.getState().getStateAsMap().get("dialog"));
                 OutputUtil.formatOutput(formatter, message);
             }
 
@@ -305,9 +238,10 @@ public class DialogTreeTest {
         Map intentMap = new LinkedHashMap();
         intentMap.put("YES", RegexIntentDetector.YES);
         intentMap.put("NO", RegexIntentDetector.NO);
+        intentMap.put("GREAT", "\\bgreat\\b");
+        intentMap.put("BAD", "\\bbad\\b");
 
-        intentMap.put("ANY", "\\w+");
-
+        //intentMap.put("ANY", "\\w+");
         RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
 
         HashMap initialConversationState = new HashMap();
@@ -349,6 +283,8 @@ public class DialogTreeTest {
         for (String message : currentNode.getMessages()) {
             OutputUtil.formatOutput(formatter, message);
         }
+        
+        OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
         try {
             OutputUtil.formatInput(formatter, "great");
@@ -369,11 +305,13 @@ public class DialogTreeTest {
 
         //reset the convo
         engine.dispatch(new ConversationAction(ActionType.SET_NODE_ID, 1));
-
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        
         convo.append("\n");
         for (String message : currentNode.getMessages()) {
             OutputUtil.formatOutput(formatter, message);
         }
+        OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
         try {
             OutputUtil.formatInput(formatter, "bad");
@@ -387,6 +325,7 @@ public class DialogTreeTest {
             for (String message : currentNode.getMessages()) {
                 OutputUtil.formatOutput(formatter, message);
             }
+            OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
             String snark = "Yeah, you could work for a change.";
 

@@ -47,7 +47,7 @@ public interface IConversationNode<E extends IConversationEdge> {
      * Adds an edge to the list of possible outbound edges.
      * @param edge edge to add
      */
-    public void addEdge(IConversationEdge edge);
+    public void addEdge(E edge);
 
     /**
      * Returns the unique identifier for this node.

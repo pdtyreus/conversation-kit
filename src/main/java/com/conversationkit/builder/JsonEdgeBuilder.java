@@ -33,5 +33,5 @@ import java.io.IOException;
  */
 @FunctionalInterface
 public interface JsonEdgeBuilder<E extends IConversationEdge> {
-    public E edgeFromJson(String relation, JsonObject metadata, Integer target) throws IOException;
+    public E edgeFromJson(String relation, String label, JsonObject metadata, Integer target) throws IOException;
 }

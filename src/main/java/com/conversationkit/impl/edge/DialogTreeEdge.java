@@ -23,45 +23,57 @@
  */
 package com.conversationkit.impl.edge;
 
-import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationIntent;
-import com.conversationkit.model.IConversationNode;
 import com.conversationkit.model.IConversationState;
+import java.util.function.BiFunction;
 
 /**
  * A <code>DialogTreeEdge</code> is an implementation of
  * <code>IConversationEdge</code> that connects one
- * <code>IConversationNode</code> that is a <code>QUESTION</code> to the
+ * <code>IConversationNode</code> that is a question to the
  * <code>IConversationNode</code> matching the answer.
  * <p>
  * A Dialog Tree is a type of branching conversation often seen in adventure
  * video games. The user is given a choice of what to say and makes subsequent
  * choices until the conversation ends. The responses to the user are scripted
  * based on the choices made. Since the user can only answer questions using one
- * the supplied suggestions from the <code>DialogTreeNode</code>, this edge type
- * does a string match between the answer stored in the edge and the response
+ * the supplied suggestions from the {@link DialogTreeNode}, this edge type does
+ * a string match between the answer stored in the edge and the response
  * provided by the user.
  *
  * @author pdtyreus
- * @param <S> an implementation of IConversationState
  */
 public class DialogTreeEdge extends ConversationEdge {
 
+    private final String prompt;
 
     /**
      * Only an exact match for the answer stored in this node will cause the
-     * conversion to advance to the endNode. The value of the response will be
-     * stored as the stateKey key in the conversation state.
+     * conversion to advance to the endNode.
      *
-     * @param intent string value to match
-     * @param endNode next node in the conversation
+     * @param prompt string value to match
+     * @param intentId intent id
+     * @param endNodeId next node id in the conversation
      */
-    public DialogTreeEdge(String intent, Integer endNodeId) {
-        super(endNodeId,intent);
+    public DialogTreeEdge(Integer endNodeId, String intentId, String prompt) {
+        super(endNodeId, intentId);
+        this.prompt = prompt;
+    }
+
+    public DialogTreeEdge(Integer endNodeId, String intentId, String prompt, BiFunction<IConversationIntent, IConversationState, Object>... sideEffects) {
+        super(endNodeId, intentId, (intent, state) -> {
+            return true;
+        }, sideEffects);
+        this.prompt = prompt;
     }
 
     @Override
     public String toString() {
         return "DialogTreeEdge {" + getIntentId() + '}';
+    }
+
+    public String getPrompt() {
+        return prompt;
     }
 }

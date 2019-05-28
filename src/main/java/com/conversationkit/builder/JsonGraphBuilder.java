@@ -72,47 +72,11 @@ public class JsonGraphBuilder {
         return conversationNode;
     };
 
-    public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, JsonObject metadata, Integer targetId) -> {
+    public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, String label, JsonObject metadata, Integer targetId) -> {
         IConversationEdge edge = new ConversationEdge(targetId, edgeId);
 
         return edge;
     };
-
-//    protected List<ConversationNodeButton> createButtonsFromMetadata(JsonObject metadata) throws IOException {
-//        List<ConversationNodeButton> cnButtons = new ArrayList();
-//
-//        if (metadata.get("buttons") != null) {
-//            JsonArray buttons = metadata.get("buttons").asArray();
-//            for (JsonValue button : buttons) {
-//                Map<String, Object> attributes = new HashMap();
-//                String text = null;
-//                String buttonType = null;
-//                String value = null;
-//                for (Member member : button.asObject()) {
-//                    if (member.getName().equals("text")) {
-//                        text = member.getValue().asString();
-//                    } else if (member.getName().equals("type")) {
-//                        buttonType = member.getValue().asString();
-//                    } else if (member.getName().equals("value")) {
-//                        value = member.getValue().asString();
-//                    } else {
-//                        if (member.getValue().isBoolean()) {
-//                            attributes.put(member.getName(), member.getValue().asBoolean());
-//                        } else if (member.getValue().isNumber()) {
-//                            attributes.put(member.getName(), member.getValue().asInt());
-//                        } else {
-//                            attributes.put(member.getName(), member.getValue().asString());
-//                        }
-//                    }
-//                }
-//
-//                ConversationNodeButton cnb = new ConversationNodeButton(buttonType, text, value, attributes);
-//                cnButtons.add(cnb);
-//            }
-//
-//        }
-//        return cnButtons;
-//    }
 
     protected List<String> createSuggestionsFromMetadata(JsonObject metadata) {
 
@@ -131,7 +95,7 @@ public class JsonGraphBuilder {
         return readJsonGraph(reader, DEFAULT_NODE_BUILDER, DEFAULT_EDGE_BUILDER);
     }
 
-    public static <N extends IConversationNode, E extends IConversationEdge> ConversationNodeRepository<N> readJsonGraph(Reader reader, JsonNodeBuilder<N> nodeBuilder, JsonEdgeBuilder<E> edgeBuilder) throws IOException {
+    public static <N extends IConversationNode<E>, E extends IConversationEdge> ConversationNodeRepository<N> readJsonGraph(Reader reader, JsonNodeBuilder<N> nodeBuilder, JsonEdgeBuilder<E> edgeBuilder) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
@@ -207,13 +171,14 @@ public class JsonGraphBuilder {
             }
 
             String relation = edge.get("relation").asString();
+            String label = edge.getString("label", "");
             JsonValue metadataValue = edge.get("metadata");
             JsonObject metadata = null;
             if (metadataValue != null) {
                 metadata = metadataValue.asObject();
             }
 
-            E conversationEdge = edgeBuilder.edgeFromJson(relation, metadata, targetId);
+            E conversationEdge = edgeBuilder.edgeFromJson(relation, label, metadata, targetId);
             if (conversationEdge == null) {
                 throw new IOException("Unhandled edge " + edge);
             }

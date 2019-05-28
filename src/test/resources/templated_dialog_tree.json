@@ -34,13 +34,8 @@
                 "target": "3",
                 "directed": true,
                 "label": "3",
-                "relation": "ANY",
+                "relation": "THREE",
                 "metadata": {
-                    "validator":{
-                        "type":"key",
-                        "slot":0,
-                        "matches":"fingers"
-                    },
                     "effect": {
                         "slot": 0,
                         "actionType": "SET_FINGERS"
@@ -52,7 +47,33 @@
                 "source": "1",
                 "target": "4",
                 "directed": true,
-                "relation": "ANY",
+                "relation": "ONE",
+                "label": "1",
+                "metadata":{
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_FINGERS"
+                    }
+                }
+            },
+            {
+                "source": "1",
+                "target": "4",
+                "directed": true,
+                "relation": "TWO",
+                "label": "2",
+                "metadata":{
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_FINGERS"
+                    }
+                }
+            },
+            {
+                "source": "1",
+                "target": "4",
+                "directed": true,
+                "relation": "FOUR",
                 "label": "4",
                 "metadata":{
                     "effect": {

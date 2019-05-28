@@ -24,6 +24,7 @@
 package com.conversationkit.impl;
 
 import java.util.Formatter;
+import java.util.List;
 
 /**
  *
@@ -37,5 +38,9 @@ public class OutputUtil {
     
     public static void formatOutput(Formatter formatter, String message) {
         formatter.format("  > %-100s <\n", message);
+    }
+    
+    public static void formatButtons(Formatter formatter, List<String> buttons) {
+        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
     }
 }

@@ -16,15 +16,15 @@
                 "type": "ConversationNode",
                 "label": "4",
                 "metadata": {
-                    "message": ["You answered {{answer}}.","That is the correct answer. 3+3={{answer}}."]
+                    "message": ["You answered {{answer}}.", "That is the correct answer. 3+3={{answer}}."]
                 }
             },
             {
-                "id":"5",
-                "type":"ConversationNode",
-                "label":"5",
-                "metadata":{
-                    "message":["You answered {{answer}}.","\"{{answer}}\" is not correct. Would you like to try again?"]
+                "id": "5",
+                "type": "ConversationNode",
+                "label": "5",
+                "metadata": {
+                    "message": ["You answered {{answer}}.", "\"{{answer}}\" is not correct. Would you like to try again?"]
                 }
             }
         ],
@@ -33,26 +33,42 @@
                 "source": "1",
                 "target": "4",
                 "directed": true,
-                "label":"Correct Answer",
-                "relation":"NUMBER_ANSWER",
+                "label": "Correct Answer",
+                "relation": "NUMBER_ANSWER",
                 "metadata": {
+                    "validator": {
+                        "type": "string",
+                        "slot": 0,
+                        "matches": ["six","6"]
+                    },
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_ANSWER"
+                    }
                 }
             },
             {
                 "source": "1",
                 "target": "5",
                 "directed": true,
-                "label":"Wrong Answer",
-                "relation":"NUMBER_ANSWER",
+                "label": "Wrong Answer",
+                "relation": "NUMBER_ANSWER",
                 "metadata": {
+                    "validator": {
+                        "type": "any"
+                    },
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_ANSWER"
+                    }
                 }
             },
             {
                 "source": "5",
                 "target": "1",
                 "directed": true,
-                "label":"Yes",
-                "relation":"YES",
+                "label": "Yes",
+                "relation": "YES",
                 "metadata": {
                 }
             }

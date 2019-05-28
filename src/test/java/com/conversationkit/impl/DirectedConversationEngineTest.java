@@ -25,13 +25,12 @@ package com.conversationkit.impl;
 
 import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.ConversationNode;
-import com.conversationkit.impl.node.DialogTreeNode;
 import com.conversationkit.model.IConversationEngine.ErrorCode;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
-import java.util.Arrays;
+import com.eclipsesource.json.Json;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -69,9 +68,9 @@ public class DirectedConversationEngineTest {
 
     @BeforeClass
     public static void createIndex() {
-        ConversationNode top = new DialogTreeNode(1, Arrays.asList("top"));
-        ConversationNode left = new DialogTreeNode(2, Arrays.asList("left"));
-        ConversationNode right = new DialogTreeNode(3, Arrays.asList("right"));
+        ConversationNode top = new ConversationNode(1, Json.object().add("message", "top"));
+        ConversationNode left = new ConversationNode(2, Json.object().add("message", "left"));
+        ConversationNode right = new ConversationNode(3, Json.object().add("message", "right"));
         ConversationEdge leftEdge = new ConversationEdge(2, "leftIntent");
         ConversationEdge rightEdge = new ConversationEdge<>(
                 3,

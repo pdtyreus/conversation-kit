@@ -23,11 +23,11 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.builder.DialogTreeNodeBuilder;
+import com.conversationkit.builder.ConversationNodeBuilder;
 import com.conversationkit.builder.JsonEdgeBuilder;
 import com.conversationkit.builder.JsonGraphBuilder;
 import com.conversationkit.impl.edge.ConversationEdge;
-import com.conversationkit.impl.node.DialogTreeNode;
+import com.conversationkit.impl.node.ConversationNode;
 import com.conversationkit.model.IConversationEngine.MessageHandlingResult;
 import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.ConversationNodeRepository;
@@ -35,14 +35,19 @@ import com.conversationkit.nlp.RegexIntentDetector;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
@@ -81,6 +86,38 @@ public class ConversationGraphTest {
 
     }
 
+    private static class StringValidator implements BiFunction<IConversationIntent, TestState, Boolean> {
+
+        private final int slot;
+        private final Set<String> matches;
+
+        public StringValidator(int slot, Iterable<String> matches) {
+            this.slot = slot;
+            this.matches = new HashSet();
+            for (String match : matches) {
+                this.matches.add(match);
+            }
+        }
+
+        public StringValidator(int slot, String match) {
+            this.slot = slot;
+            this.matches = new HashSet();
+            this.matches.add(match);
+        }
+
+        @Override
+        public Boolean apply(IConversationIntent intent, TestState state) {
+            final String answer = (String) intent.getSlots().get(slot + "");
+
+            if (matches.contains(answer)) {
+                return true;
+            }
+
+            return false;
+        }
+
+    }
+
     @Test
     public void testDirectedConversation() throws IOException {
 
@@ -101,28 +138,48 @@ public class ConversationGraphTest {
 
             return true;
         };
-        
-        BiFunction<IConversationIntent, TestState, Action> answerSideEffect = (intent, state) -> {
-
-            final String answer = (String) intent.getSlots().get("0");
-            PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of(answer));
-
-            return action;
-        };
 
         Reader reader = new InputStreamReader(DialogTreeTest.class.getResourceAsStream("/directed_conversation.json"));
 
-        JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, JsonObject metadata, Integer target) -> {
-            if (target == 4) {
-                return new ConversationEdge(target, intentId, answerInvalidator, answerSideEffect);
-            } else if (target == 5) {
-                return new ConversationEdge(target, intentId, answerValidator, answerSideEffect);
+        JsonEdgeBuilder<ConversationEdge> edgeBuilder = (String intentId, String label, JsonObject metadata, Integer target) -> {
+
+            if ((metadata != null) && (metadata.get("validator") != null) && (metadata.get("effect") != null)) {
+                JsonObject validator = metadata.get("validator").asObject();
+
+                BiFunction<IConversationIntent, TestState, Action> answerSideEffect = (intent, state) -> {
+
+                    final String answer = (String) intent.getSlots().get("0");
+                    PayloadAction<String> action = PayloadAction.build("SET_ANSWER", Optional.of(answer));
+
+                    return action;
+                };
+
+                BiFunction<IConversationIntent, TestState, Boolean> v;
+                String type = validator.getString("type", "unknown");
+                if (type.equals("string")) {
+                    List<String> matches = new ArrayList();
+                    for (JsonValue val : validator.get("matches").asArray()) {
+                        matches.add(val.asString());
+                    }
+                    v = new StringValidator(
+                            validator.getInt("slot", 0),
+                            matches);
+                } else {
+                    //always return true
+                    v = (i, s) -> {
+                        return true;
+                    };
+                }
+
+                return new ConversationEdge(target, intentId, v, answerSideEffect);
+
             } else {
                 return new ConversationEdge(target, intentId);
             }
+
         };
 
-        ConversationNodeRepository<DialogTreeNode> index = JsonGraphBuilder.readJsonGraph(reader, new DialogTreeNodeBuilder(), edgeBuilder);
+        ConversationNodeRepository<ConversationNode> index = JsonGraphBuilder.readJsonGraph(reader, new ConversationNodeBuilder(), edgeBuilder);
 
         Map intentMap = new LinkedHashMap();
         intentMap.put("YES", RegexIntentDetector.YES);
@@ -163,12 +220,12 @@ public class ConversationGraphTest {
 
         logger.info("** Testing conversation");
 
-        DialogTreeNode currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        ConversationNode currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
         StringBuilder convo = new StringBuilder();
         convo.append("\n");
         Formatter formatter = new Formatter(convo);
-        for (String message : currentNode.getMessages()) {
-            OutputUtil.formatOutput(formatter, message);
+        for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+            OutputUtil.formatOutput(formatter, message.asString());
         }
 
         try {
@@ -178,9 +235,9 @@ public class ConversationGraphTest {
             assertEquals(true, result.ok);
             assertEquals(5, engine.getState().getCurrentNodeId().intValue());
             currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                message = message.replace("{{answer}}", engine.getState().getAnswer());
-                OutputUtil.formatOutput(formatter, message);
+            for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+                String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
+                OutputUtil.formatOutput(formatter, m);
             }
 
             OutputUtil.formatInput(formatter, "yes");
@@ -189,9 +246,9 @@ public class ConversationGraphTest {
             assertEquals(true, result.ok);
             assertEquals(1, engine.getState().getCurrentNodeId().intValue());
             currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                message = message.replace("{{answer}}", engine.getState().getAnswer());
-                OutputUtil.formatOutput(formatter, message);
+            for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+                String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
+                OutputUtil.formatOutput(formatter, m);
             }
 
             OutputUtil.formatInput(formatter, "6");
@@ -200,9 +257,9 @@ public class ConversationGraphTest {
             assertEquals(true, result.ok);
             assertEquals(4, engine.getState().getCurrentNodeId().intValue());
             currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                message = message.replace("{{answer}}", engine.getState().getAnswer());
-                OutputUtil.formatOutput(formatter, message);
+            for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+                String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
+                OutputUtil.formatOutput(formatter, m);
             }
 
         } catch (ExecutionException | InterruptedException e) {
