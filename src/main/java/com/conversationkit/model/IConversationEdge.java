@@ -38,7 +38,7 @@ import java.util.List;
  * 
  * @author pdtyreus
  * @param <I> type of IConversationIntent
- * @param <S> an implementation of to store the current state of the conversation
+ * @param <S> an implementation of IConversationEdge to store the current state of the conversation
  * for the current user
  */
 public interface IConversationEdge<I extends IConversationIntent, S extends IConversationState> {
