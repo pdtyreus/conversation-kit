@@ -5,69 +5,80 @@
         "nodes": [
             {
                 "id": "1",
-                "type": "STATEMENT",
-                "label": "Hello I'm a test bot"
-            },
-            {
-                "id": "2",
-                "type": "QUESTION",
-                "label": "How are you feeling today?"
+                "type": "DialogTree",
+                "label": "1",
+                "metadata": {
+                    "message": ["Hello I'm a test bot.", "How are you feeling today?"]
+                }
             },
             {
                 "id": "3",
-                "type": "STATEMENT",
-                "label": "Glad to hear it! Have a great day."
+                "type": "DialogTree",
+                "label": "3",
+                "metadata": {
+                    "message": ["Glad to hear it! Have a great day."]
+                }
             },
             {
                 "id": "4",
-                "type": "STATEMENT",
-                "label": "Really sorry to hear that."
+                "type": "DialogTree",
+                "label": "4",
+                "metadata": {
+                    "message": ["Really sorry to hear that.", "Is there anything I can do to help?"]
+                }
+
             },
             {
-                "id":"5",
-                "type":"QUESTION",
-                "label":"Is there anything I can do to help?"
-            },
-            {
-                "id":"6",
-                "type":"STATEMENT",
-                "label":"I'm not sure I appreciate that tone. Goodbye."
+                "id": "6",
+                "type": "DialogTree",
+                "label": "6",
+                "metadata": {
+                    "message": ["I'm not sure I appreciate that tone. Goodbye."]
+                }
             }
         ],
         "edges": [
             {
                 "source": "1",
-                "target": "2",
-                "directed": true
+                "target": "3",
+                "directed": true,
+                "label": "great",
+                "relation": "GREAT",
+                "metadata": {
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_MOOD"
+                    }
+
+                }
+            },
+            {
+                "source": "1",
+                "target": "4",
+                "directed": true,
+                "label": "bad",
+                "relation": "BAD",
+                "metadata": {
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_MOOD"
+                    }
+
+                }
             },
             {
                 "source": "4",
-                "target": "5",
-                "directed": true
-            },
-            {
-                "source": "2",
                 "target": "3",
                 "directed": true,
-                "label": "great"
+                "label": "No, I actually feel fine.",
+                "relation": "NO"
             },
             {
-                "source": "2",
-                "target": "4",
-                "directed": true,
-                "label": "bad"
-            },
-            {
-                "source": "5",
-                "target": "3",
-                "directed": true,
-                "label": "No, I actually feel fine."
-            },
-            {
-                "source": "5",
+                "source": "4",
                 "target": "6",
                 "directed": true,
-                "label": "Yeah, you could work for a change."
+                "label": "Yeah, you could work for a change.",
+                "relation": "YES"
             }
         ]
     }

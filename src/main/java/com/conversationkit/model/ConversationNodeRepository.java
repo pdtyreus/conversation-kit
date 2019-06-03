@@ -21,26 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
-
-import java.util.Formatter;
-import java.util.List;
+package com.conversationkit.model;
 
 /**
- *
+ * A repository to hold the collection of all nodes and retrieve one by its id.
  * @author pdtyreus
+ * @param <N> the type of node stored in the repository
  */
-public class OutputUtil {
-
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
-    }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+public interface ConversationNodeRepository <N extends IConversationNode>{
+    public N getNodeById(int id);
 }

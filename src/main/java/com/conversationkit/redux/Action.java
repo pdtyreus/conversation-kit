@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
-
-import java.util.Formatter;
-import java.util.List;
+package com.conversationkit.redux;
 
 /**
- *
+ * An action is a plain object that represents an intention to change the state. 
+ * Actions are the only way to get data into the {@link Store}.
+ * @see <a href="https://redux.js.org/glossary#action">https://redux.js.org/glossary#action</a>
  * @author pdtyreus
  */
-public class OutputUtil {
-
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
-    }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+@FunctionalInterface
+public interface Action {
+    public String getType();
 }

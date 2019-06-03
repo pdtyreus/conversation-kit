@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,40 @@
  */
 package com.conversationkit.impl;
 
-import java.util.Formatter;
-import java.util.List;
+import com.conversationkit.impl.action.ActionType;
+import java.util.Optional;
 
 /**
- *
+ * A Redix Action implementation that carries a typed payload and is limited to 
+ * conversation-based enums as its Action <code>type</code>.
  * @author pdtyreus
+ * @param <S> type of payload
  */
-public class OutputUtil {
+public class ConversationAction<S> implements PayloadAction<S> {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
+    private final ActionType type;
+    private final Optional<S> payload;
+
+    public ConversationAction(ActionType type, S payload) {
+        this.type = type;
+        this.payload = Optional.ofNullable(payload);
     }
     
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
+    public ConversationAction(ActionType type) {
+        this.type = type;
+        this.payload = Optional.empty();
+    }
+
+    @Override
+    public String getType() {
+        return type.name();
     }
     
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
+    public Optional<S> getPayload() {
+        return this.payload;
+    }
+    
+    public ActionType getActionType() {
+        return this.type;
     }
 }

@@ -27,154 +27,61 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import com.conversationkit.impl.DirectedConversationEngine;
-import com.conversationkit.impl.MapBackedNodeIndex;
-import com.conversationkit.impl.edge.AffirmativeEdge;
-import com.conversationkit.impl.edge.DialogTreeEdge;
-import com.conversationkit.impl.edge.JavaScriptEdge;
-import com.conversationkit.impl.edge.NegativeEdge;
-import com.conversationkit.impl.edge.RegexEdge;
-import com.conversationkit.impl.edge.StatementEdge;
-import com.conversationkit.impl.node.ConversationNodeButton;
+import com.conversationkit.impl.MapBackedNodeRepository;
+import com.conversationkit.impl.edge.ConversationEdge;
 import com.conversationkit.impl.node.DialogTreeNode;
-import com.conversationkit.impl.node.HiddenNode;
-import com.conversationkit.impl.node.ResponseSuggestingNode;
-import com.conversationkit.impl.node.StringReplacingNode;
 import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
-import com.eclipsesource.json.JsonObject.Member;
+import com.conversationkit.model.ConversationNodeRepository;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * I/O class for loading a directed conversation from a JSON file. Extend this
- * class to handle custom node and edge types.
+ * I/O class for loading a node index from a JSON file.
  *
  * @author pdtyreus
  * @see <a href="http://jsongraphformat.info/">JSON Graph Format</a>
  */
-public class JsonGraphBuilder<S extends IConversationState> {
+public class JsonGraphBuilder {
 
     private static final Logger logger = Logger.getLogger(JsonGraphBuilder.class.getName());
 
-    protected enum NodeType {
-
-        StringReplacing, ResponseSuggesting, DialogTree, Hidden
-    }
-
-    protected enum EdgeType {
-
-        DialogTree, JavaScript, Regex, Statement, Affirmative, Negative
-    }
-
     /**
-     * Creates an <code>IConversationNode</code> from JSON. Override this to
-     * handle additional node types. The call to
-     * <code>super.nodeFromJson()</code> will return null if the node type is
-     * not currently handled.
-     *
-     * @param id the node id
-     * @param type the node type
-     * @param content the value of the content key
-     * @param snippetType question or statement
-     * @param contentType content type to render
-     * @param metadata the additional metadata in the JSON
-     * @return a node or null
-     * @throws IOException exception parsing JSON
+     * A default implementation of JsonNodeBuilder.
      */
-    protected IConversationNode<S> nodeFromJson(Integer id, String type, String content, SnippetType snippetType, SnippetContentType contentType, JsonObject metadata) throws IOException {
+    public static final JsonNodeBuilder DEFAULT_NODE_BUILDER = (Integer id, String type, JsonObject metadata) -> {
 
-        NodeType nodeType;
-        try {
-            nodeType = NodeType.valueOf(type);
-        } catch (Exception e) {
-            return null;
+        List<String> messages = new ArrayList();
+        if (metadata.get("message") != null) {
+            if (metadata.get("message").isArray()) {
+                for (JsonValue node : metadata.get("message").asArray()) {
+                    messages.add(node.asString());
+                }
+            } else {
+                messages.add(metadata.get("message").asString());
+            }
+        } else {
+            throw new IOException("No \"message\" metadata for node " + id);
         }
 
         //make the node into something
-        IConversationNode<S> conversationNode = null;
-
-        switch (nodeType) {
-            case Hidden:
-                conversationNode = new HiddenNode(id, snippetType);
-                break;
-            case DialogTree:
-                DialogTreeNode dtNode = new DialogTreeNode(id, snippetType, content);
-                conversationNode = dtNode;
-                break;
-            case StringReplacing:
-                StringReplacingNode srNode = new StringReplacingNode(id, snippetType, content);
-                for (String suggestion : createSuggestionsFromMetadata(metadata)) {
-                    srNode.addSuggestedResponse(suggestion);
-                }
-                for (ConversationNodeButton button : createButtonsFromMetadata(metadata)) {
-                    srNode.addButton(button);
-                }
-                conversationNode = srNode;
-                break;
-            case ResponseSuggesting:
-                ResponseSuggestingNode rsNode = new ResponseSuggestingNode(id, snippetType, content, contentType);
-
-                for (String suggestion : createSuggestionsFromMetadata(metadata)) {
-                    rsNode.addSuggestedResponse(suggestion);
-                }
-                for (ConversationNodeButton button : createButtonsFromMetadata(metadata)) {
-                    rsNode.addButton(button);
-                }
-
-                conversationNode = rsNode;
-                break;
-            default:
-                return null;
-        }
+        IConversationNode conversationNode = new DialogTreeNode(id, messages);
 
         return conversationNode;
-    }
+    };
 
-    protected List<ConversationNodeButton> createButtonsFromMetadata(JsonObject metadata) throws IOException{
-        List<ConversationNodeButton> cnButtons = new ArrayList();
+    /**
+     * A default implementation of JsonEdgeBuilder.
+     */
+    public static final JsonEdgeBuilder DEFAULT_EDGE_BUILDER = (String edgeId, String label, JsonObject metadata, Integer targetId) -> {
+        IConversationEdge edge = new ConversationEdge(targetId, edgeId);
 
-        if (metadata.get("buttons") != null) {
-            JsonArray buttons = metadata.get("buttons").asArray();
-            for (JsonValue button : buttons) {
-                Map<String, Object> attributes = new HashMap();
-                String text = null;
-                String buttonType = null;
-                String value = null;
-                for (Member member : button.asObject()) {
-                    if (member.getName().equals("text")) {
-                        text = member.getValue().asString();
-                    } else if (member.getName().equals("type")) {
-                        buttonType = member.getValue().asString();
-                    } else if (member.getName().equals("value")) {
-                        value = member.getValue().asString();
-                    } else {
-                        if (member.getValue().isBoolean()) {
-                            attributes.put(member.getName(), member.getValue().asBoolean());
-                        } else if (member.getValue().isNumber()) {
-                            attributes.put(member.getName(), member.getValue().asInt());
-                        } else {
-                            attributes.put(member.getName(), member.getValue().asString());
-                        }
-                    }
-                }
-                
-                ConversationNodeButton cnb = new ConversationNodeButton(buttonType, text, value, attributes);
-                cnButtons.add(cnb);
-            }
-
-        }
-        return cnButtons;
-    }
+        return edge;
+    };
 
     protected List<String> createSuggestionsFromMetadata(JsonObject metadata) {
 
@@ -189,98 +96,33 @@ public class JsonGraphBuilder<S extends IConversationState> {
     }
 
     /**
-     * Creates an <code>IConversationEdge</code> from JSON. Override this to
-     * handle additional edge types. The call to
-     * <code>super.edgeFromJson()</code> will return null if the edge type is
-     * not currently handled.
-     *
-     * @param type the edge type
-     * @param metadata the additional metadata in the JSON
-     * @param target the target node
-     * @return an edge or null
-     * @throws IOException exception parsing JSON
+     * Reads JSON an creates a node repository using default node and edge builder implementations.
+     * @param reader A reader of the JSON source file
+     * @return A ConversationNodeRepository
+     * @throws IOException when the JSON is not able to be parsed.
      */
-    protected IConversationEdge<S> edgeFromJson(String type, JsonObject metadata, IConversationNode<S> target) throws IOException {
+    public static ConversationNodeRepository readJsonGraph(Reader reader) throws IOException {
 
-        EdgeType edgeType;
-        try {
-            edgeType = EdgeType.valueOf(type);
-        } catch (Exception e) {
-            return null;
-        }
-        String stateKey = null;
-        if ((metadata != null) && (metadata.get("stateKey") != null)) {
-            stateKey = metadata.get("stateKey").asString();
-        }
-        Object stateValue = null;
-        if ((metadata != null) && metadata.get("stateValue") != null) {
-
-            if (metadata.get("stateValue").isArray()) {
-                stateValue = metadata.get("stateValue").asArray();
-            } else if (metadata.get("stateValue").isBoolean()) {
-                stateValue = metadata.get("stateValue").asBoolean();
-            } else if (metadata.get("stateValue").isNumber()) {
-                stateValue = metadata.get("stateValue").asInt();
-            } else {
-                stateValue = metadata.get("stateValue").asString();
-            }
-        }
-        switch (edgeType) {
-            case DialogTree:
-                if ((metadata == null) || (metadata.get("answer") == null)) {
-                    throw new IOException("DialogTreeEdge missing \"answer\" metadata key: " + metadata);
-                }
-                DialogTreeEdge dte = new DialogTreeEdge(metadata.get("answer").asString(), stateKey, target);
-                return dte;
-            case JavaScript:
-
-                if ((metadata == null) || (metadata.get("isMatchForState") == null)) {
-                    throw new IOException("JavaScriptEdge missing \"isMatchForState\" metadata key: " + metadata);
-                }
-                String isMatch = metadata.get("isMatchForState").asString();
-                if (metadata.get("onMatch") != null) {
-                    String onMatch = metadata.get("onMatch").asString();
-                    return new JavaScriptEdge(isMatch, onMatch, target);
-                } else {
-                    return new JavaScriptEdge(isMatch, target);
-                }
-            case Regex:
-                if ((metadata == null) || (metadata.get("pattern") == null)) {
-                    throw new IOException("RegexEdge missing \"pattern\" metadata key: " + metadata);
-                }
-                String pattern = metadata.get("pattern").asString();
-                if (stateValue != null) {
-                    return new RegexEdge(pattern, stateKey, stateValue, target);
-                } else {
-                    return new RegexEdge(pattern, stateKey, target);
-                }
-            case Affirmative:
-                if (stateValue != null) {
-                    return new AffirmativeEdge(stateKey, stateValue, target);
-                } else {
-                    return new AffirmativeEdge(target);
-                }
-            case Negative:
-                if (stateValue != null) {
-                    return new NegativeEdge(stateKey, stateValue, target);
-                } else {
-                    return new NegativeEdge(target);
-                }
-            case Statement:
-                StatementEdge e = new StatementEdge(target);
-                return e;
-            default:
-                return null;
-        }
+        return readJsonGraph(reader, DEFAULT_NODE_BUILDER, DEFAULT_EDGE_BUILDER);
     }
 
-    public DirectedConversationEngine<S> readJsonGraph(Reader reader) throws IOException {
+    /**
+     * 
+     * @param <N> IConversationNode class
+     * @param <E> IConversationEdge class
+     * @param reader A reader of the JSON source file
+     * @param nodeBuilder Custom node builder implementation
+     * @param edgeBuilder Custom edge builder implementation
+     * @return A typed ConversationNodeRepository
+     * @throws IOException when the JSON is not able to be parsed.
+     */
+    public static <N extends IConversationNode<E>, E extends IConversationEdge> ConversationNodeRepository<N> readJsonGraph(Reader reader, JsonNodeBuilder<N> nodeBuilder, JsonEdgeBuilder<E> edgeBuilder) throws IOException {
 
         JsonValue value = Json.parse(reader);
 
         JsonObject keyTree = value.asObject().get("graph").asObject();
 
-        MapBackedNodeIndex<S> index = new MapBackedNodeIndex();
+        MapBackedNodeRepository<N> index = new MapBackedNodeRepository();
 
         int i = 0;
         //run through once to create nodes
@@ -309,26 +151,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 metadata = metadataValue.asObject();
             }
 
-            SnippetType snippetType = SnippetType.STATEMENT;
-            if (metadata.get("snippetType") != null) {
-                try {
-                    snippetType=SnippetType.valueOf(metadata.get("snippetType").asString());
-                } catch (Exception e) {
-                    throw new IOException("Unknown \"snippetType\" " + metadata.get("snippetType").asString() + " for node " + id);
-                }
-            } else {
-                throw new IOException("Missing \"snippetType\" for node " + id);
-            }
-            SnippetContentType contentType = SnippetContentType.TEXT;
-            if (metadata.get("contentType") != null) {
-                try {
-                    contentType = SnippetContentType.valueOf(metadata.get("contentType").asString());
-                } catch (Exception e) {
-                    throw new IOException("Unknown \"contentType\" " + metadata.get("contentType").asString() + " for node " + id);
-                }
-            }
-
-            IConversationNode<S> conversationNode = nodeFromJson(id, type, content, snippetType, contentType, metadata);
+            N conversationNode = nodeBuilder.nodeFromJson(id, type, metadata);
             if (conversationNode == null) {
                 throw new IOException("Unhandled node " + node);
             }
@@ -344,8 +167,8 @@ public class JsonGraphBuilder<S extends IConversationState> {
         for (JsonValue member : keyTree.get("edges").asArray()) {
             JsonObject edge = member.asObject();
 
-            if (edge.get("type") == null) {
-                throw new IOException("Missing \"type\" for edge: " + edge.toString());
+            if (edge.get("relation") == null) {
+                throw new IOException("Missing \"relation\" for edge: " + edge.toString());
             }
             if (edge.get("source") == null) {
                 throw new IOException("Missing \"source\" for edge: " + edge.toString());
@@ -357,8 +180,8 @@ public class JsonGraphBuilder<S extends IConversationState> {
             Integer sourceId = Integer.parseInt(edge.get("source").asString());
             Integer targetId = Integer.parseInt(edge.get("target").asString());
 
-            IConversationNode<S> source = index.getNodeAtIndex(sourceId);
-            IConversationNode<S> target = index.getNodeAtIndex(targetId);
+            N source = index.getNodeById(sourceId);
+            N target = index.getNodeById(targetId);
 
             if (source == null) {
                 throw new IOException("Source node missing for edge " + edge);
@@ -368,14 +191,15 @@ public class JsonGraphBuilder<S extends IConversationState> {
                 throw new IOException("Target node missing for edge " + edge);
             }
 
-            String type = edge.get("type").asString();
+            String relation = edge.get("relation").asString();
+            String label = edge.getString("label", "");
             JsonValue metadataValue = edge.get("metadata");
             JsonObject metadata = null;
             if (metadataValue != null) {
                 metadata = metadataValue.asObject();
             }
 
-            IConversationEdge<S> conversationEdge = edgeFromJson(type, metadata, target);
+            E conversationEdge = edgeBuilder.edgeFromJson(relation, label, metadata, targetId);
             if (conversationEdge == null) {
                 throw new IOException("Unhandled edge " + edge);
             }
@@ -384,7 +208,7 @@ public class JsonGraphBuilder<S extends IConversationState> {
         }
 
         logger.info(MessageFormat.format("Created {0} edges", i));
-        return new DirectedConversationEngine(index);
+        return index;
 
     }
 }

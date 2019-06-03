@@ -23,7 +23,7 @@
  */
 package com.conversationkit.model;
 
-import java.util.List;
+import com.eclipsesource.json.JsonObject;
 
 /**
  * A conversation node is a vertex on the directed conversation graph containing
@@ -32,27 +32,36 @@ import java.util.List;
  * traverses the graph between nodes in by analyzing the state and choosing
  * the first matching edge at each vertex.
  * @author pdtyreus
- * @param <S> an implementation of IConversationState to store the state of the 
- * conversation for the current user
+ * @param <E> generic type of the node's edges
  */
-public interface IConversationNode<S extends IConversationState> extends IConversationSnippet<S>{
+public interface IConversationNode<E extends IConversationEdge> {
 
     /**
      * Returns a list of outbound edges from the current node. One matching 
      * edge may be chosen to continue the conversation to the next node.
      * @return outbound edges
      */
-    public Iterable<IConversationEdge<S>> getEdges();
+    public Iterable<E> getEdges();
 
     /**
      * Adds an edge to the list of possible outbound edges.
      * @param edge edge to add
      */
-    public void addEdge(IConversationEdge<S> edge);
+    public void addEdge(E edge);
 
     /**
      * Returns the unique identifier for this node.
      * @return the node id
      */
     public int getId();
+    
+    /**
+     * Node metadata is any additional information the node may
+     * need to build platform-specific implementations of itself. The values stored
+     * in the metadata will be highly dependent on the final use case and is
+     * designed to be highly flexible. 
+     * @return JSON metadata
+     */
+    public JsonObject getMetadata();
+    
 }

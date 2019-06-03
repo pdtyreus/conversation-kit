@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.model;
 
-import java.util.Formatter;
-import java.util.List;
+import java.util.Map;
 
 /**
- *
+ * A general representation of a user's intent from a statement or question in a conversation.
+ * <p>
+ * Intents in your map user input to responses. The implementation will depend on the
+ * vender you choose for natural language understanding. 
  * @author pdtyreus
  */
-public class OutputUtil {
-
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
-    }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+public interface IConversationIntent {
+    /**
+     * @return unique ID for the intent.
+     */
+    public String getIntentId();
+    /**
+     * Slots are parameters collected from the user's input while detecting intent. As an example, a
+     * a slot might be a color. So in the user input, "Press the red button" the intent
+     * might be <code>PRESS_BUTTON</code> with a slot of <code>color</code> set to <code>red</code>.
+     * @return map of slot keys to slot values
+     */
+    public Map<String,Object> getSlots();
 }

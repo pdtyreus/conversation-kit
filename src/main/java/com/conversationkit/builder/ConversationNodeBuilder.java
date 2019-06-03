@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.builder;
 
-import java.util.Formatter;
-import java.util.List;
+import com.conversationkit.impl.node.ConversationNode;
+import com.eclipsesource.json.JsonObject;
+import java.io.IOException;
 
 /**
  *
  * @author pdtyreus
  */
-public class OutputUtil {
+public class ConversationNodeBuilder implements JsonNodeBuilder<ConversationNode> {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
+    @Override
+    public ConversationNode nodeFromJson(Integer id, String type, JsonObject metadata) throws IOException {
+
+        ConversationNode conversationNode = new ConversationNode(id, metadata);
+
+        return conversationNode;
     }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+;
+
 }

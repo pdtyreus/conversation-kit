@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
-
-import java.util.Formatter;
-import java.util.List;
+package com.conversationkit.redux;
 
 /**
- *
+ * A dispatching function (or simply dispatch function) is a function that 
+ * accepts an action or an async action; it then may or may not dispatch 
+ * one or more actions to the store.
+ * @see <a href="https://redux.js.org/glossary#dispatching-function">https://redux.js.org/glossary#dispatching-function</a>
  * @author pdtyreus
  */
-public class OutputUtil {
+public interface Dispatcher <S>{
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
-    }
+    public S dispatch(Object action);
     
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
 }

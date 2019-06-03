@@ -23,102 +23,179 @@
  */
 package com.conversationkit.impl;
 
-import com.conversationkit.model.IConversationEngine;
+import com.conversationkit.impl.action.ActionType;
 import com.conversationkit.model.IConversationEdge;
+import com.conversationkit.model.IConversationEngine;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
-import com.conversationkit.model.IConversationNodeIndex;
-import com.conversationkit.model.IConversationSnippet;
+import com.conversationkit.model.ConversationNodeRepository;
 import com.conversationkit.model.IConversationState;
-import com.conversationkit.model.SnippetContentType;
-import com.conversationkit.model.SnippetType;
-import com.conversationkit.model.UnexpectedResponseException;
-import com.conversationkit.model.UnmatchedResponseException;
+import com.conversationkit.nlp.IntentDetector;
+import com.conversationkit.redux.Dispatcher;
+import com.conversationkit.redux.Reducer;
+import com.conversationkit.redux.Redux;
+import com.conversationkit.redux.Store;
+import com.conversationkit.redux.impl.CompletableFutureMiddleware;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * An implementation of IConversationEngine that holds the current state of a conversation
+ * and determines the flow by interpreting user intent and matching it to the conversation graph.
+ * <p>
+ * The engine creates a Redux {@link Store} when initialized to hold the state of the conversation
+ * for a given user. The state is only mutated 
+ * by {@link DirectedConversationEngine#dispatch }ing actions. This provides
+ * predictable state that is easier to test.
+ * <p>
+ * The {@link IntentDetector} is responsible for matching the user input with an 
+ * edge on the conversation graph. Most likely you will want to wrap a commercial
+ * NLU service like Amazon Lex or Google DialogFlow.
+ * <p>
+ * The general flow of {@link #handleIncomingMessage(java.lang.String)} in this implementation is as follows:
+ * <ol>
+ * <li>Receive a message and update the state with that message.</li>
+ * <li>Delegate to the IntentDetector to try to determine the user's intent.</li>
+ * <li>Loop over all outbound edges for the current node and find the first edge that 
+ * matches the intent and has {@link IConversationEdge#validate }
+ * that returns true.</li>
+ * <li>Dispatch any side effects for the matched edge and process on the Redux middleware chain.</li>
+ * <li>Update the state with the new node id.</li>
+ * </ol>
+ * <p>
+ * If any of the above steps fail, {@link #handleIncomingMessage} will return an error.
+ * 
  * @author pdtyreus
+ * @param <S> type of IConversationState
+ * @param <I> type of IConversationIntent
  */
-public class DirectedConversationEngine<S extends IConversationState> implements IConversationEngine<S> {
+public class DirectedConversationEngine<S extends IConversationState, I extends IConversationIntent> implements Dispatcher, IConversationEngine {
 
     private static Logger logger = Logger.getLogger(DirectedConversationEngine.class.getName());
-    protected final IConversationNodeIndex<S> nodeIndex;
+    protected final ConversationNodeRepository nodeRepository;
+    protected final IntentDetector<I> intentDetector;
+    protected final List<IConversationEdge> fallbackEdges = new ArrayList();
+    protected final Store<S> store;
 
-    public DirectedConversationEngine(IConversationNodeIndex<S> nodeIndex) {
-        this.nodeIndex = nodeIndex;
+    public final static String CONVERSATION_STATE_KEY = "conversation-kit";
+
+    public DirectedConversationEngine(IntentDetector<I> intentDetector, ConversationNodeRepository nodeRepository, S state) {
+        this(intentDetector, nodeRepository, state, new HashMap());
+    }
+
+    public DirectedConversationEngine(IntentDetector<I> intentDetector, ConversationNodeRepository nodeRepository, S state, Map<String, Reducer> reducers) {
+        this.nodeRepository = nodeRepository;
+        this.intentDetector = intentDetector;
+        reducers.put(CONVERSATION_STATE_KEY, new ConversationReducer());
+        Reducer reducer = Redux.combineReducers(reducers);
+        store = Redux.createStore(reducer, state.getStateAsMap(), state, new CompletableFutureMiddleware());
+    }
+
+    public void addFallbackEdge(IConversationEdge edge) {
+        fallbackEdges.add(edge);
+    }
+
+    public S getState() {
+        return store.getState();
+    }
+
+    private Optional<IConversationEdge> findEdgeMatchingIntent(I intent, Optional<IConversationNode> currentNode) {
+        if (currentNode.isPresent()) {
+            Iterable<IConversationEdge> edges = currentNode.get().getEdges();
+            for (IConversationEdge edge : edges) {
+                if (edge.getIntentId().equals(intent.getIntentId())) {
+                    logger.log(Level.INFO, "Found unvalidated matching edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                    boolean valid = edge.validate(intent, store.getState());
+                    if (valid) {
+                        logger.log(Level.INFO, "Edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                        return Optional.of(edge);
+                    } else {
+                        logger.log(Level.INFO, "Edge with end node {0} for intent {1} does not validate.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                    }
+                }
+            }
+        }
+        logger.log(Level.INFO, "No matching connected edge for intent {0}", intent.getIntentId());
+
+        for (IConversationEdge edge : fallbackEdges) {
+            if (edge.getIntentId().equals(intent.getIntentId())) {
+                logger.log(Level.INFO, "Found unvalidated matching fallback edge with end node {0} for intent {1}", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                boolean valid = edge.validate(intent, store.getState());
+                if (valid) {
+                    logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} validates.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                    return Optional.of(edge);
+                } else {
+                    logger.log(Level.INFO, "Fallback edge with end node {0} for intent {1} does not validate.", Arrays.asList(edge.getEndNodeId(), intent.getIntentId()).toArray());
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     @Override
-    public Iterable<IConversationSnippet> startConversationFromState(S state) {
-        List<IConversationSnippet> nodes = new ArrayList();
-        IConversationNode<S> nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-        if (nextNode.getContentType() != SnippetContentType.NOTHING) {
-            nodes.add(nextNode);
-        }
-        boolean matchFound = true;
-        while (matchFound && (nextNode.getType() == SnippetType.STATEMENT)) {
-            //if nothing has matched, we are done
-            matchFound = false;
-            for (IConversationEdge<S> edge : nextNode.getEdges()) {
-                //find the first edge that matches and move to that node
-                if (!matchFound) {
-                    logger.fine(String.format("evaluating STATEMENT edge %s", edge));
-                    if (edge.isMatchForState(state)) {
-                        matchFound = true;
-                        state = moveToNextNode(state, edge);
-                        nextNode = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-                        if (nextNode.getContentType() != SnippetContentType.NOTHING) {
-                            nodes.add(nextNode);
+    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message) {
+
+        Integer currentNodeId = store.getState().getCurrentNodeId();
+        final Optional<IConversationNode> currentNode
+                = (currentNodeId != null)
+                        ? Optional.ofNullable(nodeRepository.getNodeById(currentNodeId))
+                        : Optional.empty();
+
+        dispatch(new ConversationAction<>(ActionType.MESSAGE_RECEIVED, message));
+        return intentDetector.detectIntent(message)
+                .thenApply((intent) -> {
+                    MessageHandlingResult result = new MessageHandlingResult();
+                    if (intent.isPresent()) {
+                        I conversationIntent = intent.get();
+                        dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, conversationIntent));
+                        Optional<IConversationEdge> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
+                        if (!outboundEdge.isPresent()) {
+                            dispatch(new ConversationAction(ActionType.EDGE_MATCH_FAILED));
+
+                            result.ok = false;
+                            result.errorCode = ErrorCode.EDGE_MATCHING_FAILED;
+                        } else {
+                            List<Object> sideEffects = outboundEdge.get().getSideEffects(conversationIntent, store.getState());
+                            for (Object effect : sideEffects) {
+                                logger.log(Level.INFO, "Dispatching side effect {0}.", effect);
+                                dispatch(effect);
+                            }
+                            IConversationNode nextNode = nodeRepository.getNodeById(outboundEdge.get().getEndNodeId());
+                            dispatch(new ConversationAction<>(ActionType.EDGE_MATCH_SUCCEEDED, nextNode));
+                            result.ok = true;
                         }
+
+                    } else {
+                        dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_FAILED));
+                        result.ok = false;
+                        result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
+
                     }
-                }
-            }
-        }
-        return nodes;
+
+                    return result;
+                }).exceptionally((e) -> {
+                    //intent processing exception
+                    MessageHandlingResult result = new MessageHandlingResult();
+                    result.ok = false;
+                    result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
+                    result.errorMessage = e.getMessage();
+                    return result;
+
+                });
+
     }
 
     @Override
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException {
-        IConversationNode<S> currentSnippet = nodeIndex.getNodeAtIndex(state.getCurrentNodeId());
-
-        if (currentSnippet.getType() == SnippetType.QUESTION) {
-            state.setMostRecentResponse(response);
-            logger.info(String.format("processing response '%s' for node of type %s", response, currentSnippet.getType()));
-            boolean matchFound = false;
-
-            for (IConversationEdge<S> edge : currentSnippet.getEdges()) {
-                if (!matchFound) {
-                    logger.fine(String.format("inspecting possible edge %s, already matched %s", edge, matchFound));
-
-                    if (edge.isMatchForState(state)) {
-                        matchFound = true;
-                        moveToNextNode(state, edge);
-                    }
-                }
-            }
-
-            if (!matchFound) {
-                throw new UnmatchedResponseException();
-            }
-        } else {
-            throw new UnexpectedResponseException(String.format("received response '%s' to node %d which is not a QUESTION",response,state.getCurrentNodeId()));
-        }
-
-        return state;
+    public S dispatch(Object action) {
+        return store.dispatch(action);
     }
 
-    private S moveToNextNode(S state, IConversationEdge<S> edge) {
-        IConversationNode nextNode = edge.getEndNode();
-        state.setCurrentNodeId(nextNode.getId());
-        if (state.getMostRecentResponse() != null) {
-            logger.info(String.format("response '%s' matches edge '%s'", state.getMostRecentResponse(), edge));
-        } else {
-            logger.info(String.format("edge '%s' matches", edge));
-        }
-        logger.fine(String.format("adding node '%s' of type %s", nextNode.renderContent(state), nextNode.getType()));
-        edge.onMatch(state);
-        return state;
-    }
 }

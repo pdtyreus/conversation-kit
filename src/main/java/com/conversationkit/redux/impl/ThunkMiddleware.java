@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.redux.impl;
 
-import java.util.Formatter;
-import java.util.List;
+import com.conversationkit.redux.Action;
+import com.conversationkit.redux.Middleware;
+import com.conversationkit.redux.Store;
+import java.util.function.Consumer;
 
 /**
- *
+ * Redux middleware that handles an async {@link Action} of type {@link Consumer} 
  * @author pdtyreus
  */
-public class OutputUtil {
+public class ThunkMiddleware implements Middleware {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
+    @Override
+    public void dispatch(Store store, Object action, Middleware next) {
+        if (action instanceof Consumer) {
+            Consumer<Store> f = (Consumer) action;
+            f.accept(store);
+        } else {
+            next.dispatch(store, action, next);
+        }
     }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+
 }

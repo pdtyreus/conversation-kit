@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.impl.action;
 
-import java.util.Formatter;
-import java.util.List;
+import com.conversationkit.redux.Action;
 
 /**
- *
+ * Enumerated <code>type</code>s for conversation-scoped {@link Action}s.
  * @author pdtyreus
  */
-public class OutputUtil {
+public enum ActionType {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
+    MESSAGE_RECEIVED, SET_NODE_ID,
+    INTENT_UNDERSTANDING_SUCCEEDED, INTENT_UNDERSTANDING_FAILED,
+    EDGE_MATCH_SUCCEEDED, EDGE_MATCH_FAILED
+
     }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
-}

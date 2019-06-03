@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,55 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl.node;
+package com.conversationkit.builder;
 
-import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.model.IConversationNode;
+import com.conversationkit.impl.node.DialogTreeNode;
 import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Convenience base class for creating nodes.
- *
+ * A node builder that extracts the content of the messages key in the metadata
+ * and stores them as messages in the DialogTreeNode.
  * @author pdtyreus
  */
-public class ConversationNode implements IConversationNode {
-
-    protected final List<IConversationEdge> edges;
-    private final int id;
-    private final JsonObject metadata;
-
-    public ConversationNode(int id) {
-        this.id = id;
-        this.edges = new ArrayList();
-        this.metadata = new JsonObject();
-    }
-
-    public ConversationNode(int id, JsonObject metadata) {
-        this.id = id;
-        this.edges = new ArrayList();
-        this.metadata = metadata;
-    }
+public class DialogTreeNodeBuilder implements JsonNodeBuilder<DialogTreeNode> {
 
     @Override
-    public Iterable<IConversationEdge> getEdges() {
-        return edges;
-    }
+    public DialogTreeNode nodeFromJson(Integer id, String type, JsonObject metadata) throws IOException {
 
-    @Override
-    public void addEdge(IConversationEdge edge) {
-        edges.add(edge);
-    }
+        List<String> messages = new ArrayList();
+        if (metadata.get("message") != null) {
+            if (metadata.get("message").isArray()) {
+                for (JsonValue node : metadata.get("message").asArray()) {
+                    messages.add(node.asString());
+                }
+            } else {
+                messages.add(metadata.get("message").asString());
+            }
+        } else {
+            throw new IOException("No \"message\" metadata for node " + id);
+        }
 
-    @Override
-    public int getId() {
-        return id;
-    }
+        DialogTreeNode conversationNode = new DialogTreeNode(id, messages);
 
-    @Override
-    public JsonObject getMetadata() {
-        return metadata;
+        return conversationNode;
     }
 
 }

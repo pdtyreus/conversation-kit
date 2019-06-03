@@ -5,102 +5,70 @@
         "nodes": [
             {
                 "id": "1",
-                "type": "StringReplacing",
-                "label": "This is a math test. You can answer with digits or text.",
+                "type": "ConversationNode",
+                "label": "1",
                 "metadata": {
-                    "snippetType": "STATEMENT"
-                }
-            },
-            {
-                "id": "2",
-                "type": "StringReplacing",
-                "label": "What is 3+3",
-                "metadata": {
-                    "snippetType": "QUESTION"
-                }
-            },
-            {
-                "id": "3",
-                "type": "StringReplacing",
-                "label": "You answered {{answer}}",
-                "metadata": {
-                    "snippetType": "STATEMENT"
+                    "message": ["This is a math test. You can answer with digits or text.", "What is 3+3?"]
                 }
             },
             {
                 "id": "4",
-                "type": "StringReplacing",
-                "label": "That is the correct answer. 3+3={{answer}}",
+                "type": "ConversationNode",
+                "label": "4",
                 "metadata": {
-                    "snippetType": "STATEMENT"
+                    "message": ["You answered {{answer}}.", "That is the correct answer. 3+3={{answer}}."]
                 }
             },
             {
-                "id":"5",
-                "type":"StringReplacing",
-                "label":"\"{{answer}}\" is not correct. Would you like to try again?",
-                "metadata":{
-                    "suggestedResponses":["yes","no"],
-                    "snippetType": "QUESTION"
+                "id": "5",
+                "type": "ConversationNode",
+                "label": "5",
+                "metadata": {
+                    "message": ["You answered {{answer}}.", "\"{{answer}}\" is not correct. Would you like to try again?"]
                 }
             }
         ],
         "edges": [
             {
                 "source": "1",
-                "target": "2",
-                "type":"Statement",
-                "label":"",
-                "directed": true
-            },
-            {
-                "source": "2",
-                "target": "3",
-                "directed": true,
-                "label":"Any number",
-                "type":"Regex",
-                "metadata": {
-                    "pattern":"\\d+",
-                    "stateKey":"answer"
-                }
-            },
-            {
-                "source": "2",
-                "target": "3",
-                "directed": true,
-                "label":"Anything else",
-                "type":"JavaScript",
-                "metadata": {
-                    "isMatchForState":"return true;",
-                    "onMatch":"if (state.mostRecentResponse == 'six'){state.answer = 6};return state;"
-                }
-            },
-            {
-                "source": "3",
                 "target": "4",
                 "directed": true,
-                "label": "correct",
-                "type":"JavaScript",
+                "label": "Correct Answer",
+                "relation": "NUMBER_ANSWER",
                 "metadata": {
-                    "isMatchForState":"return (state.answer === 6);"
+                    "validator": {
+                        "type": "string",
+                        "slot": 0,
+                        "matches": ["six","6"]
+                    },
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_ANSWER"
+                    }
                 }
             },
             {
-                "source": "3",
+                "source": "1",
                 "target": "5",
                 "directed": true,
-                "label": "incorrect",
-                "type":"JavaScript",
+                "label": "Wrong Answer",
+                "relation": "NUMBER_ANSWER",
                 "metadata": {
-                    "isMatchForState":"return (state.answer != 6);"
+                    "validator": {
+                        "type": "any"
+                    },
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_ANSWER"
+                    }
                 }
             },
             {
                 "source": "5",
-                "target": "2",
+                "target": "1",
                 "directed": true,
-                "label":"yes",
-                "type":"Affirmative",
+                "label": "Yes",
+                "relation": "YES",
                 "metadata": {
                 }
             }

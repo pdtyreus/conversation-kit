@@ -24,28 +24,81 @@
 package com.conversationkit.impl.edge;
 
 import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.model.IConversationNode;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationState;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiFunction;
 
 /**
  * Convenience base class for creating edges.
- * 
+ *
  * @author pdtyreus
+ * @param <I> type of IConversationIntent
+ * @param <S> type of IConversationState
  */
-public abstract class ConversationEdge<S extends IConversationState> implements IConversationEdge<S> {
-    private final IConversationNode<S> endNode;
+public class ConversationEdge<I extends IConversationIntent, S extends IConversationState> implements IConversationEdge<I,S> {
 
-    public ConversationEdge(IConversationNode<S> endNode) {
-        this.endNode = endNode;
+    private final Integer endNodeId;
+    private final String id;
+    private final BiFunction<I, S, Boolean> validateFunction;
+    private final List<BiFunction<I, S, Object>> sideEffects;
+
+    public ConversationEdge(Integer endNodeId, String intentId) {
+        this.endNodeId = endNodeId;
+        this.id = intentId;
+        this.validateFunction = (intent, state) -> {
+            return true;
+        };
+        this.sideEffects = new ArrayList();
+    }
+
+    public ConversationEdge(Integer endNodeId, String intentId, BiFunction<I, S, Boolean> validateFunction, BiFunction<I, S, Object>... sideEffects) {
+        this.endNodeId = endNodeId;
+        this.id = intentId;
+        this.validateFunction = validateFunction;
+        this.sideEffects = new ArrayList();
+        for (BiFunction<I, S, Object> effect : sideEffects) {
+            this.sideEffects.add(effect);
+        }
+    }
+    
+    public ConversationEdge(Integer endNodeId, String intentId, BiFunction<I, S, Object> sideEffect) {
+        this.endNodeId = endNodeId;
+        this.id = intentId;
+        this.validateFunction = (intent, state) -> {
+            return true;
+        };
+        this.sideEffects = Arrays.asList(sideEffect);
     }
 
     @Override
-    public IConversationNode<S> getEndNode() {
-        return endNode;
+    public Integer getEndNodeId() {
+        return endNodeId;
     }
 
     @Override
-    public void onMatch(S state) {
+    public String getIntentId() {
+        return id;
     }
 
+    @Override
+    public String toString() {
+        return "ConversationEdge {" + getIntentId() + '}';
+    }
+
+    @Override
+    public boolean validate(I intent, S state) {
+        return validateFunction.apply(intent, state);
+    }
+
+    @Override
+    public List<Object> getSideEffects(I intent, S state) {
+        List<Object> effects = new ArrayList();
+        for (BiFunction<I, S, Object> effectFunction : sideEffects) {
+            effects.add(effectFunction.apply(intent, state));
+        }
+        return effects;
+    }
 }

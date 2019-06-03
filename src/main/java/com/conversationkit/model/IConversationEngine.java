@@ -23,40 +23,38 @@
  */
 package com.conversationkit.model;
 
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface encapsulating the basic API for traversing a conversation.
- * Implementation details may vary, but generally the conversation is started
- * from a given state and runs until it requires a response from the user. The
- * user response is then used to update the conversation state, and the
- * conversation is restarted (continued) with the updated state.
- * @author pdtyreus
- * @param <S> an implementation of to store the current state of the conversation
- * for the current user
  */
-public interface IConversationEngine<S extends IConversationState> {
+public interface IConversationEngine {
+
     /**
-     * Follows the conversation graph starting at the current node defined by the state
-     * parameter.  Implementation details may vary, but generally this method will
-     * return all the <code>IConversationSnippet</code>s along the graph until
-     * it reaches a node that requires a response from the user. The <code>state</code>
-     * is updated to reflect the new <code>currentNodeId</code>.
-     * 
-     * @param state initial state
-     * @return IConversationSnippets to display to the user
+     * Accepts a message from the user, interprets the intent, and advances the conversation
+     * to the next node along the edge determined by the conversation graph. 
+     * <p>
+     * If the engine
+     * was able to successfully determine the intent and move along the conversation graph,
+     * the {@link MessageHandlingResult} will have a value of <code>ok</code> set to <code>true</code>.
+     * Otherwise an <code>errorCode</code> and <code>errorMessage</code> will be returned. An
+     * <code>INTENT_UNDERSTANDING_FAILED</code> error will occur if the NLU system was
+     * unable to match the input to an intent. An <code>EDGE_MATCHING_FAILED</code> will be
+     * returned if no suitable outbound edge could be matched to the given input.
+     * @param message user's input
+     * @return the result of handling the incoming message.
      */
-    public Iterable<IConversationSnippet> startConversationFromState(S state);
-    
-    /**
-     * Updates the conversation with a response from the user and advances the 
-     * currentNodeId if a matching edge is found.
-     * 
-     * @param state the current IConversationState
-     * @param response the user's response
-     * @return the updated state
-     * @throws UnmatchedResponseException if no outbound edges from the current node match the response
-     * @throws UnexpectedResponseException if the conversation is in a state where it is not expecting a response (e.g. the current node is not a QUESTION)
-     */
-    public S updateStateWithResponse(S state, String response) throws UnmatchedResponseException, UnexpectedResponseException;
+    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message);
+
+    public static class MessageHandlingResult {
+
+        public boolean ok;
+        public ErrorCode errorCode;
+        public String errorMessage;
+    }
+
+    public static enum ErrorCode {
+
+        INTENT_UNDERSTANDING_FAILED, EDGE_MATCHING_FAILED
+    }
 }

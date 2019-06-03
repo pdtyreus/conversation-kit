@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.redux;
 
-import java.util.Formatter;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Test;
 
 /**
  *
- * @author pdtyreus
+ * @author tyreus
  */
-public class OutputUtil {
+public class ReduxTest {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
+
+    @Test
+    public void testCreateStore() throws Exception {
+        Reducer reducer = (Action action, Map currentState) -> {
+            System.out.println("reducing " + action);
+            return currentState;
+        };
+        Store store = Redux.createStore(reducer, Collections.unmodifiableMap(new HashMap()), (map)->{return map;});
+        store.dispatch(new StringAction("action"));
     }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+
 }

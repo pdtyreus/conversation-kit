@@ -23,24 +23,29 @@
  */
 package com.conversationkit.impl;
 
-import java.util.Formatter;
-import java.util.List;
+import com.conversationkit.model.IConversationNode;
+import com.conversationkit.model.ConversationNodeRepository;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
- *
+ * An implementation of {@link ConversationNodeRepository} backed by a simple {@link Map}.
  * @author pdtyreus
+ * @param <N> type of IConversationNode
  */
-public class OutputUtil {
+public class MapBackedNodeRepository<N extends IConversationNode> implements ConversationNodeRepository<N> {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
+    private static final Logger logger = Logger.getLogger(MapBackedNodeRepository.class.getName());
+    private final Map<Integer, N> nodeIndex = new HashMap();
+
+    @Override
+    public N getNodeById(int id) {
+        return nodeIndex.get(id);
     }
     
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
+    public void addNodeToIndex(int id, N node) {
+        nodeIndex.put(id, node);
     }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+
 }

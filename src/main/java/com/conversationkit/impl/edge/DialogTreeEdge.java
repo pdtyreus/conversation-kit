@@ -23,78 +23,57 @@
  */
 package com.conversationkit.impl.edge;
 
-import com.conversationkit.model.IConversationEdge;
-import com.conversationkit.model.IConversationNode;
+import com.conversationkit.impl.node.DialogTreeNode;
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationState;
+import java.util.function.BiFunction;
 
 /**
  * A <code>DialogTreeEdge</code> is an implementation of
  * <code>IConversationEdge</code> that connects one
- * <code>IConversationNode</code> that is a <code>QUESTION</code> to the
+ * <code>IConversationNode</code> that is a question to the
  * <code>IConversationNode</code> matching the answer.
  * <p>
  * A Dialog Tree is a type of branching conversation often seen in adventure
  * video games. The user is given a choice of what to say and makes subsequent
  * choices until the conversation ends. The responses to the user are scripted
  * based on the choices made. Since the user can only answer questions using one
- * the supplied suggestions from the <code>DialogTreeNode</code>, this edge type
- * does a string match between the answer stored in the edge and the response
+ * the supplied suggestions from the {@link DialogTreeNode}, this edge type does
+ * a string match between the answer stored in the edge and the response
  * provided by the user.
  *
  * @author pdtyreus
- * @param <S> an implementation of IConversationState
  */
-public class DialogTreeEdge<S extends IConversationState> extends ConversationEdge<S> {
+public class DialogTreeEdge extends ConversationEdge {
 
-    private final String answer;
-    private final String stateKey;
-
-    /**
-     * Only an exact match for the answer stored in this node will cause the
-     * conversion to advance to the endNode. The value of the response will be
-     * stored as the stateKey key in the conversation state.
-     *
-     * @param answer string value to match
-     * @param stateKey the value of the key to update in the conversation state
-     * @param endNode next node in the conversation
-     */
-    public DialogTreeEdge(String answer, String stateKey, IConversationNode<S> endNode) {
-        super(endNode);
-        this.stateKey = stateKey;
-        this.answer = answer;
-    }
+    private final String prompt;
 
     /**
      * Only an exact match for the answer stored in this node will cause the
      * conversion to advance to the endNode.
      *
-     * @param answer string value to match
-     * @param endNode next node in the conversation
+     * @param prompt string value to match
+     * @param intentId intent id
+     * @param endNodeId next node id in the conversation
      */
-    public DialogTreeEdge(String answer, IConversationNode<S> endNode) {
-        super(endNode);
-        this.stateKey = null;
-        this.answer = answer;
+    public DialogTreeEdge(Integer endNodeId, String intentId, String prompt) {
+        super(endNodeId, intentId);
+        this.prompt = prompt;
     }
 
-    @Override
-    public boolean isMatchForState(S state) {
-        return answer.equals(state.getMostRecentResponse());
-    }
-
-    @Override
-    public void onMatch(S state) {
-        if (this.stateKey != null) {
-            state.set(this.stateKey, state.getMostRecentResponse());
-        }
-    }
-
-    public String getAnswer() {
-        return answer;
+    public DialogTreeEdge(Integer endNodeId, String intentId, String prompt, BiFunction<IConversationIntent, IConversationState, Object>... sideEffects) {
+        super(endNodeId, intentId, (intent, state) -> {
+            return true;
+        }, sideEffects);
+        this.prompt = prompt;
     }
 
     @Override
     public String toString() {
-        return "DialogTreeEdge {" + answer + '}';
+        return "DialogTreeEdge {" + getIntentId() + '}';
+    }
+
+    public String getPrompt() {
+        return prompt;
     }
 }

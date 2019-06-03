@@ -23,47 +23,32 @@
  */
 package com.conversationkit.model;
 
+import java.util.Map;
+import java.util.function.Function;
+
 /**
  * The conversation state is a data store designed to persist a user's progress
  * through a conversation, help customize the messages sent by the bot to the 
  * user, and to save data from user responses during the conversation. In many
  * cases the implementation will be backed by a database or other permanent
  * storage.
+ * <p>
+ * The state implementation must also know how to construct itself from a {@link Map} and
+ * therefore this interface extends {@link Function}.
  * @author pdtyreus
+ * @param <S> generic type of the state
  */
-public interface IConversationState<K,V>{
+public interface IConversationState <S extends IConversationState> extends Function<Map,S> {
     /**
-     * Returns the id of the node representing the last message sent to the 
-     * user.
-     * @return the node id
+     * @return the id of the node representing the last message sent to the user
      */
-    public int getCurrentNodeId();
+    public Integer getCurrentNodeId();
     /**
-     * Stores the id of the last message sent to the user.
-     * @param currentNodeId unique id of the node
+     * @return the number of consecutive times the engine has misunderstood the user's input.
      */
-    public void setCurrentNodeId(int currentNodeId);
+    public Integer getMisunderstoodCount();
     /**
-     * Returns the last unprocessed response from the user to the bot.
-     * @return the user's response
+     * @return the current state as a Map
      */
-    public String getMostRecentResponse();
-    /**
-     * Stores a response from the user to the bot for subsequent processing.
-     * @param currentResponse the response entered by the user
-     */
-    public void setMostRecentResponse(String currentResponse);
-    /**
-     * Stores an arbitrary property value under the specified key.
-     * @param propertyName the name of the key (e.g. column name, hash key, etc.)
-     * @param value the value to be stored
-     */
-    public void set(K propertyName, V value);
-    /**
-     * Return the value stored under the specified key or null if nothing is
-     * present.
-     * @param propertyName key
-     * @return stored value or null
-     */
-    public V get(Object propertyName);
+    public Map getStateAsMap();
 }

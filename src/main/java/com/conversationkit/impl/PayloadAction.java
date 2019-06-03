@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,29 @@
  */
 package com.conversationkit.impl;
 
-import java.util.Formatter;
-import java.util.List;
+import com.conversationkit.redux.Action;
+import java.util.Optional;
 
 /**
- *
+ * A Redux Action that also carries a typed payload.
  * @author pdtyreus
  */
-public class OutputUtil {
+public interface PayloadAction<S> extends Action {
+    public Optional<S> getPayload();
+    
+    public static <S> PayloadAction build(String actionType, Optional<S> payload) {
+        return new PayloadAction<S>() {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
-    }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
+            @Override
+            public Optional<S> getPayload() {
+                return payload;
+            }
+
+            @Override
+            public String getType() {
+                return actionType;
+            }
+            
+        };
     }
 }

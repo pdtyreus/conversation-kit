@@ -5,57 +5,81 @@
         "nodes": [
             {
                 "id": "1",
-                "type": "STATEMENT",
-                "label": "Hello {{name}}, I'm a test bot"
-            },
-            {
-                "id": "2",
-                "type": "STATEMENT",
-                "label": "You've hit your head. I'm going to ask you some questions."
+                "type": "DialogTree",
+                "label": "1",
+                "metadata": {
+                    "message": ["Hello {{name}}, I'm a test bot","You've hit your head. I'm going to ask you some questions.","How many fingers am I holding up?"]
+                }
             },
             {
                 "id": "3",
                 "type": "STATEMENT",
-                "label": "Correct. {{numFingers}} fingers."
+                "label": "1",
+                "metadata": {
+                    "message": ["Correct. {{numFingers}} fingers."]
+                }
             },
             {
                 "id": "4",
                 "type": "STATEMENT",
-                "label": "{{numFingers}} is wrong. I was holding up {{number}}. See a doctor."
-            },
-            {
-                "id":"5",
-                "type":"QUESTION",
-                "label":"How many fingers am I holding up?"
+                "label": "1",
+                "metadata": {
+                    "message": ["{{numFingers}} is wrong. I was holding up {{number}}. See a doctor."]
+                }
             }
         ],
         "edges": [
             {
                 "source": "1",
-                "target": "2",
-                "directed": true
-            },
-            {
-                "source": "2",
-                "target": "5",
-                "directed": true
-            },
-            {
-                "source": "5",
                 "target": "3",
                 "directed": true,
                 "label": "3",
-                "metadata":{
-                    "stateKey":"numFingers"
+                "relation": "THREE",
+                "metadata": {
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_FINGERS"
+                    }
+
                 }
             },
             {
-                "source": "5",
+                "source": "1",
                 "target": "4",
                 "directed": true,
+                "relation": "ONE",
+                "label": "1",
+                "metadata":{
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_FINGERS"
+                    }
+                }
+            },
+            {
+                "source": "1",
+                "target": "4",
+                "directed": true,
+                "relation": "TWO",
+                "label": "2",
+                "metadata":{
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_FINGERS"
+                    }
+                }
+            },
+            {
+                "source": "1",
+                "target": "4",
+                "directed": true,
+                "relation": "FOUR",
                 "label": "4",
                 "metadata":{
-                    "stateKey":"numFingers"
+                    "effect": {
+                        "slot": 0,
+                        "actionType": "SET_FINGERS"
+                    }
                 }
             }
         ]

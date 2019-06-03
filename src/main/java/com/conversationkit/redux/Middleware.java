@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 Synclab Consulting LLC.
+ * Copyright 2019 Synclab Consulting LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.impl;
+package com.conversationkit.redux;
 
-import java.util.Formatter;
-import java.util.List;
-
+@FunctionalInterface
 /**
- *
- * @author pdtyreus
+ * A middleware is a higher-order function that composes a {@link Dispatcher} function to return a new dispatch function. It often turns async actions into actions.
+ * @see <a href="https://redux.js.org/glossary#middleware">https://redux.js.org/glossary#middleware</a>
  */
-public class OutputUtil {
+public interface Middleware<S> {
 
-    public static void formatInput(Formatter formatter, String message) {
-        formatter.format("  > %100s <\n", message);
-    }
-    
-    public static void formatOutput(Formatter formatter, String message) {
-        formatter.format("  > %-100s <\n", message);
-    }
-    
-    public static void formatButtons(Formatter formatter, List<String> buttons) {
-        formatter.format("  >   %-98s <\n", "[ " + String.join(" | ", buttons) + " ]");
-    }
+    void dispatch(Store<S> store, Object action, Middleware<S> next);
 }
