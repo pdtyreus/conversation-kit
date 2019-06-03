@@ -293,7 +293,7 @@ intended for production use.
 For an example of a conversation graph with all nodes, edges, and side effects all loaded from a JSON file, see
 [ConversationGraphTest](src/test/java/com/synclab/conversationkit/impl/ConversationGraphTest.java).
 
-![Directed Conversation Test](/src/test/resources/directed_conversation.svg?raw=true)
+![Directed Conversation Test](./src/test/resources/directed_conversation.svg)
 
 If you have questions or suggestions, you can contact me
 [on Twitter](https://www.twitter.com/tyreus).
