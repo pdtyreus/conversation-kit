@@ -90,7 +90,7 @@ cases the implementation will be backed by a database or other permanent
 storage.
 
 Conversation Kit ships with an abstract `IConversationState` 
-[implementation](src/main/java/com/synclab/conversationkit/impl/MapBackedConversationState.java) that shows
+[implementation](src/main/java/com/conversationkit/impl/MapBackedConversationState.java) that shows
 how the state can easily be stored using `HashMap`.
 
 ## Redux
@@ -110,7 +110,7 @@ Redux is primarily a JavaScript library and I could not find an implementation I
 in Java. I suspect this is because Redux relies heavily on functional programming
 concepts which were not as widely supported in Java when Redux was becoming popular. Java 8
 has nice support for functional programming. Redux has a fairly small API, so I
-wrote my [own implementation](src/main/java/com/synclab/conversationkit/redux/Redux.java) 
+wrote my [own implementation](src/main/java/com/conversationkit/redux/Redux.java) 
 for this project. I may pull that out into a separate project at some point.
 
 ### Typed State
@@ -127,7 +127,7 @@ By default the Redux implementation only handles the conversation state. There i
 requirement for the rest of your application to interact with it. However, since it
 is useful to have a centralized state, you can easily add additional state slices
 and reducer functions to the store. See
-[ConversationGraphTest](src/test/java/com/synclab/conversationkit/impl/ConversationGraphTest.java)
+[ConversationGraphTest](src/test/java/com/conversationkit/impl/ConversationGraphTest.java)
 for a complete example on how to construct a typed state with multiple reducers.
 
 ## Nodes
@@ -156,7 +156,7 @@ public interface JsonNodeBuilder<N extends IConversationNode> {
 ```
 
 In the case of a Dialog Tree, a 
-[DialogTreeNodeBuilder](src/main/java/com/synclab/conversationkit/builder/DialogTreeNodeBuilder.java) takes JSON that looks something like
+[DialogTreeNodeBuilder](src/main/java/com/conversationkit/builder/DialogTreeNodeBuilder.java) takes JSON that looks something like
 the following and creates a `DailogTreeNode` from it.
 
 ```json
@@ -184,13 +184,13 @@ A `DialogTreeNode` is a restricted implementation of
 holds a text string to represent the displayed conversation snippet and
 retrieves a list of allowed responses from the outbound edges. There is a
 working example of how to model, build, and use a Dialog Tree in the
-[DialogTreeTest](src/test/java/com/synclab/conversationkit/impl/DialogTreeTest.java).
+[DialogTreeTest](src/test/java/com/conversationkit/impl/DialogTreeTest.java).
 
 ### ConversationNode
 
 A `ConversationNode` is a more general implementation of `IConversationNode`. Most
 likely you will want to use or extend this for your node implementation. See 
-[DirectedConversationEngineTest](src/test/java/com/synclab/conversationkit/impl/DirectedConversationEngineTest.java).
+[DirectedConversationEngineTest](src/test/java/com/conversationkit/impl/DirectedConversationEngineTest.java).
 
 ## Edges
 
@@ -291,7 +291,7 @@ intended for production use.
 ## Putting It All Together
 
 For an example of a conversation graph with all nodes, edges, and side effects all loaded from a JSON file, see
-[ConversationGraphTest](src/test/java/com/synclab/conversationkit/impl/ConversationGraphTest.java).
+[ConversationGraphTest](src/test/java/com/conversationkit/impl/ConversationGraphTest.java).
 
 ![Directed Conversation Test](./src/test/resources/directed_conversation.svg)
 
