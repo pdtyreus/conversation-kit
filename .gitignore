@@ -1,3 +1,7 @@
 /target/
 .DS_Store
 .jsweet
+/conversation-kit/target/
+/redux/target/
+/nlu-core/target/
+/nlu-dialogflow/target/
