@@ -233,42 +233,37 @@ public class ConversationGraphTest {
             OutputUtil.formatOutput(formatter, message.asString());
         }
 
-        try {
-            OutputUtil.formatInput(formatter, "five");
-            MessageHandlingResult result = engine.handleIncomingMessage("five").get();
+        OutputUtil.formatInput(formatter, "five");
+        MessageHandlingResult result = engine.handleIncomingMessage("five");
 
-            assertEquals(true, result.ok);
-            assertEquals(5, engine.getState().getCurrentNodeId().intValue());
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
-                String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
-                OutputUtil.formatOutput(formatter, m);
-            }
+        assertEquals(true, result.ok);
+        assertEquals(5, engine.getState().getCurrentNodeId().intValue());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+            String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
+            OutputUtil.formatOutput(formatter, m);
+        }
 
-            OutputUtil.formatInput(formatter, "yes");
-            result = engine.handleIncomingMessage("yes").get();
+        OutputUtil.formatInput(formatter, "yes");
+        result = engine.handleIncomingMessage("yes");
 
-            assertEquals(true, result.ok);
-            assertEquals(1, engine.getState().getCurrentNodeId().intValue());
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
-                String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
-                OutputUtil.formatOutput(formatter, m);
-            }
+        assertEquals(true, result.ok);
+        assertEquals(1, engine.getState().getCurrentNodeId().intValue());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+            String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
+            OutputUtil.formatOutput(formatter, m);
+        }
 
-            OutputUtil.formatInput(formatter, "6");
-            result = engine.handleIncomingMessage("6").get();
+        OutputUtil.formatInput(formatter, "6");
+        result = engine.handleIncomingMessage("6");
 
-            assertEquals(true, result.ok);
-            assertEquals(4, engine.getState().getCurrentNodeId().intValue());
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
-                String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
-                OutputUtil.formatOutput(formatter, m);
-            }
-
-        } catch (ExecutionException | InterruptedException e) {
-            fail(e.getMessage());
+        assertEquals(true, result.ok);
+        assertEquals(4, engine.getState().getCurrentNodeId().intValue());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (JsonValue message : currentNode.getMetadata().get("message").asArray()) {
+            String m = message.asString().replace("{{answer}}", engine.getState().getAnswer());
+            OutputUtil.formatOutput(formatter, m);
         }
 
         logger.info(convo.toString());

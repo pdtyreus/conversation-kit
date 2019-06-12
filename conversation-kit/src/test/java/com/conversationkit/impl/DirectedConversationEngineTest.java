@@ -134,11 +134,9 @@ public class DirectedConversationEngineTest {
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
-        CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("left");
+        DirectedConversationEngine.MessageHandlingResult result = engine.handleIncomingMessage("left");
 
-        DirectedConversationEngine.MessageHandlingResult r = result.join();
-
-        assertEquals(true, r.ok);
+        assertEquals(true, result.ok);
 
         assertEquals(2, engine.getState().getCurrentNodeId().intValue());
 
@@ -156,22 +154,18 @@ public class DirectedConversationEngineTest {
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
 
-        CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("up");
+        DirectedConversationEngine.MessageHandlingResult result = engine.handleIncomingMessage("up");
 
-        DirectedConversationEngine.MessageHandlingResult r = result.join();
-
-        assertEquals(false, r.ok);
-        assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
+        assertEquals(false, result.ok);
+        assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, result.errorCode);
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
         assertEquals(1, engine.getState().getMisunderstoodCount().intValue());
 
         result = engine.handleIncomingMessage("down");
 
-        r = result.join();
-
-        assertEquals(false, r.ok);
-        assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, r.errorCode);
+        assertEquals(false, result.ok);
+        assertEquals(ErrorCode.INTENT_UNDERSTANDING_FAILED, result.errorCode);
 
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
         assertEquals(2, engine.getState().getMisunderstoodCount().intValue());
@@ -208,13 +202,9 @@ public class DirectedConversationEngineTest {
         assertEquals(1, engine.getState().getCurrentNodeId().intValue());
         assertEquals(false, engine.getState().isRight());
 
-        CompletableFuture<DirectedConversationEngine.MessageHandlingResult> result = engine.handleIncomingMessage("right");
-        try {
-            DirectedConversationEngine.MessageHandlingResult r = result.join();
-            assertEquals(true, r.ok);
-        } catch (CompletionException ex) {
-            fail(ex.getMessage());
-        }
+        DirectedConversationEngine.MessageHandlingResult result = engine.handleIncomingMessage("right");
+
+        assertEquals(true, result.ok);
 
         assertEquals(3, engine.getState().getCurrentNodeId().intValue());
         assertEquals(false, engine.getState().isRight());

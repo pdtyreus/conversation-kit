@@ -206,22 +206,17 @@ public class DialogTreeTest {
         }
         OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
-        try {
-            OutputUtil.formatInput(formatter, "2");
-            MessageHandlingResult result = engine.handleIncomingMessage("2").get();
+        OutputUtil.formatInput(formatter, "2");
+        MessageHandlingResult result = engine.handleIncomingMessage("2");
 
-            assertEquals(true, result.ok);
-            assertEquals(4, engine.getState().getCurrentNodeId().intValue());
-            assertEquals("2", engine.getState().getNumFingers());
+        assertEquals(true, result.ok);
+        assertEquals(4, engine.getState().getCurrentNodeId().intValue());
+        assertEquals("2", engine.getState().getNumFingers());
 
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                message = templateEngine.apply(message, (Map<String, Object>) engine.getState().getStateAsMap().get("dialog"));
-                OutputUtil.formatOutput(formatter, message);
-            }
-
-        } catch (ExecutionException | InterruptedException e) {
-            fail(e.getMessage());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (String message : currentNode.getMessages()) {
+            message = templateEngine.apply(message, (Map<String, Object>) engine.getState().getStateAsMap().get("dialog"));
+            OutputUtil.formatOutput(formatter, message);
         }
 
         logger.info(convo.toString());
@@ -287,21 +282,16 @@ public class DialogTreeTest {
 
         OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
-        try {
-            OutputUtil.formatInput(formatter, "great");
-            MessageHandlingResult result = engine.handleIncomingMessage("great").get();
+        OutputUtil.formatInput(formatter, "great");
+        MessageHandlingResult result = engine.handleIncomingMessage("great");
 
-            assertEquals(true, result.ok);
-            assertEquals(3, engine.getState().getCurrentNodeId().intValue());
-            assertEquals("great", engine.getState().getMood());
+        assertEquals(true, result.ok);
+        assertEquals(3, engine.getState().getCurrentNodeId().intValue());
+        assertEquals("great", engine.getState().getMood());
 
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                OutputUtil.formatOutput(formatter, message);
-            }
-
-        } catch (ExecutionException | InterruptedException e) {
-            fail(e.getMessage());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (String message : currentNode.getMessages()) {
+            OutputUtil.formatOutput(formatter, message);
         }
 
         //reset the convo
@@ -314,34 +304,30 @@ public class DialogTreeTest {
         }
         OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
-        try {
-            OutputUtil.formatInput(formatter, "bad");
-            MessageHandlingResult result = engine.handleIncomingMessage("bad").get();
+        OutputUtil.formatInput(formatter, "bad");
+        result = engine.handleIncomingMessage("bad");
 
-            assertEquals(true, result.ok);
-            assertEquals(4, engine.getState().getCurrentNodeId().intValue());
-            assertEquals("bad", engine.getState().getMood());
+        assertEquals(true, result.ok);
+        assertEquals(4, engine.getState().getCurrentNodeId().intValue());
+        assertEquals("bad", engine.getState().getMood());
 
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                OutputUtil.formatOutput(formatter, message);
-            }
-            OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (String message : currentNode.getMessages()) {
+            OutputUtil.formatOutput(formatter, message);
+        }
+        OutputUtil.formatButtons(formatter, currentNode.getSuggestedResponses());
 
-            String snark = "Yeah, you could work for a change.";
+        String snark = "Yeah, you could work for a change.";
 
-            OutputUtil.formatInput(formatter, snark);
-            result = engine.handleIncomingMessage(snark).get();
+        OutputUtil.formatInput(formatter, snark);
+        result = engine.handleIncomingMessage(snark);
 
-            assertEquals(true, result.ok);
-            assertEquals(6, engine.getState().getCurrentNodeId().intValue());
+        assertEquals(true, result.ok);
+        assertEquals(6, engine.getState().getCurrentNodeId().intValue());
 
-            currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
-            for (String message : currentNode.getMessages()) {
-                OutputUtil.formatOutput(formatter, message);
-            }
-        } catch (ExecutionException | InterruptedException e) {
-            fail(e.getMessage());
+        currentNode = index.getNodeById(engine.getState().getCurrentNodeId());
+        for (String message : currentNode.getMessages()) {
+            OutputUtil.formatOutput(formatter, message);
         }
 
         logger.info(convo.toString());

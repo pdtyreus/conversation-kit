@@ -44,7 +44,7 @@ public interface IConversationEngine {
      * @param message user's input
      * @return the result of handling the incoming message.
      */
-    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message);
+    public MessageHandlingResult handleIncomingMessage(String message);
 
     public static class MessageHandlingResult {
 

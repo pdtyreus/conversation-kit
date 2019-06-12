@@ -5,3 +5,6 @@
 /redux/target/
 /nlu-core/target/
 /nlu-dialogflow/target/
+
+# Integration test config fileswq
+*-it.json

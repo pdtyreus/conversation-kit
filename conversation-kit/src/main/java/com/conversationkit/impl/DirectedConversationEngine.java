@@ -47,31 +47,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * An implementation of IConversationEngine that holds the current state of a conversation
- * and determines the flow by interpreting user intent and matching it to the conversation graph.
+ * An implementation of IConversationEngine that holds the current state of a
+ * conversation and determines the flow by interpreting user intent and matching
+ * it to the conversation graph.
  * <p>
- * The engine creates a Redux {@link Store} when initialized to hold the state of the conversation
- * for a given user. The state is only mutated 
- * by {@link DirectedConversationEngine#dispatch }ing actions. This provides
- * predictable state that is easier to test.
+ * The engine creates a Redux {@link Store} when initialized to hold the state
+ * of the conversation for a given user. The state is only mutated by {@link DirectedConversationEngine#dispatch
+ * }ing actions. This provides predictable state that is easier to test.
  * <p>
- * The {@link IntentDetector} is responsible for matching the user input with an 
- * edge on the conversation graph. Most likely you will want to wrap a commercial
- * NLU service like Amazon Lex or Google DialogFlow.
+ * The {@link IntentDetector} is responsible for matching the user input with an
+ * edge on the conversation graph. Most likely you will want to wrap a
+ * commercial NLU service like Amazon Lex or Google DialogFlow.
  * <p>
- * The general flow of {@link #handleIncomingMessage(java.lang.String)} in this implementation is as follows:
+ * The general flow of {@link #handleIncomingMessage(java.lang.String)} in this
+ * implementation is as follows:
  * <ol>
  * <li>Receive a message and update the state with that message.</li>
- * <li>Delegate to the IntentDetector to try to determine the user's intent.</li>
- * <li>Loop over all outbound edges for the current node and find the first edge that 
- * matches the intent and has {@link IConversationEdge#validate }
+ * <li>Delegate to the IntentDetector to try to determine the user's
+ * intent.</li>
+ * <li>Loop over all outbound edges for the current node and find the first edge
+ * that matches the intent and has {@link IConversationEdge#validate }
  * that returns true.</li>
- * <li>Dispatch any side effects for the matched edge and process on the Redux middleware chain.</li>
+ * <li>Dispatch any side effects for the matched edge and process on the Redux
+ * middleware chain.</li>
  * <li>Update the state with the new node id.</li>
  * </ol>
  * <p>
- * If any of the above steps fail, {@link #handleIncomingMessage} will return an error.
- * 
+ * If any of the above steps fail, {@link #handleIncomingMessage} will return an
+ * error.
+ *
  * @author pdtyreus
  * @param <S> type of IConversationState
  * @param <I> type of IConversationIntent
@@ -141,7 +145,7 @@ public class DirectedConversationEngine<S extends IConversationState, I extends 
     }
 
     @Override
-    public CompletableFuture<MessageHandlingResult> handleIncomingMessage(String message) {
+    public MessageHandlingResult handleIncomingMessage(String message) {
 
         Integer currentNodeId = store.getState().getCurrentNodeId();
         final Optional<IConversationNode> currentNode
@@ -150,46 +154,46 @@ public class DirectedConversationEngine<S extends IConversationState, I extends 
                         : Optional.empty();
 
         dispatch(new ConversationAction<>(ActionType.MESSAGE_RECEIVED, message));
-        return intentDetector.detectIntent(message,"en-US",store.getState().getUserId())
-                .thenApply((intent) -> {
-                    MessageHandlingResult result = new MessageHandlingResult();
-                    if (intent.isPresent()) {
-                        I conversationIntent = intent.get();
-                        dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, conversationIntent));
-                        Optional<IConversationEdge> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
-                        if (!outboundEdge.isPresent()) {
-                            dispatch(new ConversationAction(ActionType.EDGE_MATCH_FAILED));
+        Optional<I> intent = intentDetector.detectIntent(message, "en-US", store.getState().getUserId());
+        try {
+            MessageHandlingResult result = new MessageHandlingResult();
+            if (intent.isPresent()) {
+                I conversationIntent = intent.get();
+                dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, conversationIntent));
+                Optional<IConversationEdge> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
+                if (!outboundEdge.isPresent()) {
+                    dispatch(new ConversationAction(ActionType.EDGE_MATCH_FAILED));
 
-                            result.ok = false;
-                            result.errorCode = ErrorCode.EDGE_MATCHING_FAILED;
-                        } else {
-                            List<Object> sideEffects = outboundEdge.get().getSideEffects(conversationIntent, store.getState());
-                            for (Object effect : sideEffects) {
-                                logger.log(Level.INFO, "Dispatching side effect {0}.", effect);
-                                dispatch(effect);
-                            }
-                            IConversationNode nextNode = nodeRepository.getNodeById(outboundEdge.get().getEndNodeId());
-                            dispatch(new ConversationAction<>(ActionType.EDGE_MATCH_SUCCEEDED, nextNode));
-                            result.ok = true;
-                        }
-
-                    } else {
-                        dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_FAILED));
-                        result.ok = false;
-                        result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
-
-                    }
-
-                    return result;
-                }).exceptionally((e) -> {
-                    //intent processing exception
-                    MessageHandlingResult result = new MessageHandlingResult();
                     result.ok = false;
-                    result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
-                    result.errorMessage = e.getMessage();
-                    return result;
+                    result.errorCode = ErrorCode.EDGE_MATCHING_FAILED;
+                } else {
+                    List<Object> sideEffects = outboundEdge.get().getSideEffects(conversationIntent, store.getState());
+                    for (Object effect : sideEffects) {
+                        logger.log(Level.INFO, "Dispatching side effect {0}.", effect);
+                        dispatch(effect);
+                    }
+                    IConversationNode nextNode = nodeRepository.getNodeById(outboundEdge.get().getEndNodeId());
+                    dispatch(new ConversationAction<>(ActionType.EDGE_MATCH_SUCCEEDED, nextNode));
+                    result.ok = true;
+                }
 
-                });
+            } else {
+                dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_FAILED));
+                result.ok = false;
+                result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
+
+            }
+
+            return result;
+        } catch (Exception e) {
+            //intent processing exception
+            MessageHandlingResult result = new MessageHandlingResult();
+            result.ok = false;
+            result.errorCode = ErrorCode.INTENT_UNDERSTANDING_FAILED;
+            result.errorMessage = e.getMessage();
+            return result;
+
+        }
 
     }
 

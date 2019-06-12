@@ -24,12 +24,11 @@
 package com.conversationkit.nlp;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Base interface for determining a user's intent based on a text string.
  * @author tyreus
  */
 public interface IntentDetector<I> {
-    public CompletableFuture<Optional<I>> detectIntent(String text, String languageCode, String sessionId);
+    public Optional<I> detectIntent(String text, String languageCode, String sessionId);
 }

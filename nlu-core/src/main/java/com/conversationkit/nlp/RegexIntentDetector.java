@@ -52,7 +52,7 @@ public class RegexIntentDetector implements IntentDetector<IConversationIntent> 
     }
 
     @Override
-    public CompletableFuture<Optional<IConversationIntent>> detectIntent(String text, String languageCode, String sessionId) {
+    public Optional<IConversationIntent> detectIntent(String text, String languageCode, String sessionId) {
 
         for (Map.Entry<String, Pattern> entry : intentRegexMap.entrySet()) {
             Matcher matcher = entry.getValue().matcher(text);
@@ -80,12 +80,12 @@ public class RegexIntentDetector implements IntentDetector<IConversationIntent> 
 
                 };
 
-                return CompletableFuture.completedFuture(Optional.of(intent));
+                return Optional.of(intent);
             }
 
         }
         logger.info(String.format("No matching intent for %s", text));
-        return CompletableFuture.completedFuture(Optional.empty());
+        return Optional.empty();
     }
 
 }
