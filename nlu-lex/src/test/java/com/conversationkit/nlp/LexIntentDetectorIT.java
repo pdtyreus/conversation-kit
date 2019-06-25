@@ -79,5 +79,16 @@ public class LexIntentDetectorIT {
         assertTrue(result.isPresent());
         assertEquals(INTENT_NAME, result.get().getIntentId());
     }
+    
+    @Test
+    public void testDetectIntentMiss() throws IOException, InterruptedException, ExecutionException {
+        assumeTrue(credentials != null);
+        String text = "How old is Stonehenge?";
+        String languageCode = "en-US";
+        String sessionId = "integration-test";
+        LexIntentDetector instance = new LexIntentDetector(new AWSStaticCredentialsProvider(credentials), Regions.valueOf(region),botName,botAlias);
+        Optional<LexIntent> result = instance.detectIntent(text, languageCode, sessionId);
+        assertTrue(!result.isPresent());
+    }
 
 }

@@ -82,8 +82,13 @@ public class DialogFlowIntentDetector implements IntentDetector<DialogFlowIntent
 
             // Display the query result
             QueryResult queryResult = response.getQueryResult();
-            logger.log(Level.FINE, "[DialogFlow] detected intent {0} ", queryResult.getIntent().getDisplayName());
-            return Optional.of(new DialogFlowIntent(queryResult));
+            if (queryResult.getIntent().getIsFallback()) {
+                logger.log(Level.FINE, "[DialogFlow] did not detect an intent ");
+                return Optional.empty();
+            } else {
+                logger.log(Level.FINE, "[DialogFlow] detected intent {0} ", queryResult.getIntent().getDisplayName());
+                return Optional.of(new DialogFlowIntent(queryResult));
+            }
         } catch (IOException ex) {
             logger.log(Level.WARNING, "Unable to communicate with DialogFlow", ex);
             return Optional.empty();
