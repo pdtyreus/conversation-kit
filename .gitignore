@@ -9,3 +9,4 @@
 # Integration test config fileswq
 *-it.json
 /nlu-lex/target/
+*.versionsBackup

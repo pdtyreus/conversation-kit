@@ -41,7 +41,7 @@ The artifacts are available on Maven Central
 <dependency>
   <groupId>com.conversationkit</groupId>
   <artifactId>conversation-kit</artifactId>
-  <version>2.0.0</version>
+  <version>2.0.1</version>
 </dependency>
 ```
 
@@ -90,7 +90,7 @@ cases the implementation will be backed by a database or other permanent
 storage.
 
 Conversation Kit ships with an abstract `IConversationState` 
-[implementation](src/main/java/com/conversationkit/impl/MapBackedConversationState.java) that shows
+[implementation](conversation-kit/src/main/java/com/conversationkit/impl/MapBackedConversationState.java) that shows
 how the state can easily be stored using `HashMap`.
 
 ## Redux
@@ -110,7 +110,7 @@ Redux is primarily a JavaScript library and I could not find an implementation I
 in Java. I suspect this is because Redux relies heavily on functional programming
 concepts which were not as widely supported in Java when Redux was becoming popular. Java 8
 has nice support for functional programming. Redux has a fairly small API, so I
-wrote my [own implementation](src/main/java/com/conversationkit/redux/Redux.java) 
+wrote my [own implementation](redux/) 
 for this project. I may pull that out into a separate project at some point.
 
 ### Typed State
@@ -127,7 +127,7 @@ By default the Redux implementation only handles the conversation state. There i
 requirement for the rest of your application to interact with it. However, since it
 is useful to have a centralized state, you can easily add additional state slices
 and reducer functions to the store. See
-[ConversationGraphTest](src/test/java/com/conversationkit/impl/ConversationGraphTest.java)
+[ConversationGraphTest](conversation-kit/src/test/java/com/conversationkit/impl/ConversationGraphTest.java)
 for a complete example on how to construct a typed state with multiple reducers.
 
 ## Nodes
@@ -156,7 +156,7 @@ public interface JsonNodeBuilder<N extends IConversationNode> {
 ```
 
 In the case of a Dialog Tree, a 
-[DialogTreeNodeBuilder](src/main/java/com/conversationkit/builder/DialogTreeNodeBuilder.java) takes JSON that looks something like
+[DialogTreeNodeBuilder](conversation-kit/src/main/java/com/conversationkit/builder/DialogTreeNodeBuilder.java) takes JSON that looks something like
 the following and creates a `DailogTreeNode` from it.
 
 ```json
@@ -190,7 +190,7 @@ working example of how to model, build, and use a Dialog Tree in the
 
 A `ConversationNode` is a more general implementation of `IConversationNode`. Most
 likely you will want to use or extend this for your node implementation. See 
-[DirectedConversationEngineTest](src/test/java/com/conversationkit/impl/DirectedConversationEngineTest.java).
+[DirectedConversationEngineTest](conversation-kit/src/test/java/com/conversationkit/impl/DirectedConversationEngineTest.java).
 
 ## Edges
 
@@ -280,20 +280,20 @@ There are several well-known vendors who offer Natural Language Understanding as
  * Google [Dialogflow](https://dialogflow.com/)
  * Facebook's [wit.ai](https://wit.ai/)
 
-### RegEx "NLU"
-
 All of the commercial NLU systems use some type of advanced deep learning technology to
 provide the language understanding. For testing and prototyping purposes, 
 Conversation Kit includes a `RegexIntentDetector`. This is a very primitive NLU that
 just relies on RegEx matching to determine intent. The `RegexIntentDetector` is not
 intended for production use.
 
+For production use, conversation-kit has modules for [Lex](nlu-lex/) and [DialogFlow](nlu-dialogflow).
+
 ## Putting It All Together
 
 For an example of a conversation graph with all nodes, edges, and side effects all loaded from a JSON file, see
-[ConversationGraphTest](src/test/java/com/conversationkit/impl/ConversationGraphTest.java).
+[ConversationGraphTest](conversation-kit/src/test/java/com/conversationkit/impl/ConversationGraphTest.java).
 
-![Directed Conversation Test](./src/test/resources/directed_conversation.svg)
+![Directed Conversation Test](./conversation-kit/src/test/resources/directed_conversation.svg)
 
 If you have questions or suggestions, you can contact me
 [on Twitter](https://www.twitter.com/tyreus).
