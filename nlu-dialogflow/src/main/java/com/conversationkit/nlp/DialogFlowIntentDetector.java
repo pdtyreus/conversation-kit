@@ -59,46 +59,10 @@ public class DialogFlowIntentDetector implements IntentDetector<DialogFlowIntent
 
     @Override
     public Optional<DialogFlowIntent> detectIntent(String text, String languageCode, String sessionId) {
-        // Instantiates a client
-
-//        return CompletableFuture.supplyAsync(() -> {
-//            try (SessionsClient sessionsClient = SessionsClient.create(sessionsSettings)) {
-//                return sessionsClient;
-//            } catch (IOException ex) {
-//                logger.log(Level.WARNING, "Unable to communicate with DialogFlow", ex);
-//                throw new RuntimeException(ex);
-//            }
-//        }).thenApplyAsync((sessionsClient) -> {
-//            SessionName session = SessionName.of(projectId, sessionId);
-//            logger.log(Level.FINE, "DialogFlow Session Path {0} ", session.toString());
-//
-//            // Set the text (hello) and language code (en-US) for the query
-//            TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
-//
-//            // Build the query with the TextInput
-//            QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
-//
-//            //QueryParameters.Builder queryParamBuilder = QueryParameters.newBuilder();
-//
-//            DetectIntentRequest request = DetectIntentRequest.newBuilder()
-//                    .setQueryInput(queryInput)
-//                    .setSession(session.toString())
-//                    //.setQueryParams(queryParamBuilder.build())
-//                    .build();
-//
-//            // Performs the detect intent request
-//            DetectIntentResponse response = sessionsClient.detectIntent(request);
-//
-//            // Display the query result
-//            QueryResult queryResult = response.getQueryResult();
-//            return Optional.of(new DialogFlowIntent(queryResult));
-//        }).exceptionally((e)->{
-//            logger.log(Level.WARNING,"Error detecting intent: {0}",e.getMessage());
-//            return Optional.empty();
-//        });
+       
         try (SessionsClient sessionsClient = SessionsClient.create(sessionsSettings)) {
             SessionName session = SessionName.of(projectId, sessionId);
-            logger.log(Level.FINE, "DialogFlow Session Path {0} ", session.toString());
+            logger.log(Level.FINE, "[DialogFlow] session path {0} ", session.toString());
 
             // Set the text (hello) and language code (en-US) for the query
             TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
@@ -118,6 +82,7 @@ public class DialogFlowIntentDetector implements IntentDetector<DialogFlowIntent
 
             // Display the query result
             QueryResult queryResult = response.getQueryResult();
+            logger.log(Level.FINE, "[DialogFlow] detected intent {0} ", queryResult.getIntent().getDisplayName());
             return Optional.of(new DialogFlowIntent(queryResult));
         } catch (IOException ex) {
             logger.log(Level.WARNING, "Unable to communicate with DialogFlow", ex);

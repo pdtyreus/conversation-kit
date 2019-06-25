@@ -50,6 +50,7 @@
         <module>redux</module>
         <module>nlu-core</module>
         <module>nlu-dialogflow</module>
+        <module>nlu-lex</module>
     </modules>
     
     <distributionManagement>
