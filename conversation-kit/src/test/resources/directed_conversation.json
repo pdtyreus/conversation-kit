@@ -38,11 +38,11 @@
                 "metadata": {
                     "validator": {
                         "type": "string",
-                        "slot": 0,
+                        "slot": "answer",
                         "matches": ["six","6"]
                     },
                     "effect": {
-                        "slot": 0,
+                        "slot": "answer",
                         "actionType": "SET_ANSWER"
                     }
                 }
@@ -58,7 +58,7 @@
                         "type": "any"
                     },
                     "effect": {
-                        "slot": 0,
+                        "slot": "answer",
                         "actionType": "SET_ANSWER"
                     }
                 }

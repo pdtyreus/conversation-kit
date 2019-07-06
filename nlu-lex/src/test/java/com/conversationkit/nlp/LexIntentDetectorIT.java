@@ -78,6 +78,7 @@ public class LexIntentDetectorIT {
         Optional<LexIntent> result = instance.detectIntent(text, languageCode, sessionId);
         assertTrue(result.isPresent());
         assertEquals(INTENT_NAME, result.get().getIntentId());
+        assertTrue(result.get().getAllRequiredSlotsFilled());
     }
     
     @Test
@@ -86,9 +87,29 @@ public class LexIntentDetectorIT {
         String text = "How old is Stonehenge?";
         String languageCode = "en-US";
         String sessionId = "integration-test";
+        String INTENT_NAME = "CONVERSATION_KIT_IT_INTENT";
         LexIntentDetector instance = new LexIntentDetector(new AWSStaticCredentialsProvider(credentials), Regions.valueOf(region),botName,botAlias);
         Optional<LexIntent> result = instance.detectIntent(text, languageCode, sessionId);
-        assertTrue(!result.isPresent());
+        if (result.isPresent()) {
+            assertNotEquals(INTENT_NAME, result.get().getIntentId());
+        }
     }
 
+    @Test
+    public void testFillSlot() throws IOException, InterruptedException, ExecutionException {
+        assumeTrue(credentials != null);
+        String text = "I would like to order some food.";
+        String languageCode = "en-US";
+        String sessionId = "integration-test";
+        String INTENT_NAME = "CONVERSATION_KIT_IT_SLOT_INTENT";
+        LexIntentDetector instance = new LexIntentDetector(new AWSStaticCredentialsProvider(credentials), Regions.valueOf(region),botName,botAlias);
+        Optional<LexIntent> result = instance.detectIntent(text, languageCode, sessionId);
+        assertTrue(result.isPresent());
+        assertEquals(INTENT_NAME, result.get().getIntentId());
+        assertTrue(!result.get().getAllRequiredSlotsFilled());
+        result = instance.detectIntent("hamburgers", languageCode, sessionId);
+        assertTrue(result.isPresent());
+        assertEquals(INTENT_NAME, result.get().getIntentId());
+        assertTrue(!result.get().getAllRequiredSlotsFilled());
+    }
 }

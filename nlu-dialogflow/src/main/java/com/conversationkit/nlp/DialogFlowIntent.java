@@ -64,4 +64,9 @@ public class DialogFlowIntent implements IConversationIntent {
         return map;
     }
 
+    @Override
+    public boolean getAllRequiredSlotsFilled() {
+        return this.queryResult.getAllRequiredParamsPresent();
+    }
+
 }

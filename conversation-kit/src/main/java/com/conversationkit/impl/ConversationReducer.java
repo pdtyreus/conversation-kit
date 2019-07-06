@@ -23,12 +23,18 @@
  */
 package com.conversationkit.impl;
 
+import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.IConversationNode;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Redux reducer function to handle conversation-scoped actions.
@@ -36,6 +42,9 @@ import java.util.Optional;
  * @author pdtyreus
  */
 public class ConversationReducer implements Reducer {
+
+    private static final Set<String> reservedKeys = new HashSet(Arrays.asList("intentId", "edgeId", "misunderstoodCount", "nodeId"));
+    private static Logger logger = Logger.getLogger(ConversationReducer.class.getName());
 
     @Override
     public Map reduce(Action action, Map currentState) {
@@ -51,11 +60,29 @@ public class ConversationReducer implements Reducer {
                     nextState.remove("intentId");
                     nextState.remove("edgeId");
                     nextState.remove("misunderstoodCount");
-                    nextState.put("nodeId", ((ConversationAction<Optional<String>>) action).getPayload().get());
+                    nextState.put("nodeId", ((ConversationAction<String>) action).getPayload().get());
                     return nextState;
                 case INTENT_UNDERSTANDING_SUCCEEDED:
                     nextState.remove("misunderstoodCount");
-                    nextState.put("intentId", ((ConversationAction<Optional<String>>) action).getPayload().get());
+                    IConversationIntent successfulIntent = ((ConversationAction<IConversationIntent>) action).getPayload().get();
+                    nextState.put("intentId", successfulIntent.getIntentId());
+                    for (Map.Entry<String, Object> entry : successfulIntent.getSlots().entrySet()) {
+                        if (reservedKeys.contains(entry.getKey())) {
+                            logger.log(Level.WARNING, "Slot name {0} is reserved for conversation-kit internal functionality and may have unexpected consequences.", entry.getKey());
+                        }
+                        nextState.put(entry.getKey(), entry.getValue());
+                    }
+                    return nextState;
+                case INTENT_UNDERSTANDING_PARTIAL:
+                    nextState.remove("misunderstoodCount");
+                    IConversationIntent partialIntent = ((ConversationAction<IConversationIntent>) action).getPayload().get();
+                    nextState.put("intentId", partialIntent.getIntentId());
+                    for (Map.Entry<String, Object> entry : partialIntent.getSlots().entrySet()) {
+                        if (reservedKeys.contains(entry.getKey())) {
+                            logger.log(Level.WARNING, "Slot name {0} is reserved for conversation-kit internal functionality and may have unexpected consequences.", entry.getKey());
+                        }
+                        nextState.put(entry.getKey(), entry.getValue());
+                    }
                     return nextState;
                 case INTENT_UNDERSTANDING_FAILED:
                     nextState.remove("intentId");

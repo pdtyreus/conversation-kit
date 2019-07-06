@@ -25,15 +25,18 @@ package com.conversationkit.nlp;
 
 import com.conversationkit.model.IConversationIntent;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A primitive intent detector that just tries to match the input string to RegEx patterns.
+ * A primitive intent detector that just tries to match the input string to
+ * RegEx patterns. There is also limited support for slot filling using named
+ * RegEx groups.
+ *
  * @author pdtyreus
  */
 public class RegexIntentDetector implements IntentDetector<IConversationIntent> {
@@ -42,28 +45,37 @@ public class RegexIntentDetector implements IntentDetector<IConversationIntent> 
     public static final String NO = "\\bno\\b|\\bnope\\b|\\bnah\\b|\\bnone\\b|\\bnot really\\b";
 
     private final Map<String, Pattern> intentRegexMap;
+    private final Map<String, List<RegexIntentSlot>> intentSlotMap;
     private static final Logger logger = Logger.getLogger(RegexIntentDetector.class.getName());
 
     public RegexIntentDetector(Map<String, String> intentRegexMap) {
+        this(intentRegexMap, new HashMap());
+    }
+
+    public RegexIntentDetector(Map<String, String> intentRegexMap, Map<String, List<RegexIntentSlot>> intentSlotMap) {
         this.intentRegexMap = new HashMap();
         for (Map.Entry<String, String> entry : intentRegexMap.entrySet()) {
             this.intentRegexMap.put(entry.getKey(), Pattern.compile(entry.getValue(), Pattern.CASE_INSENSITIVE));
         }
+        this.intentSlotMap = intentSlotMap;
     }
 
     @Override
     public Optional<IConversationIntent> detectIntent(String text, String languageCode, String sessionId) {
 
         for (Map.Entry<String, Pattern> entry : intentRegexMap.entrySet()) {
-            Matcher matcher = entry.getValue().matcher(text);
+            final Matcher matcher = entry.getValue().matcher(text);
             if (matcher.find()) {
                 logger.info(String.format("Matched intent %s with regex %s", entry.getKey(), entry.getValue()));
 
-                Map<String, Object> slots = new HashMap();
-                int i = 0;
-                matcher.reset();
-                while (matcher.find()) {
-                    slots.put(i + "", matcher.group());
+                final Map<String, Object> slots = new HashMap();
+
+                final List<RegexIntentSlot> intentSlots = intentSlotMap.get(entry.getKey());
+
+                if (intentSlots != null) {
+                    for (RegexIntentSlot intentSlot : intentSlots) {
+                        slots.put(intentSlot.getGroupName(), matcher.group(intentSlot.getGroupName()));
+                    }
                 }
 
                 IConversationIntent intent = new IConversationIntent() {
@@ -76,6 +88,23 @@ public class RegexIntentDetector implements IntentDetector<IConversationIntent> 
                     @Override
                     public Map<String, Object> getSlots() {
                         return slots;
+                    }
+
+                    @Override
+                    public boolean getAllRequiredSlotsFilled() {
+                        boolean unfilled = false;
+                        if (intentSlots != null) {
+                            for (RegexIntentSlot intentSlot : intentSlots) {
+                                if (intentSlot.isRequired()) {
+                                    Object slot = slots.get(intentSlot.getGroupName());
+                                    if (slot == null) {
+                                        unfilled = true;
+                                    }
+                                }
+
+                            }
+                        }
+                        return !unfilled;
                     }
 
                 };

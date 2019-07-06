@@ -37,7 +37,7 @@
                 "relation": "THREE",
                 "metadata": {
                     "effect": {
-                        "slot": 0,
+                        "slot": "fingers",
                         "actionType": "SET_FINGERS"
                     }
 
@@ -51,7 +51,7 @@
                 "label": "1",
                 "metadata":{
                     "effect": {
-                        "slot": 0,
+                        "slot": "fingers",
                         "actionType": "SET_FINGERS"
                     }
                 }
@@ -64,7 +64,7 @@
                 "label": "2",
                 "metadata":{
                     "effect": {
-                        "slot": 0,
+                        "slot": "fingers",
                         "actionType": "SET_FINGERS"
                     }
                 }
@@ -77,7 +77,7 @@
                 "label": "4",
                 "metadata":{
                     "effect": {
-                        "slot": 0,
+                        "slot": "fingers",
                         "actionType": "SET_FINGERS"
                     }
                 }

@@ -1,4 +1,3 @@
-
 /*
  * The MIT License
  *
@@ -24,44 +23,24 @@
  */
 package com.conversationkit.nlp;
 
-import com.amazonaws.services.lexruntime.model.PostTextResult;
-import com.conversationkit.model.IConversationIntent;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  *
  * @author pdtyreus
  */
-public class LexIntent implements IConversationIntent {
+public class RegexIntentSlot {
+    private final String groupName;
+    private final boolean required;
 
-    private final PostTextResult queryResult;
-
-    public PostTextResult getPostTextResult() {
-        return queryResult;
+    public RegexIntentSlot(String groupName, boolean required) {
+        this.groupName = groupName;
+        this.required = required;
     }
 
-    public LexIntent(PostTextResult result) {
-        this.queryResult = result;
+    public String getGroupName() {
+        return groupName;
     }
 
-    @Override
-    public String getIntentId() {
-        return this.queryResult.getIntentName();
-    }
-
-    @Override
-    public Map<String, Object> getSlots() {
-        Map<String, String> params = this.queryResult.getSlots();
-        Map<String, Object> map = new HashMap();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            map.put(entry.getKey(), entry.getValue());
-        }
-        return map;
-    }
-
-    @Override
-    public boolean getAllRequiredSlotsFilled() {
-        return (this.queryResult.getSlotToElicit() == null);
+    public boolean isRequired() {
+        return required;
     }
 }

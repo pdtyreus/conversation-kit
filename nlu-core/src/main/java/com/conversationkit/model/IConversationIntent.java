@@ -44,4 +44,6 @@ public interface IConversationIntent {
      * @return map of slot keys to slot values
      */
     public Map<String,Object> getSlots();
+    
+    public boolean getAllRequiredSlotsFilled();
 }

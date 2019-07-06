@@ -46,7 +46,7 @@
                 "relation": "GREAT",
                 "metadata": {
                     "effect": {
-                        "slot": 0,
+                        "slot": "mood",
                         "actionType": "SET_MOOD"
                     }
 
@@ -60,7 +60,7 @@
                 "relation": "BAD",
                 "metadata": {
                     "effect": {
-                        "slot": 0,
+                        "slot": "mood",
                         "actionType": "SET_MOOD"
                     }
 

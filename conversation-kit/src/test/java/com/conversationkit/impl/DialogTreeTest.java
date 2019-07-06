@@ -34,23 +34,24 @@ import com.conversationkit.model.IConversationIntent;
 import com.conversationkit.model.ConversationNodeRepository;
 import com.conversationkit.model.IConversationState;
 import com.conversationkit.nlp.RegexIntentDetector;
+import com.conversationkit.nlp.RegexIntentSlot;
 import com.conversationkit.redux.Action;
 import com.conversationkit.redux.Reducer;
 import com.eclipsesource.json.JsonObject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
 import org.junit.Test;
 
 /**
@@ -96,17 +97,17 @@ public class DialogTreeTest {
     private static class DialogSideEffect implements BiFunction<IConversationIntent, IConversationState, Object> {
 
         private final String actionType;
-        private final int slot;
+        private final String slot;
 
-        public DialogSideEffect(String actionType, int slot) {
+        public DialogSideEffect(String actionType, String slot) {
             this.actionType = actionType;
             this.slot = slot;
         }
 
         @Override
         public Object apply(IConversationIntent intent, IConversationState state) {
-            final String answer = (String) intent.getSlots().get(slot + "");
-            PayloadAction<String> action = PayloadAction.build(actionType, Optional.of(answer));
+            final String answer = (String) intent.getSlots().get(slot);
+            PayloadAction<String> action = PayloadAction.build(actionType, Optional.ofNullable(answer));
 
             return action;
 
@@ -120,7 +121,7 @@ public class DialogTreeTest {
             JsonObject effect = metadata.get("effect").asObject();
             DialogSideEffect sideEffect = new DialogSideEffect(
                     effect.getString("actionType", ""),
-                    effect.getInt("slot", 0));
+                    effect.getString("slot", ""));
 
             return new DialogTreeEdge(target, intentId, label, sideEffect);
         }
@@ -152,12 +153,20 @@ public class DialogTreeTest {
 
         Map intentMap = new LinkedHashMap();
 
-        intentMap.put("ONE", "1");
-        intentMap.put("TWO", "2");
-        intentMap.put("THREE", "3");
-        intentMap.put("FOUR", "4");
+        intentMap.put("ONE", "(?<fingers>1)");
+        intentMap.put("TWO", "(?<fingers>2)");
+        intentMap.put("THREE", "(?<fingers>3)");
+        intentMap.put("FOUR", "(?<fingers>4)");
+        
+        Map slotMap = new HashMap();
+        List<RegexIntentSlot> slots = new ArrayList();
+        slots.add(new RegexIntentSlot("fingers",true));
+        slotMap.put("ONE", slots);
+        slotMap.put("TWO", slots);
+        slotMap.put("THREE", slots);
+        slotMap.put("FOUR", slots);
 
-        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
+        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap, slotMap);
 
         HashMap initialConversationState = new HashMap();
         initialConversationState.put("nodeId", 1);
@@ -234,11 +243,15 @@ public class DialogTreeTest {
         Map intentMap = new LinkedHashMap();
         intentMap.put("YES", RegexIntentDetector.YES);
         intentMap.put("NO", RegexIntentDetector.NO);
-        intentMap.put("GREAT", "\\bgreat\\b");
-        intentMap.put("BAD", "\\bbad\\b");
+        intentMap.put("GREAT", "\\b(?<mood>great)\\b");
+        intentMap.put("BAD", "\\b(?<mood>bad)\\b");
 
-        //intentMap.put("ANY", "\\w+");
-        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap);
+        Map slotMap = new HashMap();
+        List<RegexIntentSlot> slots = new ArrayList();
+        slots.add(new RegexIntentSlot("mood",true));
+        slotMap.put("GREAT", slots);
+        slotMap.put("BAD", slots);
+        RegexIntentDetector intentDetector = new RegexIntentDetector(intentMap, slotMap);
 
         HashMap initialConversationState = new HashMap();
         initialConversationState.put("nodeId", 1);

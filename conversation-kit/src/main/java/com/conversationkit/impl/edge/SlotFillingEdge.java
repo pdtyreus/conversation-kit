@@ -1,4 +1,3 @@
-
 /*
  * The MIT License
  *
@@ -22,46 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.conversationkit.nlp;
+package com.conversationkit.impl.edge;
 
-import com.amazonaws.services.lexruntime.model.PostTextResult;
+import com.conversationkit.model.IConversationEdge;
 import com.conversationkit.model.IConversationIntent;
-import java.util.HashMap;
-import java.util.Map;
+import com.conversationkit.model.IConversationState;
 
 /**
  *
  * @author pdtyreus
  */
-public class LexIntent implements IConversationIntent {
+public class SlotFillingEdge <I extends IConversationIntent, S extends IConversationState> extends ConversationEdge<I,S> {
 
-    private final PostTextResult queryResult;
-
-    public PostTextResult getPostTextResult() {
-        return queryResult;
+    public SlotFillingEdge(Integer endNodeId, String intentId) {
+        super(endNodeId, intentId);
     }
-
-    public LexIntent(PostTextResult result) {
-        this.queryResult = result;
-    }
-
-    @Override
-    public String getIntentId() {
-        return this.queryResult.getIntentName();
-    }
-
-    @Override
-    public Map<String, Object> getSlots() {
-        Map<String, String> params = this.queryResult.getSlots();
-        Map<String, Object> map = new HashMap();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            map.put(entry.getKey(), entry.getValue());
-        }
-        return map;
-    }
-
-    @Override
-    public boolean getAllRequiredSlotsFilled() {
-        return (this.queryResult.getSlotToElicit() == null);
-    }
+    
 }

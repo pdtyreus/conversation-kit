@@ -159,22 +159,26 @@ public class DirectedConversationEngine<S extends IConversationState, I extends 
             MessageHandlingResult result = new MessageHandlingResult();
             if (intent.isPresent()) {
                 I conversationIntent = intent.get();
-                dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, conversationIntent));
-                Optional<IConversationEdge> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
-                if (!outboundEdge.isPresent()) {
-                    dispatch(new ConversationAction(ActionType.EDGE_MATCH_FAILED));
+                if (conversationIntent.getAllRequiredSlotsFilled()) {
+                    dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_SUCCEEDED, conversationIntent));
+                    Optional<IConversationEdge> outboundEdge = findEdgeMatchingIntent(conversationIntent, currentNode);
+                    if (!outboundEdge.isPresent()) {
+                        dispatch(new ConversationAction(ActionType.EDGE_MATCH_FAILED));
 
-                    result.ok = false;
-                    result.errorCode = ErrorCode.EDGE_MATCHING_FAILED;
-                } else {
-                    List<Object> sideEffects = outboundEdge.get().getSideEffects(conversationIntent, store.getState());
-                    for (Object effect : sideEffects) {
-                        logger.log(Level.INFO, "Dispatching side effect {0}.", effect);
-                        dispatch(effect);
+                        result.ok = false;
+                        result.errorCode = ErrorCode.EDGE_MATCHING_FAILED;
+                    } else {
+                        List<Object> sideEffects = outboundEdge.get().getSideEffects(conversationIntent, store.getState());
+                        for (Object effect : sideEffects) {
+                            logger.log(Level.INFO, "Dispatching side effect {0}.", effect);
+                            dispatch(effect);
+                        }
+                        IConversationNode nextNode = nodeRepository.getNodeById(outboundEdge.get().getEndNodeId());
+                        dispatch(new ConversationAction<>(ActionType.EDGE_MATCH_SUCCEEDED, nextNode));
+                        result.ok = true;
                     }
-                    IConversationNode nextNode = nodeRepository.getNodeById(outboundEdge.get().getEndNodeId());
-                    dispatch(new ConversationAction<>(ActionType.EDGE_MATCH_SUCCEEDED, nextNode));
-                    result.ok = true;
+                } else {
+                    dispatch(new ConversationAction(ActionType.INTENT_UNDERSTANDING_PARTIAL, conversationIntent));
                 }
 
             } else {
